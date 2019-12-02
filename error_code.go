@@ -117,4 +117,7 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 		Stack:     stack,
 		Others:    others,
 	}
+
+
+
 }
