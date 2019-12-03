@@ -15,8 +15,11 @@ package einstutil
 
 import (
 	"encoding/json"
+	"encoding/binary"
 	"fmt"
+	"sync"
 	"io"
+	"sort"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -25,9 +28,27 @@ import (
 
 )
 
+type cube struct {
+	offset int64
+	size uint32
+}
+
+type minkowski struct {
+	cubes []cube
+}
+
+type Tile interface {
+	Before(than Tile) bool
+
+}
+
+const(
+	DefaultMinkowskiSize = 32
+)
+
 func DeferClose(c io.Closer, err *error) {
-	if cerr := c.Close(); cerr != nil && *err == nil {
-		*err = errors.WithStack(cerr)
+	if err := c.Close(); err != nil && *err == nil {
+		*err = errors.WithStack(err)
 	}
 }
 
@@ -75,6 +96,7 @@ type FieldError struct {
 // ParseUint64VarsField connects strconv.ParseUint with request variables
 // It hardcodes the base to 10 and bitsize to 64
 // Any error returned will connect the requested field to the error via FieldError
+
 func ParseUint64VarsField(vars map[string]string, varName string) (uint64, *FieldError) {
 	str, ok := vars[varName]
 	if !ok {
@@ -86,3 +108,5 @@ func ParseUint64VarsField(vars map[string]string, varName string) (uint64, *Fiel
 	}
 	return parsed, &FieldError{field: varName, error: err}
 }
+
+func (m *minkowski) foragingSearch
