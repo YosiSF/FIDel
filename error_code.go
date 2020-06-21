@@ -1,6 +1,6 @@
-//Copyright 2019 EinsteinDB, Inc.
 
-package fidel
+
+package FIDel
 
 import (
 	"fmt"
