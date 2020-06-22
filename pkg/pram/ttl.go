@@ -96,3 +96,61 @@ func (c *TTL) Remove(key uint64) {
 
 	delete(c.items, key)
 }
+
+
+
+// Len returns current cache size.
+func (c *TTL) Len() int {
+	c.RLock()
+	defer c.RUnlock()
+
+	return len(c.items)
+}
+
+// Clear removes all items in the ttl cache.
+func (c *TTL) Clear() {
+	c.Lock()
+	defer c.Unlock()
+
+	for k := range c.items {
+		delete(c.items, k)
+	}
+}
+
+func (c *TTL) doGC() {
+	ticker := time.NewTicker(c.gcInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			count := 0
+			now := time.Now()
+			c.Lock()
+			for key := range c.items {
+				if value, ok := c.items[key]; ok {
+					if value.expire.Before(now) {
+						count++
+						delete(c.items, key)
+					}
+				}
+			}
+			c.Unlock()
+			log.Debug("TTL GC items", zap.Int("count", count))
+		case <-c.ctx.Done():
+			return
+		}
+	}
+}
+
+// TTLUint64 is simple TTL saves only uint64s.
+type TTLUint64 struct {
+	*TTL
+}
+
+// NewIDTTL creates a new TTLUint64 cache.
+func NewIDTTL(ctx context.Context, gcInterval, ttl time.Duration) *TTLUint64 {
+	return &TTLUint64{
+		TTL: NewTTL(ctx, gcInterval, ttl),
+	}
+}

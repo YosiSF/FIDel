@@ -28,6 +28,13 @@ import (
 const apiPrefix = "/FIDel"
 
 // NewHandler creates a HTTP handler for API.
+
+/*
+Most context-aware metadata can be propagate as a header. Some transport layers may not provide headers or headers
+may not meet the requirements of the propagated data (e.g. due to size limitations and lack of encryption).
+In such cases, it is up to the implementation to sort out how to
+ propagate the context.
+*/
 func NewHandler(ctx context.Context, svr *server.Server) (http.Handler, server.ServiceGroup, error) {
 	group := server.ServiceGroup{
 		Name:   "core",

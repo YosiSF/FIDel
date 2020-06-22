@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net/url"
+	"time"
 
 	"github.com/pkg/errors"
 	"go.etcd.io/etcd/pkg/transport"
@@ -72,3 +73,34 @@ func (s SecurityConfig) GetOneAllowedCN() (string, error) {
 		return "", errors.New("Currently only supports one CN")
 	}
 }
+
+// GetClientConn returns a gRPC client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+// established, and connecting happens in the background). To make it a blocking
+// dial, use WithBlock() dial option.
+//
+// In the non-blocking case, the ctx does not act against the connection. It
+// only controls the setup steps.
+//
+// In the blocking case, ctx can be used to cancel or expire the pending
+// connection. Once this function returns, the cancellation and expiration of
+// ctx will be noop. Users should call ClientConn.Close to terminate all the
+// pending operations after this function returns.
+func GetClientConn(ctx context.Context, addr string, tlsCfg *tls.Config, do ...grpc.DialOption) (*grpc.ClientConn, error) {
+	opt := grpc.WithInsecure()
+	if tlsCfg != nil {
+		creds := credentials.NewTLS(tlsCfg)
+		opt = grpc.WithTransportCredentials(creds)
+	}
+	u, err := url.Parse(addr)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	cc, err := grpc.DialContext(ctx, u.Host, append(do, opt)...)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return cc, nil
+}
+
