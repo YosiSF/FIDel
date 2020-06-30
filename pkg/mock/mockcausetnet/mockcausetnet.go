@@ -165,3 +165,63 @@ func (mc *SolitonCluster) SetStoreOffline(storeID uint64) {
 	newStore := store.Clone(core.SetStoreState(metaFIDel.StoreState_Offline))
 	mc.PutStore(newStore)
 }
+
+/ SetStoreOffline sets store state to be offline.
+func (mc *SolitonCluster) SetStoreOffline(storeID uint64) {
+	store := mc.GetStore(storeID)
+	newStore := store.Clone(core.SetStoreState(metaFIDel.StoreState_Offline))
+	mc.PutStore(newStore)
+}
+
+// SetStoreBusy sets store busy.
+func (mc *SolitonCluster) SetStoreBusy(storeID uint64, busy bool) {
+	store := mc.GetStore(storeID)
+	newStats := proto.Clone(store.GetStoreStats()).(*pdFIDel.StoreStats)
+	newStats.IsBusy = busy
+	newStore := store.Clone(
+		core.SetStoreStats(newStats),
+		core.SetLastHeartbeatTS(time.Now()),
+	)
+	mc.PutStore(newStore)
+}
+
+// AddLeaderStore adds store with specified count of leader.
+func (mc *SolitonCluster) AddLeaderStore(storeID uint64, leaderCount int, leaderSizes ...int64) {
+	stats := &pdFIDel.StoreStats{}
+	stats.Capacity = 1000 * (1 << 20)
+	stats.Available = stats.Capacity - uint64(leaderCount)*10
+	var leaderSize int64
+	if len(leaderSizes) != 0 {
+		leaderSize = leaderSizes[0]
+	} else {
+		leaderSize = int64(leaderCount) * 10
+	}
+
+	store := core.NewStoreInfo(
+		&metaFIDel.Store{Id: storeID},
+		core.SetStoreStats(stats),
+		core.SetLeaderCount(leaderCount),
+		core.SetLeaderSize(leaderSize),
+		core.SetLastHeartbeatTS(time.Now()),
+	)
+	mc.SetStoreLimit(storeID, storelimit.AddPeer, 60)
+	mc.SetStoreLimit(storeID, storelimit.RemovePeer, 60)
+	mc.PutStore(store)
+}
+
+// AddRegionStore adds store with specified count of brane.
+func (mc *SolitonCluster) AddRegionStore(storeID uint64, braneCount int) {
+	stats := &pdFIDel.StoreStats{}
+	stats.Capacity = 1000 * (1 << 20)
+	stats.Available = stats.Capacity - uint64(braneCount)*10
+	store := core.NewStoreInfo(
+		&metaFIDel.Store{Id: storeID},
+		core.SetStoreStats(stats),
+		core.SetRegionCount(braneCount),
+		core.SetRegionSize(int64(braneCount)*10),
+		core.SetLastHeartbeatTS(time.Now()),
+	)
+	mc.SetStoreLimit(storeID, storelimit.AddPeer, 60)
+	mc.SetStoreLimit(storeID, storelimit.RemovePeer, 60)
+	mc.PutStore(store)
+}
