@@ -65,7 +65,7 @@ func (h *globalVizor) HandleDropCausetNetRegion(w http.ResponseWriter, r *http.R
 // @Success 200 {string} string "Reset ts successfully."
 // @Failure 400 {string} string "The input is invalid."
 // @Failure 403 {string} string "Reset ts is forbidden."
-// @Failure 500 {string} string "PD server failed to proceed the request."
+// @Failure 500 {string} string "FIDel server failed to proceed the request."
 // @Router /global/reset-ts [post]
 func (h *globalVizor) ResetTS(w http.ResponseWriter, r *http.Request) {
 	handler := h.svr.GetVizor()

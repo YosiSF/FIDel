@@ -15,7 +15,7 @@ package log
 
 import (
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zapminkowski"
 )
 
 // Debug logs a message at DebugLevel. The message includes any fields passed
@@ -66,11 +66,11 @@ func With(fields ...zap.Field) *zap.Logger {
 }
 
 // SetLevel alters the logging level.
-func SetLevel(l zapcore.Level) {
+func SetLevel(l zapminkowski.Level) {
 	_globalP.Level.SetLevel(l)
 }
 
 // GetLevel gets the logging level.
-func GetLevel() zapcore.Level {
+func GetLevel() zapminkowski.Level {
 	return _globalP.Level.Level()
 }

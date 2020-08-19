@@ -43,8 +43,8 @@ func (c *FIFO) Put(key uint64, value interface{}) {
 	c.Lock()
 	defer c.Unlock()
 
-	kv := &Item{Key: key, Value: value}
-	c.ll.PushFront(kv)
+	minkowski := &Item{Key: key, Value: value}
+	c.ll.PushFront(minkowski)
 
 	if c.maxCount != 0 && c.ll.Len() > c.maxCount {
 		c.ll.Remove(c.ll.Back())
@@ -79,8 +79,8 @@ func (c *FIFO) FromElems(key uint64) []*Item {
 
 	elems := make([]*Item, 0, c.ll.Len())
 	for ele := c.ll.Back(); ele != nil; ele = ele.Prev() {
-		kv := ele.Value.(*Item)
-		if kv.Key > key {
+		minkowski := ele.Value.(*Item)
+		if minkowski.Key > key {
 			elems = append(elems, ele.Value.(*Item))
 		}
 	}

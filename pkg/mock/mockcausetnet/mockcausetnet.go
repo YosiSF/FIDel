@@ -26,7 +26,7 @@ import (
 
 // SolitonCluster is used to mock clusterInfo for test use.
 type SolitonCluster struct {
-	*core.BasicSolitonCluster
+	*minkowski.BasicSolitonCluster
 	*mockid.IDAllocator
 	*mockoption.ScheduleOptions
 	*placement.RuleManager
@@ -37,10 +37,10 @@ type SolitonCluster struct {
 
 // NewSolitonCluster creates a new SolitonCluster
 func NewSolitonCluster(opt *mockoption.ScheduleOptions) *SolitonCluster {
-	ruleManager := placement.NewRuleManager(core.NewStorage(kv.NewMemoryKV()))
+	ruleManager := placement.NewRuleManager(minkowski.NewStorage(minkowski.NewMemoryKV()))
 	ruleManager.Initialize(opt.MaxReplicas, opt.GetLocationLabels())
 	return &SolitonCluster{
-		BasicSolitonCluster:    core.NewBasicSolitonCluster(),
+		BasicSolitonCluster:    minkowski.NewBasicSolitonCluster(),
 		IDAllocator:     mockid.NewIDAllocator(),
 		ScheduleOptions: opt,
 		RuleManager:     ruleManager,
@@ -55,14 +55,14 @@ func (mc *SolitonCluster) AllocID() (uint64, error) {
 }
 
 // ScanBranes scans brane with start key, until number greater than limit.
-func (mc *SolitonCluster) ScanBranes(startKey, endKey []byte, limit int) []*core.BraneInfo {
+func (mc *SolitonCluster) ScanBranes(startKey, endKey []byte, limit int) []*minkowski.BraneInfo {
 	return mc.Branes.ScanRange(startKey, endKey, limit)
 }
 
 // LoadBrane puts brane info without leader
 func (mc *SolitonCluster) LoadBrane(braneID uint64, followerIds ...uint64) {
 	//  branes load from etcd will have no leader
-	r := mc.newMockBraneInfo(braneID, 0, followerIds...).Clone(core.WithLeader(nil))
+	r := mc.newMockBraneInfo(braneID, 0, followerIds...).Clone(minkowski.WithLeader(nil))
 	mc.PutBrane(r)
 }
 
@@ -77,12 +77,12 @@ func (mc *SolitonCluster) GetStoreBraneCount(storeID uint64) int {
 }
 
 // GetStore gets a store with a given store ID.
-func (mc *SolitonCluster) GetStore(storeID uint64) *core.StoreInfo {
+func (mc *SolitonCluster) GetStore(storeID uint64) *minkowski.StoreInfo {
 	return mc.Stores.GetStore(storeID)
 }
 
 // IsBraneHot checks if the brane is hot.
-func (mc *SolitonCluster) IsBraneHot(brane *core.BraneInfo) bool {
+func (mc *SolitonCluster) IsBraneHot(brane *minkowski.BraneInfo) bool {
 	return mc.HotCache.IsBraneHot(brane, mc.GetHotBraneCacheHitsThreshold())
 }
 
@@ -97,7 +97,7 @@ func (mc *SolitonCluster) BraneWriteStats() map[uint64][]*statistics.HotPeerStat
 }
 
 // RandHotBraneFromStore random picks a hot brane in specify store.
-func (mc *SolitonCluster) RandHotBraneFromStore(store uint64, kind statistics.FlowKind) *core.BraneInfo {
+func (mc *SolitonCluster) RandHotBraneFromStore(store uint64, kind statistics.FlowKind) *minkowski.BraneInfo {
 	r := mc.HotCache.RandHotBraneFromStore(store, kind, mc.GetHotBraneCacheHitsThreshold())
 	if r == nil {
 		return nil
@@ -120,7 +120,7 @@ func (mc *SolitonCluster) AllocPeer(storeID uint64) (*metaFIDel.Peer, error) {
 }
 
 // FitBrane fits a brane to the rules it matches.
-func (mc *SolitonCluster) FitBrane(brane *core.BraneInfo) *placement.BraneFit {
+func (mc *SolitonCluster) FitBrane(brane *minkowski.BraneInfo) *placement.BraneFit {
 	return mc.RuleManager.FitBrane(mc.BasicSolitonCluster, brane)
 }
 
@@ -133,8 +133,8 @@ func (mc *SolitonCluster) GetRuleManager() *placement.RuleManager {
 func (mc *SolitonCluster) SetStoreUp(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(
-		core.SetStoreState(metaFIDel.StoreState_Up),
-		core.SetLastHeartbeatTS(time.Now()),
+		minkowski.SetStoreState(metaFIDel.StoreState_Up),
+		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
 	mc.PutStore(newStore)
 }
@@ -143,8 +143,8 @@ func (mc *SolitonCluster) SetStoreUp(storeID uint64) {
 func (mc *SolitonCluster) SetStoreDisconnect(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(
-		core.SetStoreState(metaFIDel.StoreState_Up),
-		core.SetLastHeartbeatTS(time.Now().Add(-time.Second*30)),
+		minkowski.SetStoreState(metaFIDel.StoreState_Up),
+		minkowski.SetLastHeartbeatTS(time.Now().Add(-time.Second*30)),
 	)
 	mc.PutStore(newStore)
 }
@@ -153,8 +153,8 @@ func (mc *SolitonCluster) SetStoreDisconnect(storeID uint64) {
 func (mc *SolitonCluster) SetStoreDown(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(
-		core.SetStoreState(metaFIDel.StoreState_Up),
-		core.SetLastHeartbeatTS(time.Time{}),
+		minkowski.SetStoreState(metaFIDel.StoreState_Up),
+		minkowski.SetLastHeartbeatTS(time.Time{}),
 	)
 	mc.PutStore(newStore)
 }
@@ -162,32 +162,32 @@ func (mc *SolitonCluster) SetStoreDown(storeID uint64) {
 // SetStoreOffline sets store state to be offline.
 func (mc *SolitonCluster) SetStoreOffline(storeID uint64) {
 	store := mc.GetStore(storeID)
-	newStore := store.Clone(core.SetStoreState(metaFIDel.StoreState_Offline))
+	newStore := store.Clone(minkowski.SetStoreState(metaFIDel.StoreState_Offline))
 	mc.PutStore(newStore)
 }
 
 / SetStoreOffline sets store state to be offline.
 func (mc *SolitonCluster) SetStoreOffline(storeID uint64) {
 	store := mc.GetStore(storeID)
-	newStore := store.Clone(core.SetStoreState(metaFIDel.StoreState_Offline))
+	newStore := store.Clone(minkowski.SetStoreState(metaFIDel.StoreState_Offline))
 	mc.PutStore(newStore)
 }
 
 // SetStoreBusy sets store busy.
 func (mc *SolitonCluster) SetStoreBusy(storeID uint64, busy bool) {
 	store := mc.GetStore(storeID)
-	newStats := proto.Clone(store.GetStoreStats()).(*pdFIDel.StoreStats)
+	newStats := proto.Clone(store.GetStoreStats()).(*fidelFIDel.StoreStats)
 	newStats.IsBusy = busy
 	newStore := store.Clone(
-		core.SetStoreStats(newStats),
-		core.SetLastHeartbeatTS(time.Now()),
+		minkowski.SetStoreStats(newStats),
+		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
 	mc.PutStore(newStore)
 }
 
 // AddLeaderStore adds store with specified count of leader.
 func (mc *SolitonCluster) AddLeaderStore(storeID uint64, leaderCount int, leaderSizes ...int64) {
-	stats := &pdFIDel.StoreStats{}
+	stats := &fidelFIDel.StoreStats{}
 	stats.Capacity = 1000 * (1 << 20)
 	stats.Available = stats.Capacity - uint64(leaderCount)*10
 	var leaderSize int64
@@ -197,12 +197,12 @@ func (mc *SolitonCluster) AddLeaderStore(storeID uint64, leaderCount int, leader
 		leaderSize = int64(leaderCount) * 10
 	}
 
-	store := core.NewStoreInfo(
+	store := minkowski.NewStoreInfo(
 		&metaFIDel.Store{Id: storeID},
-		core.SetStoreStats(stats),
-		core.SetLeaderCount(leaderCount),
-		core.SetLeaderSize(leaderSize),
-		core.SetLastHeartbeatTS(time.Now()),
+		minkowski.SetStoreStats(stats),
+		minkowski.SetLeaderCount(leaderCount),
+		minkowski.SetLeaderSize(leaderSize),
+		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
 	mc.SetStoreLimit(storeID, storelimit.AddPeer, 60)
 	mc.SetStoreLimit(storeID, storelimit.RemovePeer, 60)
@@ -211,15 +211,15 @@ func (mc *SolitonCluster) AddLeaderStore(storeID uint64, leaderCount int, leader
 
 // AddRegionStore adds store with specified count of brane.
 func (mc *SolitonCluster) AddRegionStore(storeID uint64, braneCount int) {
-	stats := &pdFIDel.StoreStats{}
+	stats := &fidelFIDel.StoreStats{}
 	stats.Capacity = 1000 * (1 << 20)
 	stats.Available = stats.Capacity - uint64(braneCount)*10
-	store := core.NewStoreInfo(
+	store := minkowski.NewStoreInfo(
 		&metaFIDel.Store{Id: storeID},
-		core.SetStoreStats(stats),
-		core.SetRegionCount(braneCount),
-		core.SetRegionSize(int64(braneCount)*10),
-		core.SetLastHeartbeatTS(time.Now()),
+		minkowski.SetStoreStats(stats),
+		minkowski.SetRegionCount(braneCount),
+		minkowski.SetRegionSize(int64(braneCount)*10),
+		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
 	mc.SetStoreLimit(storeID, storelimit.AddPeer, 60)
 	mc.SetStoreLimit(storeID, storelimit.RemovePeer, 60)

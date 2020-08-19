@@ -15,18 +15,18 @@ package log
 
 import (
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zapminkowski"
 )
 
 // InitLogger initializes a zap logger.
 func InitLogger(cfg *Config, opts ...zap.Option) (*zap.Logger, *ZapProperties, error) {
-	var output zapcore.WriteSyncer
+	var output zapminkowski.WriteSyncer
 	if len(cfg.File.Filename) > 0 {
 		lg, err := initFileLog(&cfg.File)
 		if err != nil {
 			return nil, nil, err
 		}
-		output = zapcore.AddSync(lg)
+		output = zapminkowski.AddSync(lg)
 	} else {
 		stdOut, close, err := zap.Open([]string{"stdout"}...)
 		if err != nil {
@@ -39,17 +39,17 @@ func InitLogger(cfg *Config, opts ...zap.Option) (*zap.Logger, *ZapProperties, e
 }
 
 // InitLoggerWithWriteSyncer initializes a zap logger with specified  write syncer.
-func InitLoggerWithWriteSyncer(cfg *Config, output zapcore.WriteSyncer, opts ...zap.Option) (*zap.Logger, *ZapProperties, error) {
+func InitLoggerWithWriteSyncer(cfg *Config, output zapminkowski.WriteSyncer, opts ...zap.Option) (*zap.Logger, *ZapProperties, error) {
 	level := zap.NewAtomicLevel()
 	err := level.UnmarshalText([]byte(cfg.Level))
 	if err != nil {
 		return nil, nil, err
 	}
-	core := NewTextCore(newZapTextEncoder(cfg), output, level)
+	minkowski := NewTextCore(newZapTextEncoder(cfg), output, level)
 	opts = append(cfg.buildOptions(output), opts...)
-	lg := zap.New(core, opts...)
+	lg := zap.New(minkowski, opts...)
 	r := &ZapProperties{
-		Core:   core,
+		Core:   minkowski,
 		Syncer: output,
 		Level:  level,
 	}

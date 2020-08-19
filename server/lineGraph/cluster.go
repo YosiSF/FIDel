@@ -22,7 +22,7 @@ import (
 	"time"
 
 
-"github.com/coreos/go-semver/semver"
+"github.com/minkowskios/go-semver/semver"
 "github.com/gogo/protobuf/proto"
 
 
@@ -40,10 +40,10 @@ type Server interface {
 	GetAllocator() *id.AllocatorImpl
 	GetConfig() *config.Config
 	GetPersistOptions() *config.PersistOptions
-	GetStorage() *core.Storage
+	GetStorage() *minkowski.Storage
 	GetHBStreams() opt.HeartbeatStreams
 	GetRaftSolitonCluster() *RaftSolitonCluster
-	GetBasicSolitonCluster() *core.BasicSolitonCluster
+	GetBasicSolitonCluster() *minkowski.BasicSolitonCluster
 	ReplicateFileToAllMembers(ctx context.Context, name string, data []byte) error
 }
 
@@ -64,15 +64,15 @@ type RaftSolitonCluster struct {
 	clusterRoot string
 
 	// cached cluster info
-	core    *core.BasicSolitonCluster
+	minkowski    *minkowski.BasicSolitonCluster
 	meta    *metaFIDel.SolitonCluster
 	opt     *config.PersistOptions
-	storage *core.Storage
+	storage *minkowski.Storage
 	id      id.Allocator
 	limiter *StoreLimiter
 
 	prepareChecker *prepareChecker
-	changedRegions chan *core.RegionInfo
+	changedRegions chan *minkowski.RegionInfo
 
 	labelLevelStats *statistics.LabelStatistics
 	braneStats     *statistics.RegionStatistics

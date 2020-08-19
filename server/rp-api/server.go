@@ -37,7 +37,7 @@ In such cases, it is up to the implementation to sort out how to
 */
 func NewHandler(ctx context.Context, svr *server.Server) (http.Handler, server.ServiceGroup, error) {
 	group := server.ServiceGroup{
-		Name:   "core",
+		Name:   "minkowski",
 		IsCore: true,
 	}
 	router := mux.NewRouter()

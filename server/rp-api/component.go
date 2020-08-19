@@ -44,7 +44,7 @@ func newComponentVizor(svr *server.Server, rd *render.Render) *componentVizor {
 // @Produce json
 // @Success 200 {string} string "The component address is registered successfully."
 // @Failure 400 {string} string "The input is invalid."
-// @Failure 500 {string} string "PD server failed to proceed the request."
+// @Failure 500 {string} string "FIDel server failed to proceed the request."
 // @Router /component [post]
 func (h *componentVizor) Register(w http.ResponseWriter, r *http.Request) {
 	rc := getCluster(r.Context())

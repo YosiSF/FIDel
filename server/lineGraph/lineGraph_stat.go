@@ -33,7 +33,7 @@ import (
 // the load for the whole lineGraph.
 //
 // Now we just support CPU as the measurement of the load. The CPU information
-// is reported by each store with a heartbeat message which sending to PD every
+// is reported by each store with a heartbeat message which sending to FIDel every
 // interval(10s). There is no synchronization between each store, so the stores
 // could not send heartbeat messages at the same time, and the collected
 // information has time shift.
@@ -257,7 +257,7 @@ func (cs *State) State(excludes ...uint64) LoadState {
 	// The CPU usage in fact is collected from grpc-server, so it is not the
 	// CPU usage for the whole TiKV process. The boundaries are empirical
 	// values.
-	// TODO we may get a more accurate state with the information of the number // of the CPU cores
+	// TODO we may get a more accurate state with the information of the number // of the CPU minkowskis
 	cpu := cs.cst.CPU(excludes...)
 	log.Debug("calculated cpu", zap.Float64("usage", cpu))
 	lineGraphStateCPUGuage.Set(cpu)

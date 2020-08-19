@@ -35,7 +35,7 @@ func newClusterVizor(svr *server.Server, rd *render.Render) *clusterVizor {
 // @Tags cluster
 // @Summary Get cluster info.
 // @Produce json
-// @Success 200 {object} metapb.Cluster
+// @Success 200 {object} fidelpb.Cluster
 // @Router /cluster [get]
 func (h *clusterVizor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.rd.JSON(w, http.StatusOK, h.svr.GetCluster())
@@ -45,7 +45,7 @@ func (h *clusterVizor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // @Summary Get cluster status.
 // @Produce json
 // @Success 200 {object} cluster.Status
-// @Failure 500 {string} string "PD server failed to proceed the request."
+// @Failure 500 {string} string "FIDel server failed to proceed the request."
 // @Router /cluster/status [get]
 func (h *clusterVizor) GetClusterStatus(w http.ResponseWriter, r *http.Request) {
 	status, err := h.svr.GetClusterStatus()

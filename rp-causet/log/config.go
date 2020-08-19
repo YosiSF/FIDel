@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zapminkowski"
 )
 
 const (
@@ -62,22 +62,22 @@ type Config struct {
 	// global CPU and I/O load that logging puts on your process while attempting
 	// to preserve a representative subset of your logs.
 	//
-	// Values configured here are per-second. See zapcore.NewSampler for details.
+	// Values configured here are per-second. See zapminkowski.NewSampler for details.
 	Sampling *zap.SamplingConfig `toml:"sampling" json:"sampling"`
 }
 
 // ZapProperties records some information about zap.
 type ZapProperties struct {
-	Core   zapcore.Core
-	Syncer zapcore.WriteSyncer
+	Core   zapminkowski.Core
+	Syncer zapminkowski.WriteSyncer
 	Level  zap.AtomicLevel
 }
 
-func newZapTextEncoder(cfg *Config) zapcore.Encoder {
+func newZapTextEncoder(cfg *Config) zapminkowski.Encoder {
 	return NewTextEncoder(cfg)
 }
 
-func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
+func (cfg *Config) buildOptions(errSink zapminkowski.WriteSyncer) []zap.Option {
 	opts := []zap.Option{zap.ErrorOutput(errSink)}
 
 	if cfg.Development {
@@ -97,8 +97,8 @@ func (cfg *Config) buildOptions(errSink zapcore.WriteSyncer) []zap.Option {
 	}
 
 	if cfg.Sampling != nil {
-		opts = append(opts, zap.WrapCore(func(core zapcore.Core) zapcore.Core {
-			return zapcore.NewSampler(core, time.Second, int(cfg.Sampling.Initial), int(cfg.Sampling.Thereafter))
+		opts = append(opts, zap.WrapCore(func(minkowski zapminkowski.Core) zapminkowski.Core {
+			return zapminkowski.NewSampler(minkowski, time.Second, int(cfg.Sampling.Initial), int(cfg.Sampling.Thereafter))
 		}))
 	}
 	return opts
