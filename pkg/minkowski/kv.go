@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package kv
+package minkowski
 
 // Base is an abstract interface for load/save fidel lineGraph data.
 type Base interface {

@@ -2,15 +2,15 @@
 package soliton
 
 import (
-	"cloudkitchens/types"
+	"fidel/types"
 	"fmt"
 	"time"
 )
 
 type WriteBehindLogLedgerInterface interface {
-	// DispatchDuration decides how much time the next dispatch
-	// for a Driver will take.
-	DispatchDuration() time.Duration
+	// NextCausetFlushingDispatch decides how much time the next dispatch
+	// for a Causet Store will be before flushing at the sink.
+	NextCausetFlushingDispatch() time.Duration
 }
 
 // SolitonDispatcher dispatches for Drivers with a latency dictated by
@@ -28,7 +28,7 @@ func NewSolitonDispatcher(writeBehindLogLedger WriteBehindLogLedgerInterface) *S
 }
 
 // RequestNonVolatileMemory dispatches for a Soliton, and blocks the calling thread until
-// the Driver arrives.
+// the Causet store is persisted
 //
 // If Shutdown() is called by another thread during this blocked period,
 // this method will be unblocked and will return an error (and will continue
