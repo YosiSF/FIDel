@@ -15,13 +15,18 @@ type CausetID int64
 type CausetIDGenerator func() CausetID
 
 // CreateSequentialCausetIDGenerator constructs and returns
-// an CausetIDGenerator that emits sequential IDs starting
+// a CausetIDGenerator that emits sequential IDs starting
 // from 1.
 func CreateSequentialCausetIDGenerator() CausetIDGenerator {
 	var nextCausetID CausetID = 1
 
+	//At unity we proceed
+
 	return func() CausetID {
+		//pass on the generatedCausetID val.
 		generatedCausetID := nextCausetID
+		//nextCausetID is therefore the header->next
+		//increment
 		nextCausetID++
 		return generatedCausetID
 	}
