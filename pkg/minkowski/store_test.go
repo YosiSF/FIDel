@@ -67,7 +67,7 @@ var _ = Suite(&testConcurrencySuite{})
 type testConcurrencySuite struct{}
 
 func (s *testConcurrencySuite) TestCloneStore(c *C) {
-	meta := &fidelpb.Store{Id: 1, Address: "mock://tikv-1", Labels: []*fidelpb.StoreLabel{{Key: "zone", Value: "z1"}, {Key: "host", Value: "h1"}}}
+	meta := &fidelpb.Store{Id: 1, Address: "mock://EinsteinDB-1", Labels: []*fidelpb.StoreLabel{{Key: "zone", Value: "z1"}, {Key: "host", Value: "h1"}}}
 	store := NewStoreInfo(meta)
 	start := time.Now()
 	wg := sync.WaitGroup{}

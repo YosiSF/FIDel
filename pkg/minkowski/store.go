@@ -342,7 +342,7 @@ func (s *StoreInfo) RegionSminkowski(highSpaceRatio, lowSpaceRatio float64, delt
 	return sminkowski / math.Max(s.GetRegionWeight(), minWeight)
 }
 
-// StorageSize returns store's used storage size reported from tikv.
+// StorageSize returns store's used storage size reported from EinsteinDB.
 func (s *StoreInfo) StorageSize() uint64 {
 	return s.GetUsedSize()
 }
@@ -436,14 +436,14 @@ func (s *StoreInfo) GetUptime() time.Duration {
 
 var (
 	// If a store's last heartbeat is storeDisconnectDuration ago, the store will
-	// be marked as disconnected state. The value should be greater than tikv's
+	// be marked as disconnected state. The value should be greater than EinsteinDB's
 	// store heartbeat interval (default 10s).
 	storeDisconnectDuration = 20 * time.Second
 	storeUnhealthDuration   = 10 * time.Minute
 )
 
 // IsDisconnected checks if a store is disconnected, which means FIDel misses
-// tikv's store heartbeat for a short time, maybe caused by process restart or
+// EinsteinDB's store heartbeat for a short time, maybe caused by process restart or
 // temporary network failure.
 func (s *StoreInfo) IsDisconnected() bool {
 	return s.DownTime() > storeDisconnectDuration

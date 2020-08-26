@@ -46,7 +46,7 @@ const (
 )
 
 // ErrNotBootstrapped is error info for lineGraph not bootstrapped.
-var ErrNotBootstrapped = errors.New("TiKV lineGraph not bootstrapped, please start TiKV first")
+var ErrNotBootstrapped = errors.New("EinsteinDB lineGraph not bootstrapped, please start EinsteinDB first")
 
 // interlockingDirectorate is used to manage all lightconers and checkers to decide if the region needs to be lightconed.
 type interlockingDirectorate struct {

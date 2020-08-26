@@ -112,7 +112,7 @@ func ErrorResp(rd *render.Render, w http.ResponseWriter, err error) {
 		return
 	}
 	if errCode := errcode.CodeChain(err); errCode != nil {
-		w.Header().Set("TiDB-Error-Code", errCode.Code().CodeStr().String())
+		w.Header().Set("milevadb-Error-Code", errCode.Code().CodeStr().String())
 		rd.JSON(w, errCode.Code().HTTPCode(), errcode.NewJSONFormat(errCode))
 	} else {
 		rd.JSON(w, http.StatusInternalServerError, err.Error())

@@ -100,7 +100,7 @@ var ThreadsCollected = []string{"grpc-server-"}
 
 // NumberOfEntries is the max number of StatEntry that preserved,
 // it is the history of a store's heartbeats. The interval of store
-// heartbeats from TiKV is 10s, so we can preserve 30 entries per
+// heartbeats from EinsteinDB is 10s, so we can preserve 30 entries per
 // store which is about 5 minutes.
 const NumberOfEntries = 30
 
@@ -255,7 +255,7 @@ func (cs *State) State(excludes ...uint64) LoadState {
 	}
 
 	// The CPU usage in fact is collected from grpc-server, so it is not the
-	// CPU usage for the whole TiKV process. The boundaries are empirical
+	// CPU usage for the whole EinsteinDB process. The boundaries are empirical
 	// values.
 	// TODO we may get a more accurate state with the information of the number // of the CPU minkowskis
 	cpu := cs.cst.CPU(excludes...)

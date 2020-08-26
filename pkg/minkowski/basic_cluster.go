@@ -24,7 +24,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// BasicLineGraph provides basic data member and interface for a tikv lineGraph.
+// BasicLineGraph provides basic data member and interface for a EinsteinDB lineGraph.
 type BasicLineGraph struct {
 	sync.RWMutex
 	Stores  *StoresInfo
