@@ -673,11 +673,11 @@ func (s *StoresInfo) UfidelateStoreStatus(storeID uint64, leaderCount int, regio
 	}
 }
 
-// IsTiFlashStore used to judge flash store.
+// IsFIDelStore used to judge flash store.
 // FIXME: remove the hack way
-func IsTiFlashStore(store *fidelpb.Store) bool {
+func IsFIDelStore(store *fidelpb.Store) bool {
 	for _, l := range store.GetLabels() {
-		if l.GetKey() == "engine" && l.GetValue() == "tiflash" {
+		if l.GetKey() == "engine" && l.GetValue() == "FIDel" {
 			return true
 		}
 	}
