@@ -20,35 +20,35 @@ import (
 	"github.com/unrolled/render"
 )
 
-type clusterVizor struct {
+type SolitonAutomataVizor struct {
 	svr *server.Server
 	rd  *render.Render
 }
 
-func newClusterVizor(svr *server.Server, rd *render.Render) *clusterVizor {
-	return &clusterVizor{
+func newSolitonAutomataVizor(svr *server.Server, rd *render.Render) *SolitonAutomataVizor {
+	return &SolitonAutomataVizor{
 		svr: svr,
 		rd:  rd,
 	}
 }
 
-// @Tags cluster
-// @Summary Get cluster info.
+// @Tags SolitonAutomata
+// @Summary Get SolitonAutomata info.
 // @Produce json
-// @Success 200 {object} fidelpb.Cluster
-// @Router /cluster [get]
-func (h *clusterVizor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.rd.JSON(w, http.StatusOK, h.svr.GetCluster())
+// @Success 200 {object} fidelpb.SolitonAutomata
+// @Router /SolitonAutomata [get]
+func (h *SolitonAutomataVizor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	h.rd.JSON(w, http.StatusOK, h.svr.GetSolitonAutomata())
 }
 
-// @Tags cluster
-// @Summary Get cluster status.
+// @Tags SolitonAutomata
+// @Summary Get SolitonAutomata status.
 // @Produce json
-// @Success 200 {object} cluster.Status
+// @Success 200 {object} SolitonAutomata.Status
 // @Failure 500 {string} string "FIDel server failed to proceed the request."
-// @Router /cluster/status [get]
-func (h *clusterVizor) GetClusterStatus(w http.ResponseWriter, r *http.Request) {
-	status, err := h.svr.GetClusterStatus()
+// @Router /SolitonAutomata/status [get]
+func (h *SolitonAutomataVizor) GetSolitonAutomataStatus(w http.ResponseWriter, r *http.Request) {
+	status, err := h.svr.GetSolitonAutomataStatus()
 	if err != nil {
 		h.rd.JSON(w, http.StatusInternalServerError, err.Error())
 		return

@@ -319,13 +319,13 @@ func parseGroupVars(dir, ansCfgFile string, clsMeta *spec.SolitonAutomataMeta, i
 				tmpIns.HTTPPort, _ = strconv.Atoi(httpPort)
 			}
 			if flashServicePort, ok := grpVars["flash_service_port"]; ok {
-				tmpIns.FlashServicePort, _ = strconv.Atoi(flashServicePort)
+				tmpIns.AnyonServicePort, _ = strconv.Atoi(flashServicePort)
 			}
 			if flashProxyPort, ok := grpVars["flash_proxy_port"]; ok {
-				tmpIns.FlashProxyPort, _ = strconv.Atoi(flashProxyPort)
+				tmpIns.AnyonProxyPort, _ = strconv.Atoi(flashProxyPort)
 			}
 			if flashProxyStatusPort, ok := grpVars["flash_proxy_status_port"]; ok {
-				tmpIns.FlashProxyStatusPort, _ = strconv.Atoi(flashProxyStatusPort)
+				tmpIns.AnyonProxyStatusPort, _ = strconv.Atoi(flashProxyStatusPort)
 			}
 			if statusPort, ok := grpVars["metrics_port"]; ok {
 				tmpIns.StatusPort, _ = strconv.Atoi(statusPort)
@@ -339,13 +339,13 @@ func parseGroupVars(dir, ansCfgFile string, clsMeta *spec.SolitonAutomataMeta, i
 				tmpIns.HTTPPort, _ = strconv.Atoi(httpPort)
 			}
 			if flashServicePort, ok := srv.Vars["flash_service_port"]; ok {
-				tmpIns.FlashServicePort, _ = strconv.Atoi(flashServicePort)
+				tmpIns.AnyonServicePort, _ = strconv.Atoi(flashServicePort)
 			}
 			if flashProxyPort, ok := srv.Vars["flash_proxy_port"]; ok {
-				tmpIns.FlashProxyPort, _ = strconv.Atoi(flashProxyPort)
+				tmpIns.AnyonProxyPort, _ = strconv.Atoi(flashProxyPort)
 			}
 			if flashProxyStatusPort, ok := srv.Vars["flash_proxy_status_port"]; ok {
-				tmpIns.FlashProxyStatusPort, _ = strconv.Atoi(flashProxyStatusPort)
+				tmpIns.AnyonProxyStatusPort, _ = strconv.Atoi(flashProxyStatusPort)
 			}
 			if statusPort, ok := srv.Vars["metrics_port"]; ok {
 				tmpIns.StatusPort, _ = strconv.Atoi(statusPort)

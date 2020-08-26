@@ -72,7 +72,7 @@ func newCompletionCmd() *cobra.Command {
 
 // Followed the trick https://github.com/kubernetes/kubectl/blob/master/pkg/cmd/completion/completion.go#L145.
 func genCompletionZsh(out io.Writer, fidel *cobra.Command) error {
-	zshHead := "#compdef fidel\n"
+	zshHead := "#comfidelef fidel\n"
 	_, _ = out.Write([]byte(zshHead))
 
 	zshInitialization := `

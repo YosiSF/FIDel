@@ -44,7 +44,7 @@ func newAdminVizor(svr *server.Server, rd *render.Render) *globalVizor {
 // @Failure 400 {string} string "The input is invalid."
 // @Router /global/cache/region/{id} [delete]
 func (h *globalVizor) HandleDropCausetNetRegion(w http.ResponseWriter, r *http.Request) {
-	rc := getCluster(r.Context())
+	rc := getSolitonAutomata(r.Context())
 	vars := mux.Vars(r)
 	regionIDStr := vars["id"]
 	regionID, err := strconv.ParseUint(regionIDStr, 10, 64)

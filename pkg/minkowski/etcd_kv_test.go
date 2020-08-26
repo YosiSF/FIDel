@@ -94,7 +94,7 @@ func (s *testEtcdKVSuite) TestEtcdKV(c *C) {
 func newTestSingleConfig() *embed.Config {
 	cfg := embed.NewConfig()
 	cfg.Name = "test_etcd"
-	cfg.Dir, _ = ioutil.TempDir("/tmp", "test_etcd")
+	cfg.Dir, _ = ioutil.Temfidelir("/tmp", "test_etcd")
 	cfg.WalDir = ""
 	cfg.Logger = "zap"
 	cfg.LogOutputs = []string{"stdout"}

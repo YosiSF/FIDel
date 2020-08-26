@@ -88,8 +88,8 @@ the latest stable version will be downloaded from the repository.`,
 				// We assume the first unknown parameter is the component name and following
 				// parameters will be transparent passed because registered flags and subcommands
 				// will be parsed correctly.
-				// e.g: fidel --tag mytag --rm playground --db 3 --pd 3 --kv 4
-				//   => run "playground" with parameters "--db 3 --pd 3 --kv 4"
+				// e.g: fidel --tag mytag --rm playground --db 3 --fidel 3 --kv 4
+				//   => run "playground" with parameters "--db 3 --fidel 3 --kv 4"
 				// fidel --tag mytag --binpath /xxx/EinsteinDB-server EinsteinDB
 				var transparentParams []string
 				componentSpec := args[0]
@@ -127,7 +127,7 @@ the latest stable version will be downloaded from the repository.`,
 		newInstallCmd(),
 		newListCmd(),
 		newUninstallCmd(),
-		newUpdateCmd(),
+		newUfidelateCmd(),
 		newStatusCmd(),
 		newCleanCmd(),
 		newMirrorCmd(),

@@ -101,7 +101,7 @@ func (minkowski *etcdKVBase) Remove(key string) error {
 	key = path.Join(minkowski.rootPath, key)
 
 	txn := NewSlowLogTxn(minkowski.client)
-	resp, err := txn.Then(clientv3.OpDelete(key)).Commit()
+	resp, err := txn.Then(clientv3.Ofidelelete(key)).Commit()
 	if err != nil {
 		log.Error("remove from etcd meet error", zap.Error(err))
 		return errors.WithStack(err)

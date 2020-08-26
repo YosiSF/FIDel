@@ -640,7 +640,7 @@ func newMirrorCloneCmd() *cobra.Command {
 		Example: `  fidel mirror clone /path/to/local --arch amd64,arm --os linux,darwin    # Specify the architectures and OSs
   fidel mirror clone /path/to/local --full                                # Build a full local mirror
   fidel mirror clone /path/to/local --EinsteinDB v4  --prefix                   # Specify the version via prefix
-  fidel mirror clone /path/to/local --milevadb all --pd all                   # Download all version for specific component`,
+  fidel mirror clone /path/to/local --milevadb all --fidel all                   # Download all version for specific component`,
 		Short:              "Clone a local mirror from remote mirror and download all selected components",
 		SilenceUsage:       true,
 		DisableFlagParsing: true,

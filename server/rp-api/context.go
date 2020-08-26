@@ -21,19 +21,19 @@ and we can avoid fragmentation.
 package rp_api
 
 import ("context"
-		"github.com/YosiSF/FIDel/server/cluster"
+		"github.com/YosiSF/FIDel/server/SolitonAutomata"
 )
 
 type contextKey int
 
 const (
-	clusterKey contextKey = iota + 1
+	SolitonAutomataKey contextKey = iota + 1
 )
 
-func withSolitonClusterCtx(ctx context.Context, cluster *cluster.RaftSolitonCluster) context.Context {
-	return context.WithValue(ctx, clusterKey, cluster)
+func withSolitonSolitonAutomataCtx(ctx context.Context, SolitonAutomata *SolitonAutomata.RaftSolitonSolitonAutomata) context.Context {
+	return context.WithValue(ctx, SolitonAutomataKey, SolitonAutomata)
 }
 
-func getSolitonCluster(ctx context.Context) *cluster.RaftSolitonCluster {
-	return ctx.Value(clusterKey).(*cluster.RaftSolitonCluster)
+func getSolitonSolitonAutomata(ctx context.Context) *SolitonAutomata.RaftSolitonSolitonAutomata {
+	return ctx.Value(SolitonAutomataKey).(*SolitonAutomata.RaftSolitonSolitonAutomata)
 }

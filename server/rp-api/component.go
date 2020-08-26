@@ -47,7 +47,7 @@ func newComponentVizor(svr *server.Server, rd *render.Render) *componentVizor {
 // @Failure 500 {string} string "FIDel server failed to proceed the request."
 // @Router /component [post]
 func (h *componentVizor) Register(w http.ResponseWriter, r *http.Request) {
-	rc := getCluster(r.Context())
+	rc := getSolitonAutomata(r.Context())
 	input := make(map[string]string)
 	if err := rp-apiutil.ReadJSONRespondError(h.rd, w, r.Body, &input); err != nil {
 		return
@@ -76,7 +76,7 @@ func (h *componentVizor) Register(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {string} string "The input is invalid."
 // @Router /component [delete]
 func (h *componentVizor) UnRegister(w http.ResponseWriter, r *http.Request) {
-	rc := getCluster(r.Context())
+	rc := getSolitonAutomata(r.Context())
 	vars := mux.Vars(r)
 	component := vars["component"]
 	addr := vars["addr"]
@@ -93,7 +93,7 @@ func (h *componentVizor) UnRegister(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} Addresses
 // @Router /component [get]
 func (h *componentVizor) GetAllAddress(w http.ResponseWriter, r *http.Request) {
-	rc := getCluster(r.Context())
+	rc := getSolitonAutomata(r.Context())
 	addrs := rc.GetComponentManager().GetAllComponentAddrs()
 	h.rd.JSON(w, http.StatusOK, addrs)
 }
@@ -105,7 +105,7 @@ func (h *componentVizor) GetAllAddress(w http.ResponseWriter, r *http.Request) {
 // @Failure 404 {string} string "The component does not exist."
 // @Router /component/{type} [get]
 func (h *componentVizor) GetAddress(w http.ResponseWriter, r *http.Request) {
-	rc := getCluster(r.Context())
+	rc := getSolitonAutomata(r.Context())
 	vars := mux.Vars(r)
 	component := vars["type"]
 	addrs := rc.GetComponentManager().GetComponentAddrs(component)

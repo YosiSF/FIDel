@@ -90,7 +90,7 @@ func (lr *listResult) print() {
 }
 
 func showComponentList(env *environment.Environment, opt listOptions) (*listResult, error) {
-	err := env.V1Repository().UpdateComponentManifests()
+	err := env.V1Repository().UfidelateComponentManifests()
 	if err != nil {
 		return nil, err
 	}

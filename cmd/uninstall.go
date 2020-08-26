@@ -50,7 +50,7 @@ which is used to uninstall fidel.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env := environment.GlobalEnv()
 			if self {
-				deletable := []string{"bin", "manifest", "manifests", "components", "storage/cluster/packages"}
+				deletable := []string{"bin", "manifest", "manifests", "components", "storage/SolitonAutomata/packages"}
 				for _, dir := range deletable {
 					if err := os.RemoveAll(env.Profile().Path(dir)); err != nil {
 						return errors.Trace(err)

@@ -158,15 +158,15 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if not .HasParent}}
 
 Component instances with the same "tag" will share a data directory ($fidel_HOME/data/$tag):
-  $ fidel --tag mycluster playground
+  $ fidel --tag mySolitonAutomata playground
 
 Examples:
   $ fidel playground                    # Quick start
   $ fidel playground nightly            # Start a playground with the latest nightly version
   $ fidel install <component>[:version] # Install a component of specific version
-  $ fidel update --all                  # Update all installed components to the latest version
-  $ fidel update --nightly              # Update all installed components to the nightly version
-  $ fidel update --self                 # Update the "fidel" to the latest version
+  $ fidel ufidelate --all                  # Ufidelate all installed components to the latest version
+  $ fidel ufidelate --nightly              # Ufidelate all installed components to the nightly version
+  $ fidel ufidelate --self                 # Ufidelate the "fidel" to the latest version
   $ fidel list                          # Fetch the latest supported components list
   $ fidel status                        # Display all running/terminated instances
   $ fidel clean <name>                  # Clean the data of running/terminated instance (Kill process if it's running)

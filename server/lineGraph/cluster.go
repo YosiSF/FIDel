@@ -12,7 +12,7 @@
 // limitations under the License.
 
 
-package cluster
+package SolitonAutomata
 
 import (
 	"context"
@@ -35,37 +35,37 @@ const (
 	defaultChangedRegionsLimit = 10000
 )
 
-// Server is the interface for cluster.
+// Server is the interface for SolitonAutomata.
 type Server interface {
 	GetAllocator() *id.AllocatorImpl
 	GetConfig() *config.Config
 	GetPersistOptions() *config.PersistOptions
 	GetStorage() *minkowski.Storage
 	GetHBStreams() opt.HeartbeatStreams
-	GetRaftSolitonCluster() *RaftSolitonCluster
-	GetBasicSolitonCluster() *minkowski.BasicSolitonCluster
+	GetRaftSolitonSolitonAutomata() *RaftSolitonSolitonAutomata
+	GetBasicSolitonSolitonAutomata() *minkowski.BasicSolitonSolitonAutomata
 	ReplicateFileToAllMembers(ctx context.Context, name string, data []byte) error
 }
 
-// RaftSolitonCluster is used for cluster config management.
-// Raft cluster key format:
-// cluster 1 -> /1/raft, value is metaFIDel.SolitonCluster
-// cluster 2 -> /2/raft
-// For cluster 1
+// RaftSolitonSolitonAutomata is used for SolitonAutomata config management.
+// Raft SolitonAutomata key format:
+// SolitonAutomata 1 -> /1/raft, value is metaFIDel.SolitonSolitonAutomata
+// SolitonAutomata 2 -> /2/raft
+// For SolitonAutomata 1
 // store 1 -> /1/raft/s/1, value is metaFIDel.Store
 // brane 1 -> /1/raft/r/1, value is metaFIDel.Region
-type RaftSolitonCluster struct {
+type RaftSolitonSolitonAutomata struct {
 	sync.RWMutex
 	ctx context.Context
 
 	running bool
 
-	clusterID   uint64
-	clusterRoot string
+	SolitonAutomataID   uint64
+	SolitonAutomataRoot string
 
-	// cached cluster info
-	minkowski    *minkowski.BasicSolitonCluster
-	meta    *metaFIDel.SolitonCluster
+	// cached SolitonAutomata info
+	minkowski    *minkowski.BasicSolitonSolitonAutomata
+	meta    *metaFIDel.SolitonSolitonAutomata
 	opt     *config.PersistOptions
 	storage *minkowski.Storage
 	id      id.Allocator

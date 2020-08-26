@@ -178,12 +178,12 @@ type Options struct {
 	CacheSizeMax      uint64 // bytes
 	PathPerm          os.FileMode
 	FilePerm          os.FileMode
-	// If TempDir is set, it will enable filesystem atomic writes by
+	// If Temfidelir is set, it will enable filesystem atomic writes by
 	// writing temporary files to that location before being moved
 	// to BasePath.
-	// Note that TempDir MUST be on the same device/partition as
+	// Note that Temfidelir MUST be on the same device/partition as
 	// BasePath.
-	TempDir string
+	Temfidelir string
 
 	Index     Index
 	IndexLess LessFunction

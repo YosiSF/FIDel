@@ -29,7 +29,7 @@ be installed if there is no version specified.
 You can install multiple components at once, or install multiple versions
 of the same component:
 
-  fidel install milevadb:v3.0.5 EinsteinDB pd
+  fidel install milevadb:v3.0.5 EinsteinDB fidel
   fidel install milevadb:v3.0.5 milevadb:v3.0.8 EinsteinDB:v3.0.9`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env := environment.GlobalEnv()
@@ -43,5 +43,5 @@ of the same component:
 }
 
 func installComponents(env *environment.Environment, specs []string) error {
-	return env.UpdateComponents(specs, false, false)
+	return env.UfidelateComponents(specs, false, false)
 }

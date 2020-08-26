@@ -24,9 +24,9 @@ import (
 	"go.uber.org/zap"
 )
 
-// SolitonCluster is used to mock clusterInfo for test use.
-type SolitonCluster struct {
-	*minkowski.BasicSolitonCluster
+// SolitonSolitonAutomata is used to mock SolitonAutomataInfo for test use.
+type SolitonSolitonAutomata struct {
+	*minkowski.BasicSolitonSolitonAutomata
 	*mockid.IDAllocator
 	*mockoption.ScheduleOptions
 	*placement.RuleManager
@@ -35,12 +35,12 @@ type SolitonCluster struct {
 	ID uint64
 }
 
-// NewSolitonCluster creates a new SolitonCluster
-func NewSolitonCluster(opt *mockoption.ScheduleOptions) *SolitonCluster {
+// NewSolitonSolitonAutomata creates a new SolitonSolitonAutomata
+func NewSolitonSolitonAutomata(opt *mockoption.ScheduleOptions) *SolitonSolitonAutomata {
 	ruleManager := placement.NewRuleManager(minkowski.NewStorage(minkowski.NewMemoryKV()))
 	ruleManager.Initialize(opt.MaxReplicas, opt.GetLocationLabels())
-	return &SolitonCluster{
-		BasicSolitonCluster:    minkowski.NewBasicSolitonCluster(),
+	return &SolitonSolitonAutomata{
+		BasicSolitonSolitonAutomata:    minkowski.NewBasicSolitonSolitonAutomata(),
 		IDAllocator:     mockid.NewIDAllocator(),
 		ScheduleOptions: opt,
 		RuleManager:     ruleManager,
@@ -50,54 +50,54 @@ func NewSolitonCluster(opt *mockoption.ScheduleOptions) *SolitonCluster {
 }
 
 // AllocID allocs a new unique ID.
-func (mc *SolitonCluster) AllocID() (uint64, error) {
+func (mc *SolitonSolitonAutomata) AllocID() (uint64, error) {
 	return mc.Alloc()
 }
 
 // ScanBranes scans brane with start key, until number greater than limit.
-func (mc *SolitonCluster) ScanBranes(startKey, endKey []byte, limit int) []*minkowski.BraneInfo {
+func (mc *SolitonSolitonAutomata) ScanBranes(startKey, endKey []byte, limit int) []*minkowski.BraneInfo {
 	return mc.Branes.ScanRange(startKey, endKey, limit)
 }
 
 // LoadBrane puts brane info without leader
-func (mc *SolitonCluster) LoadBrane(braneID uint64, followerIds ...uint64) {
+func (mc *SolitonSolitonAutomata) LoadBrane(braneID uint64, followerIds ...uint64) {
 	//  branes load from etcd will have no leader
 	r := mc.newMockBraneInfo(braneID, 0, followerIds...).Clone(minkowski.WithLeader(nil))
 	mc.PutBrane(r)
 }
 
 // GetStoresStats gets stores statistics.
-func (mc *SolitonCluster) GetStoresStats() *statistics.StoresStats {
+func (mc *SolitonSolitonAutomata) GetStoresStats() *statistics.StoresStats {
 	return mc.StoresStats
 }
 
 // GetStoreBraneCount gets brane count with a given store.
-func (mc *SolitonCluster) GetStoreBraneCount(storeID uint64) int {
+func (mc *SolitonSolitonAutomata) GetStoreBraneCount(storeID uint64) int {
 	return mc.Branes.GetStoreBraneCount(storeID)
 }
 
 // GetStore gets a store with a given store ID.
-func (mc *SolitonCluster) GetStore(storeID uint64) *minkowski.StoreInfo {
+func (mc *SolitonSolitonAutomata) GetStore(storeID uint64) *minkowski.StoreInfo {
 	return mc.Stores.GetStore(storeID)
 }
 
 // IsBraneHot checks if the brane is hot.
-func (mc *SolitonCluster) IsBraneHot(brane *minkowski.BraneInfo) bool {
+func (mc *SolitonSolitonAutomata) IsBraneHot(brane *minkowski.BraneInfo) bool {
 	return mc.HotCache.IsBraneHot(brane, mc.GetHotBraneCacheHitsThreshold())
 }
 
 // BraneReadStats returns hot brane's read stats.
-func (mc *SolitonCluster) BraneReadStats() map[uint64][]*statistics.HotPeerStat {
+func (mc *SolitonSolitonAutomata) BraneReadStats() map[uint64][]*statistics.HotPeerStat {
 	return mc.HotCache.BraneStats(statistics.ReadFlow)
 }
 
 // BraneWriteStats returns hot brane's write stats.
-func (mc *SolitonCluster) BraneWriteStats() map[uint64][]*statistics.HotPeerStat {
+func (mc *SolitonSolitonAutomata) BraneWriteStats() map[uint64][]*statistics.HotPeerStat {
 	return mc.HotCache.BraneStats(statistics.WriteFlow)
 }
 
 // RandHotBraneFromStore random picks a hot brane in specify store.
-func (mc *SolitonCluster) RandHotBraneFromStore(store uint64, kind statistics.FlowKind) *minkowski.BraneInfo {
+func (mc *SolitonSolitonAutomata) RandHotBraneFromStore(store uint64, kind statistics.FlowKind) *minkowski.BraneInfo {
 	r := mc.HotCache.RandHotBraneFromStore(store, kind, mc.GetHotBraneCacheHitsThreshold())
 	if r == nil {
 		return nil
@@ -106,7 +106,7 @@ func (mc *SolitonCluster) RandHotBraneFromStore(store uint64, kind statistics.Fl
 }
 
 // AllocPeer allocs a new peer on a store.
-func (mc *SolitonCluster) AllocPeer(storeID uint64) (*metaFIDel.Peer, error) {
+func (mc *SolitonSolitonAutomata) AllocPeer(storeID uint64) (*metaFIDel.Peer, error) {
 	peerID, err := mc.AllocID()
 	if err != nil {
 		log.Error("failed to alloc peer", zap.Error(err))
@@ -120,17 +120,17 @@ func (mc *SolitonCluster) AllocPeer(storeID uint64) (*metaFIDel.Peer, error) {
 }
 
 // FitBrane fits a brane to the rules it matches.
-func (mc *SolitonCluster) FitBrane(brane *minkowski.BraneInfo) *placement.BraneFit {
-	return mc.RuleManager.FitBrane(mc.BasicSolitonCluster, brane)
+func (mc *SolitonSolitonAutomata) FitBrane(brane *minkowski.BraneInfo) *placement.BraneFit {
+	return mc.RuleManager.FitBrane(mc.BasicSolitonSolitonAutomata, brane)
 }
 
-// GetRuleManager returns the ruleManager of the cluster.
-func (mc *SolitonCluster) GetRuleManager() *placement.RuleManager {
+// GetRuleManager returns the ruleManager of the SolitonAutomata.
+func (mc *SolitonSolitonAutomata) GetRuleManager() *placement.RuleManager {
 	return mc.RuleManager
 }
 
 // SetStoreUp sets store state to be up.
-func (mc *SolitonCluster) SetStoreUp(storeID uint64) {
+func (mc *SolitonSolitonAutomata) SetStoreUp(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(
 		minkowski.SetStoreState(metaFIDel.StoreState_Up),
@@ -140,7 +140,7 @@ func (mc *SolitonCluster) SetStoreUp(storeID uint64) {
 }
 
 // SetStoreDisconnect changes a store's state to disconnected.
-func (mc *SolitonCluster) SetStoreDisconnect(storeID uint64) {
+func (mc *SolitonSolitonAutomata) SetStoreDisconnect(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(
 		minkowski.SetStoreState(metaFIDel.StoreState_Up),
@@ -150,7 +150,7 @@ func (mc *SolitonCluster) SetStoreDisconnect(storeID uint64) {
 }
 
 // SetStoreDown sets store down.
-func (mc *SolitonCluster) SetStoreDown(storeID uint64) {
+func (mc *SolitonSolitonAutomata) SetStoreDown(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(
 		minkowski.SetStoreState(metaFIDel.StoreState_Up),
@@ -160,21 +160,21 @@ func (mc *SolitonCluster) SetStoreDown(storeID uint64) {
 }
 
 // SetStoreOffline sets store state to be offline.
-func (mc *SolitonCluster) SetStoreOffline(storeID uint64) {
+func (mc *SolitonSolitonAutomata) SetStoreOffline(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(minkowski.SetStoreState(metaFIDel.StoreState_Offline))
 	mc.PutStore(newStore)
 }
 
 / SetStoreOffline sets store state to be offline.
-func (mc *SolitonCluster) SetStoreOffline(storeID uint64) {
+func (mc *SolitonSolitonAutomata) SetStoreOffline(storeID uint64) {
 	store := mc.GetStore(storeID)
 	newStore := store.Clone(minkowski.SetStoreState(metaFIDel.StoreState_Offline))
 	mc.PutStore(newStore)
 }
 
 // SetStoreBusy sets store busy.
-func (mc *SolitonCluster) SetStoreBusy(storeID uint64, busy bool) {
+func (mc *SolitonSolitonAutomata) SetStoreBusy(storeID uint64, busy bool) {
 	store := mc.GetStore(storeID)
 	newStats := proto.Clone(store.GetStoreStats()).(*fidelFIDel.StoreStats)
 	newStats.IsBusy = busy
@@ -186,7 +186,7 @@ func (mc *SolitonCluster) SetStoreBusy(storeID uint64, busy bool) {
 }
 
 // AddLeaderStore adds store with specified count of leader.
-func (mc *SolitonCluster) AddLeaderStore(storeID uint64, leaderCount int, leaderSizes ...int64) {
+func (mc *SolitonSolitonAutomata) AddLeaderStore(storeID uint64, leaderCount int, leaderSizes ...int64) {
 	stats := &fidelFIDel.StoreStats{}
 	stats.Capacity = 1000 * (1 << 20)
 	stats.Available = stats.Capacity - uint64(leaderCount)*10
@@ -210,7 +210,7 @@ func (mc *SolitonCluster) AddLeaderStore(storeID uint64, leaderCount int, leader
 }
 
 // AddRegionStore adds store with specified count of brane.
-func (mc *SolitonCluster) AddRegionStore(storeID uint64, braneCount int) {
+func (mc *SolitonSolitonAutomata) AddRegionStore(storeID uint64, braneCount int) {
 	stats := &fidelFIDel.StoreStats{}
 	stats.Capacity = 1000 * (1 << 20)
 	stats.Available = stats.Capacity - uint64(braneCount)*10
