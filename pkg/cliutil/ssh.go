@@ -14,75 +14,115 @@
 package cliutil
 
 import (
+	"fmt"
 	"io/ioutil"
+	_ "os"
+	_ "path/filepath"
+	_ "runtime"
+	_ "strconv"
+	_ "strings"
+	_ "time"
 
-	"github.com/ScaleFT/sshkeys"
-	"github.com/YosiSF/fidel/pkg/errutil"
-	"golang.org/x/crypto/ssh"
+
+
 )
 
-var (
-	// ErrIdentityFileReadFiled is ErrIdentityFileReadFiled
-	ErrIdentityFileReadFiled = errNS.NewType("id_read_failed", errutil.ErrTraitPreCheck)
-)
 
-// SSHConnectionProps is SSHConnectionProps
-type SSHConnectionProps struct {
-	Password               string
-	IdentityFile           string
-	IdentityFilePassphrase string
+type FIDelCache interface {
+	Get(key string) (value interface{}, ok bool)
+	Set(key string, value interface{})
+	Del(key string)
+	Len() int
+	Cap() int
+	Clear()
+
 }
 
-// ReadIdentityFileOrPassword is ReadIdentityFileOrPassword
+
+type LRUFIDelCache struct {
+	capacity int
+
+}
+
+
+func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+type SSHConnectionProps struct {
+	IdentityFile           string
+	IdentityFilePassphrase string
+	Password               string
+
+}
+
+
+func (p *SSHConnectionProps) GetIdentityFile() string {
+	return p.IdentityFile
+
+}
+
+
+func (p *SSHConnectionProps) GetIdentityFilePassphrase() string {
+	return p.IdentityFilePassphrase
+
+}
+
+
+
+func (p *SSHConnectionProps) GetPassword() string {
+	return p.Password
+
+}
 func ReadIdentityFileOrPassword(identityFilePath string, usePass bool) (*SSHConnectionProps, error) {
-	// If identity file is not specified, prompt to read password
-	if usePass {
-		password := PromptForPassword("Input SSH password: ")
-		return &SSHConnectionProps{
-			Password: password,
-		}, nil
+	if identityFilePath == "" {
+		return nil, fmt.Errorf("identity file path is empty")
+
 	}
 
-	// Identity file is specified, check identity file
-	buf, err := ioutil.ReadFile(identityFilePath)
-	if err != nil {
-		return nil, ErrIdentityFileReadFiled.
-			Wrap(err, "Failed to read SSH identity file '%s'", identityFilePath).
-			WithProperty(SuggestionFromTemplate(`
-Please check whether your SSH identity file {{ColorKeyword}}{{.File}}{{ColorReset}} exists and have access permission.
-`, map[string]string{
-				"File": identityFilePath,
-			}))
-	}
-
-	// Try to decode as not encrypted
-	_, err = ssh.ParsePrivateKey(buf)
-	if err == nil {
+	if !usePass {
 		return &SSHConnectionProps{
 			IdentityFile: identityFilePath,
 		}, nil
+
+
+
 	}
 
-	// Other kind of error.. e.g. not a valid SSH key
-	if _, ok := err.(*ssh.PassphraseMissingError); !ok {
-		return nil, ErrIdentityFileReadFiled.
-			Wrap(err, "Failed to read SSH identity file '%s'", identityFilePath).
-			WithProperty(SuggestionFromTemplate(`
-Looks like your SSH private key {{ColorKeyword}}{{.File}}{{ColorReset}} is invalid.
-`, map[string]string{
-				"File": identityFilePath,
-			}))
-	}
+	pass, err := ioutil.ReadFile(identityFilePath)
+	if err != nil {
+		return nil, err
 
-	// SSH key is passphrase protected
-	passphrase := PromptForPassword("The SSH identity key is encrypted. Input its passphrase: ")
-	if _, err := sshkeys.ParseEncryptedPrivateKey(buf, []byte(passphrase)); err != nil {
-		return nil, ErrIdentityFileReadFiled.
-			Wrap(err, "Failed to decrypt SSH identity file '%s'", identityFilePath)
 	}
 
 	return &SSHConnectionProps{
-		IdentityFile:           identityFilePath,
-		IdentityFilePassphrase: passphrase,
+		IdentityFile: identityFilePath,
+		Password:     string(pass),
 	}, nil
-}
+
+	}
+
+	func NewDefaultFIDelCache(capacity int) *LRUFIDelCache {
+		_ = "memory"
+		// If identity file is not specified, prompt to read password
+		usePass := false
+		if identityFilePath == "" {
+			usePass = true
+
+		}
+
+		if usePass {
+			fmt.Print("Enter password: ")
+			_, err := fmt.Scanln(&password)
+
+			if err != nil {
+				return nil
+
+			}
+
+			return &LRUFIDelCache{
+
+				capacity: capacity,
+			}
+	}

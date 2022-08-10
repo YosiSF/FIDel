@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package Interlock
+package interlock
 
 import (
 	"bytes"
@@ -24,13 +24,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/appleboy/easyssh-proxy"
-	"github.com/fatih/color"
-	"github.com/joomcode/errorx"
 	"github.com/YosiSF/failpoint"
 	"github.com/YosiSF/fidel/pkg/cliutil"
 	"github.com/YosiSF/fidel/pkg/localdata"
 	"github.com/YosiSF/fidel/pkg/utils"
+	"github.com/fatih/color"
+	"github.com/joomcode/errorx"
 	"go.uber.org/zap"
 )
 

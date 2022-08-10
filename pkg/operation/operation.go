@@ -11,14 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package operator
+package operation
 
 import (
 	"fmt"
 
+	"github.com/YosiSF/fidel/pkg/set"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/Interlock"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"github.com/YosiSF/fidel/pkg/set"
 )
 
 // Options represents the operation options
@@ -34,7 +34,7 @@ type Options struct {
 
 	// What type of things should we cleanup in clean command
 	CleanuFIDelata bool // should we cleanup data
-	CleanupLog  bool // should we clenaup log
+	CleanupLog     bool // should we clenaup log
 
 	// Some data will be retained when destroying instances
 	RetainDataRoles []string

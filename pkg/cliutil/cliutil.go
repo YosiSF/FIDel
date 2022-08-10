@@ -14,25 +14,16 @@
 package cliutil
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
-
-	"github.com/joomcode/errorx"
-	"github.com/YosiSF/fidel/pkg/colorutil"
-	"github.com/YosiSF/fidel/pkg/errutil"
-	"github.com/YosiSF/fidel/pkg/localdata"
-	"github.com/spf13/cobra"
 )
 
-var (
-	errNS             = errorx.NewNamespace("cliutil")
-	errMismatchArgs   = errNS.NewType("mismatch_args", errutil.ErrTraitPreCheck)
-	errOperationAbort = errNS.NewType("operation_aborted", errutil.ErrTraitPreCheck)
-)
+func cmdPath(cmdPath string) string {
+	return OsArgs0() + " " + cmdPath
+
+}
 
 var templateFuncs = template.FuncMap{
 	"OsArgs":  OsArgs,
@@ -40,10 +31,7 @@ var templateFuncs = template.FuncMap{
 }
 
 func args() []string {
-	if wd := os.Getenv(localdata.EnvNameWorkDir); wd != "" {
-		// FIXME: We should use FIDel's arg0 instead of hardcode
-		return append([]string{"fidel solitonAutomata"}, os.Args[1:]...)
-	}
+
 	return os.Args
 }
 
@@ -60,105 +48,43 @@ func OsArgs0() string {
 	return filepath.Base(args()[0])
 }
 
-func init() {
-	colorutil.AddColorFunctions(func(name string, f interface{}) {
-		templateFuncs[name] = f
-	})
-}
-
-// CheckCommandArgsAndMayPrintHelp checks whether suse passes enough number of arguments.
-// If insufficient number of arguments are passed, an error with proper suggestion will be raised.
-// When no argument is passed, command help will be printed and no error will be raised.
-func CheckCommandArgsAndMayPrintHelp(cmd *cobra.Command, args []string, minArgs int) (shouldContinue bool, err error) {
-	if minArgs == 0 {
-		return true, nil
+func templateRender(tmpl string, data interface{}) (string, error) {
+	t := template.New("").Funcs(templateFuncs)
+	t, err := t.Parse(tmpl)
+	if err != nil {
+		return "", err
 	}
-	lenArgs := len(args)
-	if lenArgs == 0 {
-		return false, cmd.Help()
-	}
-	if lenArgs < minArgs {
-		return false, errMismatchArgs.
-			New("Expect at least %d arguments, but received %d arguments", minArgs, lenArgs).
-			WithProperty(SuggestionFromString(cmd.UsageString()))
-	}
-	return true, nil
-}
-
-func formatSuggestion(templateStr string, data interface{}) string {
-	t := template.Must(template.New("suggestion").Funcs(templateFuncs).Parse(templateStr))
-	var buf bytes.Buffer
+	var buf strings.Builder
 	if err := t.Execute(&buf, data); err != nil {
-		panic(err)
+		return "", err
 	}
-	return buf.String()
+	return buf.String(), nil
 }
 
-// SuggestionFromString creates a suggestion from string.
-// Usage: SomeErrorX.WithProperty(SuggestionFromString(..))
-func SuggestionFromString(str string) (errorx.Property, string) {
-	return errutil.ErrPropSuggestion, strings.TrimSpace(str)
-}
-
-// SuggestionFromTemplate creates a suggestion from go template. Colorize function and some other utilities
-// are available.
-// Usage: SomeErrorX.WithProperty(SuggestionFromTemplate(..))
-func SuggestionFromTemplate(templateStr string, data interface{}) (errorx.Property, string) {
-	return SuggestionFromString(formatSuggestion(templateStr, data))
-}
-
-// SuggestionFromFormat creates a suggestion from a format.
-// Usage: SomeErrorX.WithProperty(SuggestionFromFormat(..))
-func SuggestionFromFormat(format string, a ...interface{}) (errorx.Property, string) {
-	s := fmt.Sprintf(format, a...)
-	return SuggestionFromString(s)
-}
-
-// BeautifyCobraUsageAndHelp beautifies cobra usages and help.
-func BeautifyCobraUsageAndHelp(rootCmd *cobra.Command) {
-	s := `Usage:{{if .Runnable}}
-  {{ColorCommand}}{{fidelUseLine .UseLine}}{{ColorReset}}{{end}}{{if .HasAvailableSubCommands}}
-  {{ColorCommand}}{{fidelCmdPath .Use}} [command]{{ColorReset}}{{end}}{{if gt (len .Aliases) 0}}
-
-Aliases:
-  {{ColorCommand}}{{.NameAndAliases}}{{ColorReset}}{{end}}{{if .HasExample}}
-
-Examples:
-{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
-
-Available Commands:{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
-
-Flags:
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
-
-Global Flags:
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
-
-Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
-
-Use "{{ColorCommand}}{{fidelCmdPath .Use}} help [command]{{ColorReset}}" for more information about a command.{{end}}
-`
-	cobra.AddTemplateFunc("fidelUseLine", cmdUseLine)
-	cobra.AddTemplateFunc("fidelCmdPath", cmdPath)
-
-	rootCmd.SetUsageTemplate(s)
-}
-
-// cmdUseLine is a customized cobra.Command.UseLine()
-func cmdUseLine(useline string) string {
-	i := strings.Index(useline, " ")
-	if i > 0 {
-		return OsArgs0() + useline[i:]
+func templateRenderToFile(tmpl string, data interface{}, filePath string) error {
+	content, err := templateRender(tmpl, data)
+	if err != nil {
+		return err
 	}
-	return useline
+	return WriteFile(filePath, content)
 }
 
-// cmdPath is a customized cobra.Command.CommandPath()
-func cmdPath(use string) string {
-	if strings.Contains(use, " ") {
-		use = OsArgs0()
+func WriteFile(filePath string, content string) error {
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
 	}
-	return use
+	defer f.Close()
+	_, err = f.WriteString(content)
+	return err
+}
+
+func WriteFileWithPerm(filePath string, content string, perm os.FileMode) error {
+	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(content)
+	return err
 }

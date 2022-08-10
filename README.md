@@ -8,6 +8,18 @@ FIDel is an IPFS implementation of EinsteinDB with some additional features such
 - `tests`: Unit tests for fidel.
 - `tools`: Contains scripts for building, testing and running fidel.
 - `bin`: Contains the fidel binary after compilation.
+- `src`: Contains the source code for fidel.
+- `docs`: Contains the documentation for fidel.
+- `config`: Contains the configuration files for fidel.
+- `data`: Contains the data for fidel.
+- `logs`: Contains the logs for fidel.
+- `tmp`: Contains temporary files for fidel.
+- `vendor`: Contains the vendor libraries for fidel.
+- `.gitignore`: Contains the .gitignore file for fidel.
+- `.gitattributes`: Contains the .gitattributes file for fidel.
+- `.travis.yml`: Contains the .travis.yml file for fidel.
+- `.editorconfig`: Contains the .editorconfig file for fidel.
+- `.gitlab-ci.yml`: Contains the .gitlab-ci.yml file for fidel.
 
 For more details, please refer to [FIDel documentation](https://github.com/YosiSF/FIDel/tree/master/docs)
 
