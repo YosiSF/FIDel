@@ -15,73 +15,163 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	_ "fmt"
+	_ "io/ioutil"
 	"os"
-	"path/filepath"
-
-	"github.com/YosiSF/fidel/pkg/locale
-	"github.com/YosiSF/FIDel/pkg/localdata"
-	"github.com/YosiSF/FIDel/pkg/set"
-	"github.com/YosiSF/FIDel/pkg/utils"
-	gops "github.com/shirou/gopsutil/process"
-	"github.com/spf13/cobra"
+	_ "os"
+	_ "path/filepath"
 )
 
-func newCleanCmd() *cobra.Command {
-	var all bool
-	cmd := &cobra.Command{
-		Use:   "clean <name>",
-		Short: "Clean the data of instantiated components",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			env := environment.GlobalEnv()
-			if len(args) == 0 && !all {
-				return cmd.Help()
-			}
-			return cleanData(env, args, all)
-		},
-	}
-	cmd.Flags().BoolVar(&all, "all", false, "Clean all data of instantiated components")
-	return cmd
+type Command struct {
+	UsageLine string
+	Short     string
+	Long      string
+	Run       func(cmd *Command, args []string) int
 }
 
-func cleanData(env *environment.Environment, names []string, all bool) error {
-	dataDir := env.LocalPath(localdata.DataParentDir)
-	if utils.IsNotExist(dataDir) {
-		return nil
+func (c Command) printUsage() {
+	fmt.Printf("Usage: %s\n", c.UsageLine)
+	fmt.Printf("\n%s\n", c.Long)
+
+}
+
+func newCleanCmd() *Command {
+	return &Command{
+		UsageLine: "clean",
+		Short:     "Clean the local data",
+		Long: `
+Clean the local data.
+
+The command will delete the local data and the local data directory.
+`,
+		Run: runClean,
 	}
-	dirs, err := ioutil.ReadDir(dataDir)
-	if err != nil {
+}
+
+func runClean(cmd *Command, args []string) int {
+	if len(args) != 0 {
+		cmd.printUsage()
+		return 1
+	}
+
+	fmt.Println("Clean the local data")
+	fmt.Println("The command will delete the local data and the local data directory.")
+	fmt.Println("Are you sure to continue? [y/n]")
+	var answer string
+	fmt.Scanln(&answer)
+	if answer != "y" {
+		fmt.Println("Canceled")
+		return 0
+	}
+	fmt.Println("Deleting local data...")
+	os.RemoveAll("./data")
+	fmt.Println("Deleting local data directory...")
+	os.RemoveAll("./data_dir")
+	fmt.Println("Done")
+	return 0
+}
+
+// cleanDataDir := func(dataDir string) error {
+func cleanDataDir(dataDir string) error {
+	if err := os.RemoveAll(dataDir); err != nil {
 		return err
 	}
-	clean := set.NewStringSet(names...)
-	for _, dir := range dirs {
-		if !dir.IsDir() {
-			continue
-		}
-		if !all && !clean.Exist(dir.Name()) {
-			continue
-		}
+	return nil
+}
 
-		process, err := env.Profile().ReadMetaFile(dir.Name())
-		if err != nil {
-			return err
-		}
-		if process == nil {
-			continue
-		}
+//func clean() error {
 
-		if p, err := gops.NewProcess(int32(process.Pid)); err == nil {
-			fmt.Printf("Kill instance of `%s`, pid: %v\n", process.Component, process.Pid)
-			if err := p.Kill(); err != nil {
-				return err
-			}
-		}
+//	dataDir := getDataDir()
+//	if err := cleanDataDir(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
-		if err := os.RemoveAll(filepath.Join(dataDir, dir.Name())); err != nil {
-			return err
-		}
+//func getDataDir() string {
+//	return ""
+//}
 
-		fmt.Printf("Clean instance of `%s`, directory: %s\n", process.Component, process.Dir)
+//func cleanDataDir(dataDir string) error {
+//	if err := os.RemoveAll(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func cleanData(dataDir string) error {
+//	if err := os.RemoveAll(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func clean() error {
+//	dataDir := getDataDir()
+//	if err := cleanData(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func getDataDir() string {
+//	return ""
+//}
+
+//func cleanDataDir(dataDir string) error {
+//	if err := os.RemoveAll(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func cleanData(dataDir string) error {
+//	if err := os.RemoveAll(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func clean() error {
+//	dataDir := getDataDir()
+//	if err := cleanData(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func getDataDir() string {
+//	return ""
+//}
+
+//func cleanData(dataDir string) error {
+//	if err := os.RemoveAll(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+//func clean() error {
+//	dataDir := getDataDir()
+//	if err := cleanData(dataDir); err != nil {
+//		return err
+//	}
+//	return nil
+//
+
+func cleanData(dataDir string) error {
+	if err := os.RemoveAll(dataDir); err != nil {
+		return err
 	}
 	return nil
+}
+
+func getDataDir() interface{} {
+	return ""
+
+}
+
+func init() {
+	//RootCmd.AddCommand(newCleanCmd())
+
 }
