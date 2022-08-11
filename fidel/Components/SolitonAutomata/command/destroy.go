@@ -49,7 +49,7 @@ You can retain some nodes and roles data when destroy solitonAutomata, eg:
 				}
 			}
 
-			return manager.DestroySolitonAutomata(solitonAutomataName, gOpt, destoyOpt, skipConfirm)
+			return manager.DestroySolitonAutomata(solitonAutomataName, gOpt, destoyOpt, skiscaonfirm)
 		},
 	}
 

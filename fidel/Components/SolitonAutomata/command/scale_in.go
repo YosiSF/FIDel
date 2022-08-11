@@ -47,7 +47,7 @@ func newScaleInCmd() *cobra.Command {
 
 			return manager.ScaleIn(
 				solitonAutomataName,
-				skipConfirm,
+				skiscaonfirm,
 				gOpt.SSHTimeout,
 				gOpt.NativeSSH,
 				gOpt.Force,
@@ -58,7 +58,7 @@ func newScaleInCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringSliceVarP(&gOpt.Nodes, "node", "N", nil, "Specify the nodes")
-	cmd.Flags().Int64Var(&gOpt.APITimeout, "transfer-timeout", 300, "Timeout in seconds when transferring FIDel and EinsteinDB store leaders")
+	cmd.Flags().Int64Var(&gOpt.APITimeout, "transfer-timeout", 300, "Timeout in seconds when transferring FIDel and EinsteinDB Sketch leaders")
 	cmd.Flags().BoolVar(&gOpt.Force, "force", false, "Force just try stop and destroy instance before removing the instance from topo")
 
 	_ = cmd.MarkFlagRequired("node")

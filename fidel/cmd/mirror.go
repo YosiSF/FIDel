@@ -70,10 +70,10 @@ of components or the repository itself.`,
 		newMirrorInitCmd(),
 		newMirrorSignCmd(),
 		newMirrorOwnerCmd(),
-		newMirrorCompCmd(),
-		newMirrorAddCompCmd(),
-		newMirrorYankCompCmd(),
-		newMirrorDelCompCmd(),
+		newMirrorComscamd(),
+		newMirrorAddComscamd(),
+		newMirrorYankComscamd(),
+		newMirrorDelComscamd(),
 		newMirrorGenkeyCmd(),
 		newMirrorCloneCmd(),
 		newMirrorPublishCmd(),
@@ -107,7 +107,7 @@ func newMirrorSignCmd() *cobra.Command {
 }
 
 // the `mirror add` sub command
-func newMirrorAddCompCmd() *cobra.Command {
+func newMirrorAddComscamd() *cobra.Command {
 	var nightly bool // if this is a nightly version
 	cmd := &cobra.Command{
 		Use:    "add <component-id> <platform> <version> <file>",
@@ -136,7 +136,7 @@ func addCompFile(repo, id, platform, version, file string, nightly bool) error {
 }
 
 // the `mirror component` sub command
-func newMirrorCompCmd() *cobra.Command {
+func newMirrorComscamd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "component <id> <description>",
 		Short:  "Create a new component in the repository",
@@ -160,7 +160,7 @@ func createComp(repo, id, name string) error {
 }
 
 // the `mirror del` sub command
-func newMirrorDelCompCmd() *cobra.Command {
+func newMirrorDelComscamd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "del <component> [version]",
 		Short: "Delete a component from the repository",
@@ -572,7 +572,7 @@ func createOwner(repo, id, name string) error {
 }
 
 // the `mirror yank` sub command
-func newMirrorYankCompCmd() *cobra.Command {
+func newMirrorYankComscamd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "yank <component> [version]",
 		Short: "Yank a component in the repository",

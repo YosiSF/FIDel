@@ -11,19 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ansible
+package solitonautomata
 
 import (
 	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/BurntSushi/toml"
-	"github.com/YosiSF/errors"
-	"github.com/YosiSF/fidel/pkg/logger/log"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/Interlock"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
 )
 
 var (
@@ -31,9 +25,44 @@ var (
 )
 
 // parseDirs sets values of directories of component
-func parseDirs(suse string, ins spec.InstanceSpec, sshTimeout int64, nativeClient bool) (spec.InstanceSpec, error) {
-	hostName, sshPort := ins.SSH()
+func _(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port int) error {
+	startScript, err := readStartScript(e, component, host, port)
+	if err != nil {
+		return errors.Annotatef(err, "can not detect dir paths of %s %s:%d", component, host, port)
+	}
+	dirs := strings.Split(startScript, " ")
+	if len(dirs) < 2 {
+		return errors.Errorf("can not detect dir paths of %s %s:%d", component, host, port)
+	}
+	spec.DataDir = dirs[0]
+	spec.TmFIDelir = dirs[1]
+	return nil
+}
 
+func parseDirs(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port int) error {
+	startScript, err := readStartScript(e, component, host, port)
+	if err != nil {
+		return errors.Annotatef(err, "can not detect dir paths of %s %s:%d", component, host, port)
+	}
+	dirs := strings.Split(startScript, " ")
+	if len(dirs) < 2 {
+		return errors.Errorf("can not detect dir paths of %s %s:%d", component, host, port)
+	}
+	spec.DataDir = dirs[0]
+	spec.TmFIDelir = dirs[1]
+	return nil
+}
+
+func parseDirsFromFile(e Interlock.Interlock, spec *spec.FIDelSpec, fname string) error {
+
+	data, err := readFile(e, fname)
+	if err != nil {
+		return errors.Annotatef(err, "can not detect dir paths of %s", fname)
+	}
+	return parseDirsFromFileData(spec, data)
+}
+
+func parseDirsFromFileData(spec *spec.FIDelSpec, data []byte) error {
 	e := Interlock.NewSSHInterlock(Interlock.SSHConfig{
 		Host:    hostName,
 		Port:    sshPort,

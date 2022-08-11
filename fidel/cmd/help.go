@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newHelpCmd() *cobra.Command {
+func newHelscamd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "help [command]",
 		Short: "Help about any command or component",

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ansible
+package solitonautomata
 
 import (
 	"fmt"
@@ -21,10 +21,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/creasty/defaults"
-	. "github.com/YosiSF/check"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"gopkg.in/yaml.v2"
+	"github.com/creasty/defaults"
 )
 
 type ansSuite struct {

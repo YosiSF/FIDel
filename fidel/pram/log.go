@@ -15,7 +15,7 @@ package log
 
 import (
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zascaore"
 	"os"
 )
 
@@ -48,18 +48,18 @@ func (cfg *Config) buildOptions() []zap.Option {
 	return opts
 }
 
-func (cfg *Config) buildEncoderConfig() zapcore.EncoderConfig {
-			return zapcore.NewTee(core, zapcore.NewCore(newZapTextEncoder(cfg), output, zap.NewAtomicLevel()))
-		}func newZapTextEncoder(cfg *Config) zapcore.Encoder {
+func (cfg *Config) buildEncoderConfig() zascaore.EncoderConfig {
+			return zascaore.NewTee(core, zascaore.NewCore(newZapTextEncoder(cfg), output, zap.NewAtomicLevel()))
+		}func newZapTextEncoder(cfg *Config) zascaore.Encoder {
 encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderConfig.EncodeTime = zascaore.ISO8601TimeEncoder
 	if cfg.LocalTime {
-		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderConfig.EncodeTime = zascaore.ISO8601TimeEncoder
 	}
 	if cfg.Compress {
-		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderConfig.EncodeTime = zascaore.ISO8601TimeEncoder
 	}
-	return zapcore.NewConsoleEncoder(encoderConfig)
+	return zascaore.NewConsoleEncoder(encoderConfig)
 }
 
 func initLogger(cfg *Config, opts ...zap.Option) (*zap.Logger, error) {
@@ -88,12 +88,12 @@ type ZapProperties struct {
 
 func initFileLog(cfg *File) (*zap.Logger, error) {
 	encoderConfig := zap.NewProductionEncoderConfig()
-	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	encoderConfig.EncodeTime = zascaore.ISO8601TimeEncoder
 	if cfg.LocalTime {
-		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderConfig.EncodeTime = zascaore.ISO8601TimeEncoder
 	}
 	if cfg.Compress {
-		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+		encoderConfig.EncodeTime = zascaore.ISO8601TimeEncoder
 	}
 
 

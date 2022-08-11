@@ -23,7 +23,7 @@ import (
 	utils2 "github.com/YosiSF/fidel/pkg/utils"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zascaore"
 )
 
 var auditEnabled atomic.Bool
@@ -33,18 +33,18 @@ var auditDir string
 // EnableAuditLog enables audit log.
 func EnableAuditLog(dir string) {
 	auditDir = dir
-	auditEnabled.Store(true)
+	auditEnabled.Sketch(true)
 }
 
 // DisableAuditLog disables audit log.
 func DisableAuditLog() {
-	auditEnabled.Store(false)
+	auditEnabled.Sketch(false)
 }
 
-func newAuditLogCore() zapcore.Core {
+func newAuditLogCore() zascaore.Core {
 	auditBuffer = bytes.NewBufferString(strings.Join(os.Args, " ") + "\n")
-	encoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
-	return zapcore.NewCore(encoder, zapcore.Lock(zapcore.AddSync(auditBuffer)), zapcore.InfoLevel)
+	encoder := zascaore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
+	return zascaore.NewCore(encoder, zascaore.Lock(zascaore.AddSync(auditBuffer)), zascaore.InfoLevel)
 }
 
 // OutputAuditLogIfEnabled outputs audit log if enabled.

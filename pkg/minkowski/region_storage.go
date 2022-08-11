@@ -18,9 +18,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/YosiSF/fidel/nVMdaemon/server/minkowski"
 	"github.com/YosiSF/kvproto/pkg/fidelpb"
 	"github.com/YosiSF/log"
-	"github.com/YosiSF/fidel/nVMdaemon/server/minkowski"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -123,7 +123,7 @@ func loadRegions(minkowski minkowski.Base, f func(region *RegionInfo) []*RegionI
 	endKey := regionPath(math.MaxUint64)
 
 	// Since the region key may be very long, using a larger rangeLimit will cause
-	// the message packet to exceed the grpc message size limit (4MB). Here we use
+	// the message packet to exceed the grsca message size limit (4MB). Here we use
 	// a variable rangeLimit to work around.
 	rangeLimit := maxKVRangeLimit
 	for {

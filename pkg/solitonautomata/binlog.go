@@ -11,49 +11,95 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package solitonautomata
 
 import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"time"
+	//etcd
+	"github.com/coreos/etcd/clientv3"
 
-	"github.com/YosiSF/errors"
-	"go.etcd.io/etcd/clientv3"
+	"github.com/pkg/errors"
 )
 
 // BinlogClient is the client of binlog.
 type BinlogClient struct {
+	ipfsClient *ipfsapi.Client
 	tls        *tls.Config
-	httpClient *http.Client
+	httpclient *http.Client
 	etcdClient *clientv3.Client
 }
 
 // NewBinlogClient create a BinlogClient.
-func NewBinlogClient(FIDelEndpoint []string, tlsConfig *tls.Config) (*BinlogClient, error) {
-	etcdClient, err := clientv3.New(clientv3.Config{
-		Endpoints:   FIDelEndpoint,
-		DialTimeout: time.Second * 5,
-		TLS:         tlsConfig,
+func NewBinlogClient(ipfsAddr string, tls *tls.Config, etcdAddr string) (*BinlogClient, error) {
+	c := &BinlogClient{
+		tls: tls,
+	}
+	c.httpclient
+	c.etcdClient, err = clientv3.New(clientv3.Config{
+		Endpoints:   []string{etcdAddr},
+		DialTimeout: 5 * time.Second,
+		TLS:         tls,
 	})
-
 	if err != nil {
 		return nil, errors.AddStack(err)
 	}
 
-	return &BinlogClient{
-		tls: tlsConfig,
-		httpClient: &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: tlsConfig,
-			},
-		},
-		etcdClient: etcdClient,
-	}, nil
+	c.ipfsClient, err = ipfsapi.NewClient(ipfsAddr, tls)
+
+}
+
+func (c *BinlogClient) offline(addr string, nodeID string) error {
+	url := c.getOfflineURL(addr, nodeID)
+	resp, err := c.httpclient.Get(url)
+	if err != nil {
+		return errors.AddStack(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return errors.Errorf("offline pump failed, status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func (c *BinlogClient) uFIDelateStatus(ty string, nodeID string, state string) error {
+	url := c.getURL(c.getNodeAddr(ty, nodeID))
+	resp, err := c.httpclient.Get(url)
+	if err != nil {
+		return errors.AddStack(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return errors.Errorf("uFIDelate status failed, status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+func (c *BinlogClient) nodeStatus(ty string) (status []*NodeStatus, err error) {
+	// Get the node status from etcd.
+	resp, err := c.etcdClient.Get(context.Background(), c.getNodeAddr(ty, ""))
+	if err != nil {
+		return nil, errors.AddStack(err)
+	}
+
+	for _, kv := range resp.Kvs {
+		var s NodeStatus
+		if err := json.Unmarshal(kv.Value, &s); err != nil {
+			return nil, errors.AddStack(err)
+		}
+		status = append(status, &s)
+	}
+
+	return status, nil
+}
+
+func (c *BinlogClient) getNodeAddr(ty string, nodeID string) string {
+	return fmt.Sprintf("/%s/%s", ty, nodeID)
+
 }
 
 func (c *BinlogClient) getURL(addr string) string {
@@ -81,7 +127,7 @@ type NodeStatus struct {
 	Addr        string `json:"host"`
 	State       string `json:"state"`
 	MaxCommitTS int64  `json:"maxCommitTS"`
-	UFIDelateTS    int64  `json:"uFIDelateTS"`
+	UFIDelateTS int64  `json:"uFIDelateTS"`
 }
 
 // IsPumpTombstone check if drainer is tombstone.
@@ -145,14 +191,56 @@ func (c *BinlogClient) uFIDelateStatus(ty string, nodeID string, state string) e
 	var nodeStatus NodeStatus
 	err = json.Unmarshal(resp.Kvs[0].Value, &nodeStatus)
 	if err != nil {
-		return errors.AddStack(err)
-	}
-
-	if nodeStatus.State == state {
 		return nil
 	}
+}
 
-	nodeStatus.State = state
+
+
+
+// GetDrainerStatus get drainer status.
+func (c *BinlogClient) GetDrainerStatus(nodeID string) (*NodeStatus, error) {
+	status, err := c.nodeStatus("drainers")
+	if err != nil {
+		return nil, err
+	}
+
+if nodeStatus.State == state {
+		for i := 0 ; i < len(status); i++ {
+			if status[i].NodeID == nodeID {
+				return status[i], nil
+			}
+
+		}
+
+		return nil, errors.Errorf("node not exist: %s", nodeID)
+	}
+
+	return nil, errors.Errorf("node not exist: %s", nodeID)
+}
+
+// GetPumpStatus get pump status.
+func (c *BinlogClient) GetPumpStatus(nodeID string) (*NodeStatus, error) {
+	status, err := c.nodeStatus("pumps")
+		}
+		if err != nil {
+			return nil, err
+		}
+		if nodeStatus.State == state {
+			for (i := 0;
+			i < len(status);
+			i++) {
+				if status[i].NodeID == nodeID {
+					return status[i], nil
+				}
+
+			}
+			return nil, errors.Errorf("node not exist: %s", nodeID)
+
+		}
+
+		return nil, errors.Errorf("node not exist: %s", nodeID)
+}
 
 	data, err := json.Marshal(&nodeStatus)
 	if err != nil {
@@ -166,64 +254,6 @@ func (c *BinlogClient) uFIDelateStatus(ty string, nodeID string, state string) e
 
 	return nil
 }
-
-func (c *BinlogClient) nodeStatus(ty string) (status []*NodeStatus, err error) {
-	key := fmt.Sprintf("/milevadb-binlog/v1/%s", ty)
-
-	resp, err := c.etcdClient.KV.Get(context.Background(), key, clientv3.WithPrefix())
-	if err != nil {
-		return nil, errors.AddStack(err)
-	}
-
-	for _, kv := range resp.Kvs {
-		var s NodeStatus
-		err = json.Unmarshal(kv.Value, &s)
-		if err != nil {
-			return nil, errors.Annotatef(err, "key: %s,data: %s", string(kv.Key), string(kv.Value))
-		}
-
-		status = append(status, &s)
-	}
-
-	return
-}
-
-func (c *BinlogClient) offline(addr string, nodeID string) error {
-	url := c.getOfflineURL(addr, nodeID)
-	req, err := http.NewRequest("PUT", url, nil)
-	if err != nil {
-		return errors.AddStack(err)
-	}
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return errors.AddStack(err)
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
-		return errors.Errorf("error requesting %s, code: %d",
-			resp.Request.URL, resp.StatusCode)
-	}
-
-	defer resp.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.AddStack(err)
-	}
-
-	var status StatusResp
-	err = json.Unmarshal(data, &status)
-	if err != nil {
-		return errors.Annotatef(err, "data: %s", string(data))
-	}
-
-	if status.Code != 200 {
-		return errors.Errorf("server error: %s", status.Message)
-	}
-
-	return nil
-}
-
 // OfflinePump offline a pump.
 func (c *BinlogClient) OfflinePump(addr string, nodeID string) error {
 	return c.offline(addr, nodeID)

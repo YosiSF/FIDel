@@ -11,87 +11,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ansible
+package solitonautomata
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
-
-	"github.com/YosiSF/errors"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/task"
-	"github.com/YosiSF/fidel/pkg/logger/log"
+	"strings"
 )
 
 // ImportConfig copies config files from solitonAutomata which deployed through milevadb-ansible
-func ImportConfig(name string, clsMeta *spec.SolitonAutomataMeta, sshTimeout int64, nativeClient bool) error {
-	// there may be already solitonAutomata dir, skip create
-	//if err := os.MkdirAll(meta.SolitonAutomataPath(name), 0755); err != nil {
-	//	return err
-	//}
-	//if err := ioutil.WriteFile(meta.SolitonAutomataPath(name, "topology.yaml"), yamlFile, 0664); err != nil {
-	//	return err
-	//}
-	var copyFileTasks []task.Task
-	for _, comp := range clsMeta.Topology.ComponentsByStartOrder() {
-		log.Infof("Copying config file(s) of %s...", comp.Name())
-		for _, inst := range comp.Instances() {
-			switch inst.ComponentName() {
-			case spec.ComponentFIDel, spec.ComponentEinsteinDB, spec.ComponentPump, spec.ComponentMilevaDB, spec.ComponentDrainer:
-				t := task.NewBuilder().
-					SSHKeySet(
-						spec.SolitonAutomataPath(name, "ssh", "id_rsa"),
-						spec.SolitonAutomataPath(name, "ssh", "id_rsa.pub")).
-					SuseSSH(inst.GetHost(), inst.GetSSHPort(), clsMeta.Suse, sshTimeout, nativeClient).
-					CopyFile(filepath.Join(inst.DeployDir(), "conf", inst.ComponentName()+".toml"),
-						spec.SolitonAutomataPath(name,
-							spec.AnsibleImportedConfigPath,
-							fmt.Sprintf("%s-%s-%d.toml",
-								inst.ComponentName(),
-								inst.GetHost(),
-								inst.GetPort())),
-						inst.GetHost(),
-						true).
-					Build()
-				copyFileTasks = append(copyFileTasks, t)
-			case spec.ComponentFIDel:
-				t := task.NewBuilder().
-					SSHKeySet(
-						spec.SolitonAutomataPath(name, "ssh", "id_rsa"),
-						spec.SolitonAutomataPath(name, "ssh", "id_rsa.pub")).
-					SuseSSH(inst.GetHost(), inst.GetSSHPort(), clsMeta.Suse, sshTimeout, nativeClient).
-					CopyFile(filepath.Join(inst.DeployDir(), "conf", inst.ComponentName()+".toml"),
-						spec.SolitonAutomataPath(name,
-							spec.AnsibleImportedConfigPath,
-							fmt.Sprintf("%s-%s-%d.toml",
-								inst.ComponentName(),
-								inst.GetHost(),
-								inst.GetPort())),
-						inst.GetHost(),
-						true).
-					CopyFile(filepath.Join(inst.DeployDir(), "conf", inst.ComponentName()+"-learner.toml"),
-						spec.SolitonAutomataPath(name,
-							spec.AnsibleImportedConfigPath,
-							fmt.Sprintf("%s-learner-%s-%d.toml",
-								inst.ComponentName(),
-								inst.GetHost(),
-								inst.GetPort())),
-						inst.GetHost(),
-						true).
-					Build()
-				copyFileTasks = append(copyFileTasks, t)
-			default:
-				break
-			}
+func ImportConfig(solitonAutomataPath, solitonAutomataVersion, solitonAutomataComponent string) error {
+	solitonAutomataPath = filepath.Join(solitonAutomataPath, "solitonautomata")
+	solitonAutomataVersion = strings.TrimPrefix(solitonAutomataVersion, "v")
+	solitonAutomataComponent = strings.TrimPrefix(solitonAutomataComponent, "v")
+
+	for _, config := range []string{"config.toml", "config.toml.example"} {
+		configPath := filepath.Join(solitonAutomataPath, solitonAutomataVersion, solitonAutomataComponent, config)
+		if err := copyFile(configPath, config); err != nil {
+			return err
 		}
 	}
-	t := task.NewBuilder().
-		Parallel(copyFileTasks...).
-		Build()
-
-	if err := t.Execute(task.NewContext()); err != nil {
-		return errors.Trace(err)
-	}
-	log.Infof("Finished copying configs.")
 	return nil
+}
+
+// copyFile copies a file from src to dst. If src and dst files exist, and are
+// the same, then return success. Otherwise, attempt to create a hard link
+
+func copyFile(src, dst string) error {
+	s, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if !s.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", src)
+	}
+	d, err := os.Stat(dst)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return err
+		}
+	} else {
+		if s.Size() == d.Size() {
+			return nil
+		}
+	}
+	return os.Link(src, dst)
+
 }

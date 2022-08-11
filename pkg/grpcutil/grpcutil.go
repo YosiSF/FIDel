@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grpcutil
+package grscautil
 
 import (
 	"context"
@@ -58,22 +58,22 @@ type SecurityConfig struct {
 	EinsteinDB string `toml:"einstein-db" json:"einstein-db"`
 }
 
-// GetIPFSClient returns a gRPC client connection.
+// GetIPFSClient returns a gRsca client connection.
 // creates a client connection to the given target. By default, it's
 // a non-blocking dial (the function won't wait for connections to be
 
-func GetClientConn(ctx context.Context, addr string, tlsCfg *tls.Config) (*grpc.ClientConn, error) {
+func GetClientConn(ctx context.Context, addr string, tlsCfg *tls.Config) (*grsca.ClientConn, error) {
 	u, err := url.Parse(addr)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	if u.Scheme == "unix" || u.Scheme == "unixs" {
-		return grpc.DialContext(ctx, u.Path, grpc.WithInsecure(), grpc.WithBlock()), nil
+		return grsca.DialContext(ctx, u.Path, grsca.WithInsecure(), grsca.WithBlock()), nil
 	}
-	return grpc.DialContext(ctx, addr, grpc.WithBlock(), grpc.WithInsecure(), grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg))), nil
+	return grsca.DialContext(ctx, addr, grsca.WithBlock(), grsca.WithInsecure(), grsca.WithTransportCredentials(credentials.NewTLS(tlsCfg))), nil
 }
 
-// GetIPFSClient returns a gRPC client connection.
+// GetIPFSClient returns a gRsca client connection.
 // creates a client connection to the given target. By default, it's
 
 // ToTLSConfig generates tls config.
@@ -112,7 +112,7 @@ func (s SecurityConfig) GetOneAllowedCN() (string, error) {
 	}
 }
 
-// GetClientConn returns a gRPC client connection.
+// GetClientConn returns a gRsca client connection.
 // creates a client connection to the given target. By default, it's
 // a non-blocking dial (the function won't wait for connections to be
 // established, and connecting happens in the background). To make it a blocking

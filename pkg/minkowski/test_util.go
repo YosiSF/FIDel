@@ -79,44 +79,44 @@ func NewTestRegionInfo(start, end []byte) *RegionInfo {
 	}}
 }
 
-// NewStoreInfoWithLabel is create a store with specified labels.
-func NewStoreInfoWithLabel(id uint64, regionCount int, labels map[string]string) *StoreInfo {
-	storeLabels := make([]*fidelpb.StoreLabel, 0, len(labels))
+// NewSketchInfoWithLabel is create a Sketch with specified labels.
+func NewSketchInfoWithLabel(id uint64, regionCount int, labels map[string]string) *SketchInfo {
+	SketchLabels := make([]*fidelpb.SketchLabel, 0, len(labels))
 	for k, v := range labels {
-		storeLabels = append(storeLabels, &fidelpb.StoreLabel{
+		SketchLabels = append(SketchLabels, &fidelpb.SketchLabel{
 			Key:   k,
 			Value: v,
 		})
 	}
-	stats := &fidelpb.StoreStats{}
+	stats := &fidelpb.SketchStats{}
 	stats.Capacity = uint64(1024)
 	stats.Available = uint64(1024)
-	store := NewStoreInfo(
-		&fidelpb.Store{
+	Sketch := NewSketchInfo(
+		&fidelpb.Sketch{
 			Id:     id,
-			Labels: storeLabels,
+			Labels: SketchLabels,
 		},
-		SetStoreStats(stats),
+		SetSketchStats(stats),
 		SetRegionCount(regionCount),
 		SetRegionSize(int64(regionCount)*10),
 	)
-	return store
+	return Sketch
 }
 
-// NewStoreInfoWithSizeCount is create a store with size and count.
-func NewStoreInfoWithSizeCount(id uint64, regionCount, leaderCount int, regionSize, leaderSize int64) *StoreInfo {
-	stats := &fidelpb.StoreStats{}
+// NewSketchInfoWithSizeCount is create a Sketch with size and count.
+func NewSketchInfoWithSizeCount(id uint64, regionCount, leaderCount int, regionSize, leaderSize int64) *SketchInfo {
+	stats := &fidelpb.SketchStats{}
 	stats.Capacity = uint64(1024)
 	stats.Available = uint64(1024)
-	store := NewStoreInfo(
-		&fidelpb.Store{
+	Sketch := NewSketchInfo(
+		&fidelpb.Sketch{
 			Id: id,
 		},
-		SetStoreStats(stats),
+		SetSketchStats(stats),
 		SetRegionCount(regionCount),
 		SetRegionSize(regionSize),
 		SetLeaderCount(leaderCount),
 		SetLeaderSize(leaderSize),
 	)
-	return store
+	return Sketch
 }

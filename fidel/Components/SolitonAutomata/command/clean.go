@@ -49,7 +49,7 @@ You can retain some nodes and roles data when cleanup the solitonAutomata, eg:
 				return cmd.Help()
 			}
 
-			return manager.CleanSolitonAutomata(solitonAutomataName, gOpt, cleanOpt, skipConfirm)
+			return manager.CleanSolitonAutomata(solitonAutomataName, gOpt, cleanOpt, skiscaonfirm)
 		},
 	}
 

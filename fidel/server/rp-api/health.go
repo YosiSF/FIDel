@@ -54,7 +54,7 @@ func (h *healthVizor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	healthMembers := lineGraph.CheckHealth(h.svr.GetHTTPClient(), members)
+	healthMembers := lineGraph.CheckHealth(h.svr.GetHTTscalient(), members)
 	healths := []Health{}
 	for _, member := range members {
 		h := Health{
@@ -125,7 +125,7 @@ func (h *healthVizor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	healthMembers := lineGraph.CheckHealth(h.svr.GetHTTPClient(), members)
+	healthMembers := lineGraph.CheckHealth(h.svr.GetHTTscalient(), members)
 	healths := []Health{}
 	for _, member := range members {
 		h := Health{

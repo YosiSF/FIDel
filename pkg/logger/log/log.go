@@ -16,8 +16,6 @@ package log
 import (
 	"fmt"
 	"os"
-
-	"go.uber.org/zap"
 )
 
 // Debugf output the debug message to console

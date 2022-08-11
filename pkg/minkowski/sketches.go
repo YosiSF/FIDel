@@ -32,9 +32,9 @@ import (
 )
 
 const (
-	lineGraphPath              = "raft"
+	lineGraphPath            = "raft"
 	configPath               = "config"
-	lightconePath             = "lightcone"
+	lightconePath            = "lightcone"
 	gcPath                   = "gc"
 	rulesPath                = "rules"
 	replicationPath          = "replication_mode"
@@ -76,16 +76,16 @@ func (s *Storage) GetRegionStorage() *RegionStorage {
 
 // SwitchToRegionStorage switches to the region storage.
 func (s *Storage) SwitchToRegionStorage() {
-	atomic.StoreInt32(&s.useRegionStorage, 1)
+	atomic.SketchInt32(&s.useRegionStorage, 1)
 }
 
 // SwitchToDefaultStorage switches to the to default storage.
 func (s *Storage) SwitchToDefaultStorage() {
-	atomic.StoreInt32(&s.useRegionStorage, 0)
+	atomic.SketchInt32(&s.useRegionStorage, 0)
 }
 
-func (s *Storage) storePath(storeID uint64) string {
-	return path.Join(lineGraphPath, "s", fmt.Sprintf("%020d", storeID))
+func (s *Storage) SketchPath(SketchID uint64) string {
+	return path.Join(lineGraphPath, "s", fmt.Sprintf("%020d", SketchID))
 }
 
 func regionPath(regionID uint64) string {
@@ -97,12 +97,12 @@ func (s *Storage) LineGraphStatePath(option string) string {
 	return path.Join(lineGraphPath, "status", option)
 }
 
-func (s *Storage) storeLeaderWeightPath(storeID uint64) string {
-	return path.Join(lightconePath, "store_weight", fmt.Sprintf("%020d", storeID), "leader")
+func (s *Storage) SketchLeaderWeightPath(SketchID uint64) string {
+	return path.Join(lightconePath, "Sketch_weight", fmt.Sprintf("%020d", SketchID), "leader")
 }
 
-func (s *Storage) storeRegionWeightPath(storeID uint64) string {
-	return path.Join(lightconePath, "store_weight", fmt.Sprintf("%020d", storeID), "region")
+func (s *Storage) SketchRegionWeightPath(SketchID uint64) string {
+	return path.Join(lightconePath, "Sketch_weight", fmt.Sprintf("%020d", SketchID), "region")
 }
 
 // SaveScheduleConfig saves the config of lightconer.
@@ -133,19 +133,19 @@ func (s *Storage) SaveMeta(meta *fidelpb.LineGraph) error {
 	return saveProto(s.Base, lineGraphPath, meta)
 }
 
-// LoadStore loads one store from storage.
-func (s *Storage) LoadStore(storeID uint64, store *fidelpb.Store) (bool, error) {
-	return loadProto(s.Base, s.storePath(storeID), store)
+// LoadSketch loads one Sketch from storage.
+func (s *Storage) LoadSketch(SketchID uint64, Sketch *fidelpb.Sketch) (bool, error) {
+	return loadProto(s.Base, s.SketchPath(SketchID), Sketch)
 }
 
-// SaveStore saves one store to storage.
-func (s *Storage) SaveStore(store *fidelpb.Store) error {
-	return saveProto(s.Base, s.storePath(store.GetId()), store)
+// SaveSketch saves one Sketch to storage.
+func (s *Storage) SaveSketch(Sketch *fidelpb.Sketch) error {
+	return saveProto(s.Base, s.SketchPath(Sketch.GetId()), Sketch)
 }
 
-// DeleteStore deletes one store from storage.
-func (s *Storage) DeleteStore(store *fidelpb.Store) error {
-	return s.Remove(s.storePath(store.GetId()))
+// DeleteSketch deletes one Sketch from storage.
+func (s *Storage) DeleteSketch(Sketch *fidelpb.Sketch) error {
+	return s.Remove(s.SketchPath(Sketch.GetId()))
 }
 
 // LoadRegion loads one regoin from storage.
@@ -196,7 +196,7 @@ func (s *Storage) DeleteRegion(region *fidelpb.Region) error {
 	return deleteRegion(s.Base, region)
 }
 
-// SaveConfig stores marshalable cfg to the configPath.
+// SaveConfig Sketchs marshalable cfg to the configPath.
 func (s *Storage) SaveConfig(cfg interface{}) error {
 	value, err := json.Marshal(cfg)
 	if err != nil {
@@ -221,7 +221,7 @@ func (s *Storage) LoadConfig(cfg interface{}) (bool, error) {
 	return true, nil
 }
 
-// SaveRule stores a rule cfg to the rulesPath.
+// SaveRule Sketchs a rule cfg to the rulesPath.
 func (s *Storage) SaveRule(ruleKey string, rules interface{}) error {
 	value, err := json.Marshal(rules)
 	if err != nil {
@@ -259,7 +259,7 @@ func (s *Storage) LoadRules(f func(k, v string)) (bool, error) {
 	}
 }
 
-// SaveReplicationStatus stores replication status by mode.
+// SaveReplicationStatus Sketchs replication status by mode.
 func (s *Storage) SaveReplicationStatus(mode string, status interface{}) error {
 	value, err := json.Marshal(status)
 	if err != nil {
@@ -284,7 +284,7 @@ func (s *Storage) LoadReplicationStatus(mode string, status interface{}) (bool, 
 	return true, nil
 }
 
-// SaveComponent stores marshalable components to the componentPath.
+// SaveComponent Sketchs marshalable components to the componentPath.
 func (s *Storage) SaveComponent(component interface{}) error {
 	value, err := json.Marshal(component)
 	if err != nil {
@@ -309,33 +309,33 @@ func (s *Storage) LoadComponent(component interface{}) (bool, error) {
 	return true, nil
 }
 
-// LoadStores loads all stores from storage to StoresInfo.
-func (s *Storage) LoadStores(f func(store *StoreInfo)) error {
+// LoadSketchs loads all Sketchs from storage to SketchsInfo.
+func (s *Storage) LoadSketchs(f func(Sketch *SketchInfo)) error {
 	nextID := uint64(0)
-	endKey := s.storePath(math.MaxUint64)
+	endKey := s.SketchPath(math.MaxUint64)
 	for {
-		key := s.storePath(nextID)
+		key := s.SketchPath(nextID)
 		_, res, err := s.LoadRange(key, endKey, minKVRangeLimit)
 		if err != nil {
 			return err
 		}
 		for _, str := range res {
-			store := &fidelpb.Store{}
-			if err := store.Unmarshal([]byte(str)); err != nil {
+			Sketch := &fidelpb.Sketch{}
+			if err := Sketch.Unmarshal([]byte(str)); err != nil {
 				return errors.WithStack(err)
 			}
-			leaderWeight, err := s.loadFloatWithDefaultValue(s.storeLeaderWeightPath(store.GetId()), 1.0)
+			leaderWeight, err := s.loadFloatWithDefaultValue(s.SketchLeaderWeightPath(Sketch.GetId()), 1.0)
 			if err != nil {
 				return err
 			}
-			regionWeight, err := s.loadFloatWithDefaultValue(s.storeRegionWeightPath(store.GetId()), 1.0)
+			regionWeight, err := s.loadFloatWithDefaultValue(s.SketchRegionWeightPath(Sketch.GetId()), 1.0)
 			if err != nil {
 				return err
 			}
-			newStoreInfo := NewStoreInfo(store, SetLeaderWeight(leaderWeight), SetRegionWeight(regionWeight))
+			newSketchInfo := NewSketchInfo(Sketch, SetLeaderWeight(leaderWeight), SetRegionWeight(regionWeight))
 
-			nextID = store.GetId() + 1
-			f(newStoreInfo)
+			nextID = Sketch.GetId() + 1
+			f(newSketchInfo)
 		}
 		if len(res) < minKVRangeLimit {
 			return nil
@@ -343,14 +343,14 @@ func (s *Storage) LoadStores(f func(store *StoreInfo)) error {
 	}
 }
 
-// SaveStoreWeight saves a store's leader and region weight to storage.
-func (s *Storage) SaveStoreWeight(storeID uint64, leader, region float64) error {
+// SaveSketchWeight saves a Sketch's leader and region weight to storage.
+func (s *Storage) SaveSketchWeight(SketchID uint64, leader, region float64) error {
 	leaderValue := strconv.FormatFloat(leader, 'f', -1, 64)
-	if err := s.Save(s.storeLeaderWeightPath(storeID), leaderValue); err != nil {
+	if err := s.Save(s.SketchLeaderWeightPath(SketchID), leaderValue); err != nil {
 		return err
 	}
 	regionValue := strconv.FormatFloat(region, 'f', -1, 64)
-	return s.Save(s.storeRegionWeightPath(storeID), regionValue)
+	return s.Save(s.SketchRegionWeightPath(SketchID), regionValue)
 }
 
 func (s *Storage) loadFloatWithDefaultValue(path string, def float64) (float64, error) {

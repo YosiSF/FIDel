@@ -19,161 +19,161 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/YosiSF/kvproto/pkg/fidelpb"
 	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/storelimit"
+	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/Sketchlimit"
 )
 
-// StoreCreateOption is used to create store.
-type StoreCreateOption func(region *StoreInfo)
+// SketchCreateOption is used to create Sketch.
+type SketchCreateOption func(region *SketchInfo)
 
-// SetStoreAddress sets the address for the store.
-func SetStoreAddress(address, statusAddress, peerAddress string) StoreCreateOption {
-	return func(store *StoreInfo) {
-		meta := proto.Clone(store.meta).(*fidelpb.Store)
+// SetSketchAddress sets the address for the Sketch.
+func SetSketchAddress(address, statusAddress, peerAddress string) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.Address = address
 		meta.StatusAddress = statusAddress
 		meta.PeerAddress = peerAddress
-		store.meta = meta
+		Sketch.meta = meta
 	}
 }
 
-// SetStoreLabels sets the labels for the store.
-func SetStoreLabels(labels []*fidelpb.StoreLabel) StoreCreateOption {
-	return func(store *StoreInfo) {
-		meta := proto.Clone(store.meta).(*fidelpb.Store)
+// SetSketchLabels sets the labels for the Sketch.
+func SetSketchLabels(labels []*fidelpb.SketchLabel) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.Labels = labels
-		store.meta = meta
+		Sketch.meta = meta
 	}
 }
 
-// SetStoreStartTime sets the start timestamp for the store.
-func SetStoreStartTime(startTS int64) StoreCreateOption {
-	return func(store *StoreInfo) {
-		meta := proto.Clone(store.meta).(*fidelpb.Store)
+// SetSketchStartTime sets the start timestamp for the Sketch.
+func SetSketchStartTime(startTS int64) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.StartTimestamp = startTS
-		store.meta = meta
+		Sketch.meta = meta
 	}
 }
 
-// SetStoreVersion sets the version for the store.
-func SetStoreVersion(githash, version string) StoreCreateOption {
-	return func(store *StoreInfo) {
-		meta := proto.Clone(store.meta).(*fidelpb.Store)
+// SetSketchVersion sets the version for the Sketch.
+func SetSketchVersion(githash, version string) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.Version = version
 		meta.GitHash = githash
-		store.meta = meta
+		Sketch.meta = meta
 	}
 }
 
-// SetStoreDeployPath sets the deploy path for the store.
-func SetStoreDeployPath(deployPath string) StoreCreateOption {
-	return func(store *StoreInfo) {
-		meta := proto.Clone(store.meta).(*fidelpb.Store)
+// SetSketchDeployPath sets the deploy path for the Sketch.
+func SetSketchDeployPath(deployPath string) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.DeployPath = deployPath
-		store.meta = meta
+		Sketch.meta = meta
 	}
 }
 
-// SetStoreState sets the state for the store.
-func SetStoreState(state fidelpb.StoreState) StoreCreateOption {
-	return func(store *StoreInfo) {
-		meta := proto.Clone(store.meta).(*fidelpb.Store)
+// SetSketchState sets the state for the Sketch.
+func SetSketchState(state fidelpb.SketchState) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.State = state
-		store.meta = meta
+		Sketch.meta = meta
 	}
 }
 
-// PauseLeaderTransfer prevents the store from been selected as source or
-// target store of TransferLeader.
-func PauseLeaderTransfer() StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.pauseLeaderTransfer = true
+// PauseLeaderTransfer prevents the Sketch from been selected as source or
+// target Sketch of TransferLeader.
+func PauseLeaderTransfer() SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.pauseLeaderTransfer = true
 	}
 }
 
-// ResumeLeaderTransfer cleans a store's pause state. The store can be selected
+// ResumeLeaderTransfer cleans a Sketch's pause state. The Sketch can be selected
 // as source or target of TransferLeader again.
-func ResumeLeaderTransfer() StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.pauseLeaderTransfer = false
+func ResumeLeaderTransfer() SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.pauseLeaderTransfer = false
 	}
 }
 
-// SetLeaderCount sets the leader count for the store.
-func SetLeaderCount(leaderCount int) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.leaderCount = leaderCount
+// SetLeaderCount sets the leader count for the Sketch.
+func SetLeaderCount(leaderCount int) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.leaderCount = leaderCount
 	}
 }
 
-// SetRegionCount sets the Region count for the store.
-func SetRegionCount(regionCount int) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.regionCount = regionCount
+// SetRegionCount sets the Region count for the Sketch.
+func SetRegionCount(regionCount int) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.regionCount = regionCount
 	}
 }
 
-// SetPendingPeerCount sets the pending peer count for the store.
-func SetPendingPeerCount(pendingPeerCount int) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.pendingPeerCount = pendingPeerCount
+// SetPendingPeerCount sets the pending peer count for the Sketch.
+func SetPendingPeerCount(pendingPeerCount int) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.pendingPeerCount = pendingPeerCount
 	}
 }
 
-// SetLeaderSize sets the leader size for the store.
-func SetLeaderSize(leaderSize int64) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.leaderSize = leaderSize
+// SetLeaderSize sets the leader size for the Sketch.
+func SetLeaderSize(leaderSize int64) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.leaderSize = leaderSize
 	}
 }
 
-// SetRegionSize sets the Region size for the store.
-func SetRegionSize(regionSize int64) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.regionSize = regionSize
+// SetRegionSize sets the Region size for the Sketch.
+func SetRegionSize(regionSize int64) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.regionSize = regionSize
 	}
 }
 
-// SetLeaderWeight sets the leader weight for the store.
-func SetLeaderWeight(leaderWeight float64) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.leaderWeight = leaderWeight
+// SetLeaderWeight sets the leader weight for the Sketch.
+func SetLeaderWeight(leaderWeight float64) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.leaderWeight = leaderWeight
 	}
 }
 
-// SetRegionWeight sets the Region weight for the store.
-func SetRegionWeight(regionWeight float64) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.regionWeight = regionWeight
+// SetRegionWeight sets the Region weight for the Sketch.
+func SetRegionWeight(regionWeight float64) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.regionWeight = regionWeight
 	}
 }
 
-// SetLastHeartbeatTS sets the time of last heartbeat for the store.
-func SetLastHeartbeatTS(lastHeartbeatTS time.Time) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.meta.LastHeartbeat = lastHeartbeatTS.UnixNano()
+// SetLastHeartbeatTS sets the time of last heartbeat for the Sketch.
+func SetLastHeartbeatTS(lastHeartbeatTS time.Time) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.meta.LastHeartbeat = lastHeartbeatTS.UnixNano()
 	}
 }
 
 // SetLastPersistTime ufidelates the time of last persistent.
-func SetLastPersistTime(lastPersist time.Time) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.lastPersistTime = lastPersist
+func SetLastPersistTime(lastPersist time.Time) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.lastPersistTime = lastPersist
 	}
 }
 
-// SetStoreStats sets the statistics information for the store.
-func SetStoreStats(stats *fidelpb.StoreStats) StoreCreateOption {
-	return func(store *StoreInfo) {
-		store.stats = stats
+// SetSketchStats sets the statistics information for the Sketch.
+func SetSketchStats(stats *fidelpb.SketchStats) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		Sketch.stats = stats
 	}
 }
 
-// AttachAvailableFunc attaches a customize function for the store. The function f returns true if the store limit is not exceeded.
-func AttachAvailableFunc(limitType storelimit.Type, f func() bool) StoreCreateOption {
-	return func(store *StoreInfo) {
-		if store.available == nil {
-			store.available = make(map[storelimit.Type]func() bool)
+// AttachAvailableFunc attaches a customize function for the Sketch. The function f returns true if the Sketch limit is not exceeded.
+func AttachAvailableFunc(limitType Sketchlimit.Type, f func() bool) SketchCreateOption {
+	return func(Sketch *SketchInfo) {
+		if Sketch.available == nil {
+			Sketch.available = make(map[Sketchlimit.Type]func() bool)
 		}
-		store.available[limitType] = f
+		Sketch.available[limitType] = f
 	}
 }

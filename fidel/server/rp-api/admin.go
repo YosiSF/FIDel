@@ -43,7 +43,7 @@ func newAdminVizor(svr *server.Server, rd *render.Render) *globalVizor {
 // @Success 200 {string} string "The region is removed from server cache."
 // @Failure 400 {string} string "The input is invalid."
 // @Router /global/cache/region/{id} [delete]
-func (h *globalVizor) HandleDropCausetNetRegion(w http.ResponseWriter, r *http.Request) {
+func (h *globalVizor) HandleDroscaausetNetRegion(w http.ResponseWriter, r *http.Request) {
 	rc := getSolitonAutomata(r.Context())
 	vars := mux.Vars(r)
 	regionIDStr := vars["id"]
@@ -52,7 +52,7 @@ func (h *globalVizor) HandleDropCausetNetRegion(w http.ResponseWriter, r *http.R
 		h.rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	rc.DropCausetNetRegion(regionID)
+	rc.DroscaausetNetRegion(regionID)
 	h.rd.JSON(w, http.StatusOK, "The region is removed from server cache.")
 }
 

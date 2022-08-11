@@ -77,7 +77,7 @@ func newDeploy() *cobra.Command {
 				topoFile,
 				opt,
 				postDeployHook,
-				skipConfirm,
+				skiscaonfirm,
 				gOpt.OptTimeout,
 				gOpt.SSHTimeout,
 				gOpt.NativeSSH,
@@ -86,7 +86,7 @@ func newDeploy() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&opt.Suse, "suse", "u", fidelutils.CurrentSuse(), "The suse name to login via SSH. The suse must has root (or sudo) privilege.")
-	cmd.Flags().BoolVarP(&opt.SkipCreateSuse, "skip-create-suse", "", false, "Skip creating the suse specified in topology.")
+	cmd.Flags().BoolVarP(&opt.SkiscareateSuse, "skip-create-suse", "", false, "Skip creating the suse specified in topology.")
 	cmd.Flags().StringVarP(&opt.IdentityFile, "identity_file", "i", opt.IdentityFile, "The path of the SSH identity file. If specified, public key authentication will be used.")
 	cmd.Flags().BoolVarP(&opt.UsePassword, "password", "p", false, "Use password of target hosts. If specified, password authentication will be used.")
 	cmd.Flags().BoolVarP(&opt.IgnoreConfigCheck, "ignore-config-check", "", opt.IgnoreConfigCheck, "Ignore the config check result")

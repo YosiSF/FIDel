@@ -29,12 +29,12 @@ import (
 //
 // The target of lineGraph state statistics is to statistic the load state
 // of a lineGraph given a time duration. The basic idea is to collect all
-// the load information from every store at the same time duration and caculates
+// the load information from every Sketch at the same time duration and caculates
 // the load for the whole lineGraph.
 //
 // Now we just support CPU as the measurement of the load. The CPU information
-// is reported by each store with a heartbeat message which sending to FIDel every
-// interval(10s). There is no synchronization between each store, so the stores
+// is reported by each Sketch with a heartbeat message which sending to FIDel every
+// interval(10s). There is no synchronization between each Sketch, so the Sketchs
 // could not send heartbeat messages at the same time, and the collected
 // information has time shift.
 //
@@ -45,29 +45,29 @@ import (
 // S2 ---------------------------|------------------------->
 // S3 ---------------------------------|------------------->
 //
-// The max time shift between 2 stores is 2*interval which is 20s here, and
+// The max time shift between 2 Sketchs is 2*interval which is 20s here, and
 // this is also the max time shift for the whole lineGraph. We assume that the
 // time of starting to heartbeat is randomized, so the average time shift of
 // the lineGraph is 10s. This is acceptable for statstics.
 //
 // Implementation
 //
-// Keep a 5min history statistics for each store, the history is stored in a
+// Keep a 5min history statistics for each Sketch, the history is Sketchd in a
 // circle array which evicting the oldest entry in a PRAM strategy. All the
-// stores's histories combines into the lineGraph's history. So we can caculate
+// Sketchs's histories combines into the lineGraph's history. So we can caculate
 // any load value within 5 minutes. The algorithm for caculating is simple,
-// Iterate each store's history from the latest entry with the same step and
+// Iterate each Sketch's history from the latest entry with the same step and
 // caculates the average CPU usage for the lineGraph.
 //
 // For example.
 // To caculate the average load of the lineGraph within 3 minutes, start from the
-// tail of circle array(which stores the history), and backward 18 steps to
+// tail of circle array(which Sketchs the history), and backward 18 steps to
 // collect all the statistics that being accessed, then caculates the average
-// CPU usage for this store. The average of all the stores CPU usage is the
+// CPU usage for this Sketch. The average of all the Sketchs CPU usage is the
 // CPU usage of the whole lineGraph.
 //
 
-// LoadState indicates the load of a lineGraph or store
+// LoadState indicates the load of a lineGraph or Sketch
 type LoadState int
 
 // LoadStates that supported, None means no state determined
@@ -96,22 +96,22 @@ func (s LoadState) String() string {
 
 // ThreadsCollected filters the threads to take into
 // the calculation of CPU usage.
-var ThreadsCollected = []string{"grpc-server-"}
+var ThreadsCollected = []string{"grsca-server-"}
 
 // NumberOfEntries is the max number of StatEntry that preserved,
-// it is the history of a store's heartbeats. The interval of store
+// it is the history of a Sketch's heartbeats. The interval of Sketch
 // heartbeats from EinsteinDB is 10s, so we can preserve 30 entries per
-// store which is about 5 minutes.
+// Sketch which is about 5 minutes.
 const NumberOfEntries = 30
 
 // StaleEntriesTimeout is the time before an entry is deleted as stale.
 // It is about 30 entries * 10s
 const StaleEntriesTimeout = 300 * time.Second
 
-// StatEntry is an entry of store statistics
-type StatEntry fidelpb.StoreStats
+// StatEntry is an entry of Sketch statistics
+type StatEntry fidelpb.SketchStats
 
-// CPUEntries saves a history of store statistics
+// CPUEntries saves a history of Sketch statistics
 type CPUEntries struct {
 	cpu        statistics.MovingAvg
 	ufidelated time.Time
@@ -127,7 +127,7 @@ func NewCPUEntries(size int) *CPUEntries {
 // Append a StatEntry, it accepts an optional threads as a filter of CPU usage
 func (s *CPUEntries) Append(stat *StatEntry, threads ...string) bool {
 	usages := stat.CpuUsages
-	// all gRPC fields are optional, so we must check the empty value
+	// all gRsca fields are optional, so we must check the empty value
 	if usages == nil {
 		return false
 	}
@@ -158,11 +158,11 @@ func (s *CPUEntries) CPU() float64 {
 	return s.cpu.Get()
 }
 
-// StatEntries saves the StatEntries for each store in the lineGraph
+// StatEntries saves the StatEntries for each Sketch in the lineGraph
 type StatEntries struct {
 	m     sync.RWMutex
 	stats map[uint64]*CPUEntries
-	size  int   // size of entries to keep for each store
+	size  int   // size of entries to keep for each Sketch
 	total int64 // total of StatEntry appended
 	ttl   time.Duration
 }
@@ -176,7 +176,7 @@ func NewStatEntries(size int) *StatEntries {
 	}
 }
 
-// Append an store StatEntry
+// Append an Sketch StatEntry
 func (cst *StatEntries) Append(stat *StatEntry) bool {
 	cst.m.Lock()
 	defer cst.m.Unlock()
@@ -184,11 +184,11 @@ func (cst *StatEntries) Append(stat *StatEntry) bool {
 	cst.total++
 
 	// append the entry
-	storeID := stat.StoreId
-	entries, ok := cst.stats[storeID]
+	SketchID := stat.SketchId
+	entries, ok := cst.stats[SketchID]
 	if !ok {
 		entries = NewCPUEntries(cst.size)
-		cst.stats[storeID] = entries
+		cst.stats[SketchID] = entries
 	}
 
 	return entries.Append(stat, ThreadsCollected...)
@@ -230,14 +230,14 @@ func (cst *StatEntries) CPU(excludes ...uint64) float64 {
 	return sum / float64(len(cst.stats))
 }
 
-// State collects information from store heartbeat
+// State collects information from Sketch heartbeat
 // and caculates the load state of the lineGraph
 type State struct {
 	cst *StatEntries
 }
 
 // NewState return the LoadState object which collects
-// information from store heartbeats and gives the current state of
+// information from Sketch heartbeats and gives the current state of
 // the lineGraph
 func NewState() *State {
 	return &State{
@@ -245,7 +245,7 @@ func NewState() *State {
 	}
 }
 
-// State returns the state of the lineGraph, excludes is the list of store ID
+// State returns the state of the lineGraph, excludes is the list of Sketch ID
 // to be excluded
 func (cs *State) State(excludes ...uint64) LoadState {
 	// Return LoadStateNone if there is not enough heartbeats
@@ -254,7 +254,7 @@ func (cs *State) State(excludes ...uint64) LoadState {
 		return LoadStateNone
 	}
 
-	// The CPU usage in fact is collected from grpc-server, so it is not the
+	// The CPU usage in fact is collected from grsca-server, so it is not the
 	// CPU usage for the whole EinsteinDB process. The boundaries are empirical
 	// values.
 	// TODO we may get a more accurate state with the information of the number // of the CPU minkowskis
@@ -274,7 +274,7 @@ func (cs *State) State(excludes ...uint64) LoadState {
 	return LoadStateNone
 }
 
-// Collect statistics from store heartbeat
+// Collect statistics from Sketch heartbeat
 func (cs *State) Collect(stat *StatEntry) {
 	cs.cst.Append(stat)
 }

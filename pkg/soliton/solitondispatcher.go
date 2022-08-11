@@ -1,34 +1,31 @@
-  
 package soliton
 
 import (
-	"fidel/types"
 	"fmt"
+	"github.com/YosiSF/fidel/pkg/soliton/types"
 	"time"
 )
 
-type WriteBehindLogLedgerInterface interface {
-	// NextCausetFlushingDispatch decides how much time the next dispatch
-	// for a Causet Store will be before flushing at the sink.
-	NextCausetFlushingDispatch() time.Duration
-}
-
-// SolitonDispatcher dispatches for Drivers with a latency dictated by
-// 'writeBehindLogLedger'.
 type SolitonDispatcher struct {
 	writeBehindLogLedger WriteBehindLogLedgerInterface
-	shutdownC      chan struct{}
+	shutdownC            chan struct{}
+}
+
+type WriteBehindLogLedgerInterface interface {
+	// NextCausetFlushingDispatch decides how much time the next dispatch
+	// for a Causet Sketch will be before flushing at the sink.
+	NextCausetFlushingDispatch() time.Duration
 }
 
 func NewSolitonDispatcher(writeBehindLogLedger WriteBehindLogLedgerInterface) *SolitonDispatcher {
 	return &SolitonDispatcher{
 		writeBehindLogLedger: writeBehindLogLedger,
-		shutdownC:      make(chan struct{}),
+		shutdownC:            make(chan struct{}),
 	}
 }
 
 // RequestNonVolatileMemory dispatches for a Soliton, and blocks the calling thread until
-// the Causet store is persisted
+// the Causet Sketch is persisted
 //
 // If Shutdown() is called by another thread during this blocked period,
 // this method will be unblocked and will return an error (and will continue

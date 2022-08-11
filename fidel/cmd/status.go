@@ -13,74 +13,37 @@
 
 package cmd
 
-import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
-
-	"github.com/YosiSF/FIDel/pkg/localdata"
-	"github.com/YosiSF/FIDel/pkg/tui"
-	"github.com/YosiSF/FIDel/pkg/utils"
-	gops "github.com/shirou/gopsutil/process"
-	"github.com/spf13/cobra"
-)
-
-func newStatusCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "List the status of instantiated components",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			env := environment.GlobalEnv()
-			if len(args) > 0 {
-				return cmd.Help()
-			}
-			return showStatus(env)
-		},
-	}
-	return cmd
+type FIDelCache interface {
+	Get(key string) (value interface{}, ok bool)
+	Set(key string, value interface{})
+	Del(key string)
+	Len() int
+	Cap() int
+	Clear()
 }
 
-func showStatus(env *environment.Environment) error {
-	var table [][]string
-	table = append(table, []string{"Name", "Component", "PID", "Status", "Created Time", "Directory", "Binary", "Args"})
-	if dataDir := env.LocalPath(localdata.DataParentDir); utils.IsExist(dataDir) {
-		dirs, err := ioutil.ReadDir(dataDir)
-		if err != nil {
-			return err
-		}
-		for _, dir := range dirs {
-			if !dir.IsDir() {
-				continue
-			}
+type LRUFIDelCache struct {
+	capacity int
+}
 
-			process, err := env.Profile().ReadMetaFile(dir.Name())
-			if err != nil {
-				return err
-			}
-			if process == nil {
-				// If the path doesn't contain the meta file, which means startup interrupted
-				_ = os.RemoveAll(env.LocalPath(filepath.Join(localdata.DataParentDir, dir.Name())))
-				continue
-			}
+// Longest Common Prefix
+func longestCommonPrefix(strs []string) string {
+	if len(strs) == 0 {
+		return ""
+	}
 
-			status := "TERM"
-			if exist, err := gops.PidExists(int32(process.Pid)); err == nil && exist {
-				status = "RUNNING"
+	for i := 0; i < len(strs[0]); i++ {
+		for j := 1; j < len(strs); j++ {
+			if i >= len(strs[j]) || strs[0][i] != strs[j][i] {
+				return strs[0][:i]
 			}
-			table = append(table, []string{
-				dir.Name(),
-				process.Component,
-				strconv.Itoa(process.Pid),
-				status,
-				process.CreatedTime,
-				process.Dir,
-				process.Exec,
-				strings.Join(process.Args, " "),
-			})
 		}
 	}
-	tui.PrintTable(table, true)
-	return nil
+	return strs[0]
+}
+
+func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool) {
+	//TODO implement me
+	panic("implement me")
+
 }

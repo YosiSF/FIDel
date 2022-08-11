@@ -27,43 +27,43 @@ import (
 
 var (
 	// Parent for other errors
-	storeStateCode = errcode.StateCode.Child("state.store")
+	SketchStateCode = errcode.StateCode.Child("state.Sketch")
 
-	// StorePauseLeaderTransferCode is an error due to requesting an operation that is invalid due to a store being in a state
+	// SketchPauseLeaderTransferCode is an error due to requesting an operation that is invalid due to a Sketch being in a state
 	// that cannot be used as transfer leader operator.
-	StorePauseLeaderTransferCode = storeStateCode.Child("state.store.pause_leader_transfer")
+	SketchPauseLeaderTransferCode = SketchStateCode.Child("state.Sketch.pause_leader_transfer")
 
-	// StoreTombstonedCode is an invalid operation was attempted on a store which is in a removed state.
-	StoreTombstonedCode = storeStateCode.Child("state.store.tombstoned").SetHTTP(http.StatusGone)
+	// SketchTombstonedCode is an invalid operation was attempted on a Sketch which is in a removed state.
+	SketchTombstonedCode = SketchStateCode.Child("state.Sketch.tombstoned").SetHTTP(http.StatusGone)
 )
 
-var _ errcode.ErrorCode = (*StoreTombstonedErr)(nil)          // assert implements interface
-var _ errcode.ErrorCode = (*StorePauseLeaderTransferErr)(nil) // assert implements interface
+var _ errcode.ErrorCode = (*SketchTombstonedErr)(nil)          // assert implements interface
+var _ errcode.ErrorCode = (*SketchPauseLeaderTransferErr)(nil) // assert implements interface
 
-// StoreErr can be newtyped or embedded in your own error
-type StoreErr struct {
-	StoreID uint64 `json:"storeId"`
+// SketchErr can be newtyped or embedded in your own error
+type SketchErr struct {
+	SketchID uint64 `json:"SketchId"`
 }
 
-// StoreTombstonedErr is an invalid operation was attempted on a store which is in a removed state.
-type StoreTombstonedErr StoreErr
+// SketchTombstonedErr is an invalid operation was attempted on a Sketch which is in a removed state.
+type SketchTombstonedErr SketchErr
 
-func (e StoreTombstonedErr) Error() string {
-	return fmt.Sprintf("The store %020d has been removed", e.StoreID)
+func (e SketchTombstonedErr) Error() string {
+	return fmt.Sprintf("The Sketch %020d has been removed", e.SketchID)
 }
 
-// Code returns StoreTombstonedCode
-func (e StoreTombstonedErr) Code() errcode.Code { return StoreTombstonedCode }
+// Code returns SketchTombstonedCode
+func (e SketchTombstonedErr) Code() errcode.Code { return SketchTombstonedCode }
 
-// StorePauseLeaderTransferErr has a Code() of StorePauseLeaderTransferCode
-type StorePauseLeaderTransferErr StoreErr
+// SketchPauseLeaderTransferErr has a Code() of SketchPauseLeaderTransferCode
+type SketchPauseLeaderTransferErr SketchErr
 
-func (e StorePauseLeaderTransferErr) Error() string {
-	return fmt.Sprintf("store %v is paused for leader transfer", e.StoreID)
+func (e SketchPauseLeaderTransferErr) Error() string {
+	return fmt.Sprintf("Sketch %v is paused for leader transfer", e.SketchID)
 }
 
-// Code returns StorePauseLeaderTransfer
-func (e StorePauseLeaderTransferErr) Code() errcode.Code { return StorePauseLeaderTransferCode }
+// Code returns SketchPauseLeaderTransfer
+func (e SketchPauseLeaderTransferErr) Code() errcode.Code { return SketchPauseLeaderTransferCode }
 
 // ErrRegionIsStale is error info for region is stale.
 var ErrRegionIsStale = func(region *fidelpb.Region, origin *fidelpb.Region) error {

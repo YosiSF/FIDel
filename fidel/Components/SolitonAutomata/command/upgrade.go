@@ -35,7 +35,7 @@ func newUpgradeCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVar(&gOpt.Force, "force", false, "Force upgrade without transferring FIDel leader")
-	cmd.Flags().Int64Var(&gOpt.APITimeout, "transfer-timeout", 300, "Timeout in seconds when transferring FIDel and EinsteinDB store leaders")
+	cmd.Flags().Int64Var(&gOpt.APITimeout, "transfer-timeout", 300, "Timeout in seconds when transferring FIDel and EinsteinDB Sketch leaders")
 	cmd.Flags().BoolVarP(&gOpt.IgnoreConfigCheck, "ignore-config-check", "", false, "Ignore the config check result")
 
 	return cmd

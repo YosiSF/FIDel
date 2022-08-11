@@ -45,7 +45,7 @@ func WithLearners(learners []*fidelpb.Peer) RegionCreateOption {
 		for i := range peers {
 			for _, l := range learners {
 				if peers[i].GetId() == l.GetId() {
-					peers[i] = &fidelpb.Peer{Id: l.GetId(), StoreId: l.GetStoreId(), IsLearner: true}
+					peers[i] = &fidelpb.Peer{Id: l.GetId(), SketchId: l.GetSketchId(), IsLearner: true}
 					break
 				}
 			}
@@ -147,12 +147,12 @@ func SetWrittenKeys(v uint64) RegionCreateOption {
 	}
 }
 
-// WithRemoveStorePeer removes the specified peer for the region.
-func WithRemoveStorePeer(storeID uint64) RegionCreateOption {
+// WithRemoveSketchPeer removes the specified peer for the region.
+func WithRemoveSketchPeer(SketchID uint64) RegionCreateOption {
 	return func(region *RegionInfo) {
 		var peers []*fidelpb.Peer
 		for _, peer := range region.meta.GetPeers() {
-			if peer.GetStoreId() != storeID {
+			if peer.GetSketchId() != SketchID {
 				peers = append(peers, peer)
 			}
 		}
@@ -254,12 +254,12 @@ func WithPromoteLearner(peerID uint64) RegionCreateOption {
 	}
 }
 
-// WithReplacePeerStore replaces a peer's storeID with another ID.
-func WithReplacePeerStore(oldStoreID, newStoreID uint64) RegionCreateOption {
+// WithReplacePeerSketch replaces a peer's SketchID with another ID.
+func WithReplacePeerSketch(oldSketchID, newSketchID uint64) RegionCreateOption {
 	return func(region *RegionInfo) {
 		for _, p := range region.GetPeers() {
-			if p.GetStoreId() == oldStoreID {
-				p.StoreId = newStoreID
+			if p.GetSketchId() == oldSketchID {
+				p.SketchId = newSketchID
 			}
 		}
 	}

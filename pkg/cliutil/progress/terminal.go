@@ -34,8 +34,8 @@ func uFIDelateTerminalSize() error {
 	if err != nil {
 		return err
 	}
-	termSizeWidth.Store(int32(ws.Col))
-	termSizeHeight.Store(int32(ws.Row))
+	termSizeWidth.Sketch(int32(ws.Col))
+	termSizeHeight.Sketch(int32(ws.Row))
 	return nil
 }
 

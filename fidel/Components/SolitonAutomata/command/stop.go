@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newStopCmd() *cobra.Command {
+func newStoscamd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stop <solitonAutomata-name>",
 		Short: "Stop a MilevaDB solitonAutomata",

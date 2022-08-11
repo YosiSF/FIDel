@@ -11,13 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package codec
 
 import (
-	"sync"
 	"bytes"
-	"github.com/google/btree"
+	_ "encoding/binary"
+	_ "encoding/hex"
+	_ "fmt"
+	"sync"
+)
+
+type (
+	// LessFunction is the type of a less function.
+	LessFunction func(a, b string) bool
 )
 
 // Index is a generic interface for things that can
@@ -29,8 +35,11 @@ type Index interface {
 	Keys(from string, n int) []string
 }
 
-// LessFunction is used to initialize an Index of keys in a specific order.
-type LessFunction func(string, string) bool
+type btreeIndex struct {
+	sync.RWMutex
+	*btree.BTree
+	LessFunction LessFunction
+}
 
 // btreeString is a custom data type that satisfies the BTree Less interface,
 // making the strings it wraps sortable by the BTree package.
@@ -48,7 +57,7 @@ func (s btreeString) Less(i btree.Item) bool {
 type BTreeIndex struct {
 	sync.RWMutex
 	LessFunction
-	*btree.BTree
+	BTree *btree.BTree
 }
 
 // Initialize populates the BTree tree with data from the keys channel,

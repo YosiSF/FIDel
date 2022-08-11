@@ -368,7 +368,7 @@ func (e *NativeSSHInterlock) Transfer(src string, dst string, download bool) err
 
 	err := command.Run()
 
-	zap.L().Info("SSPCommand",
+	zap.L().Info("SSscaommand",
 		zap.String("host", e.Config.Host),
 		zap.Int("port", e.Config.Port),
 		zap.String("cmd", strings.Join(args, " ")),

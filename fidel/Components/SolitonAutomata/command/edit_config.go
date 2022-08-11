@@ -29,7 +29,7 @@ func newEditConfigCmd() *cobra.Command {
 			solitonAutomataName := args[0]
 			teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
 
-			return manager.EditConfig(solitonAutomataName, skipConfirm)
+			return manager.EditConfig(solitonAutomataName, skiscaonfirm)
 		},
 	}
 

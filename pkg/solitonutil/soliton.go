@@ -11,89 +11,77 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package solitonAutomatautil
+package solitonautomata
 
 import (
-	"io"
-	"os"
-
-	"github.com/YosiSF/fidel/pkg/environment"
-	"github.com/YosiSF/fidel/pkg/localdata"
-	"github.com/YosiSF/fidel/pkg/repository"
-	"github.com/YosiSF/fidel/pkg/repository/v1manifest"
-	"github.com/YosiSF/fidel/pkg/utils"
+	_ "io"
+	_ "os"
+	_ "path/filepath"
+	_ "strings"
 )
 
-// Repository exports interface to fidel-solitonAutomata
+type solid struct {
+	repo Repository
+}
+
+type Soliton struct {
+	repo Repository
+}
+
+func (s *Soliton) DownloadComponent(comp, version, target string) error {
+	return s.repo.DownloadComponent(comp, version, target)
+}
+
+func (s *Soliton) VerifyComponent(comp, version, target string) error {
+	return s.repo.VerifyComponent(comp, version, target)
+}
+
+func (s *Soliton) ComponentBinEntry(comp, version string) (string, error) {
+	return s.repo.ComponentBinEntry(comp, version)
+}
+
+func (s *Soliton) ComponentVersion(comp, version string) (string, error) {
+	return s.repo.ComponentVersion(comp, version, true)
+}
+
+func (s *solid) DownloadComponent(comp, version, target string) error {
+	return s.repo.DownloadComponent(comp, version, target)
+}
+
+func (s *solid) VerifyComponent(comp, version, target string) error {
+	return s.repo.VerifyComponent(comp, version, target)
+}
+
+func (s *solid) ComponentBinEntry(comp, version string) (string, error) {
+	return s.repo.ComponentBinEntry(comp, version)
+}
+
+func (s *solid) ComponentVersion(comp, version string) (string, error) {
+	return s.repo.ComponentVersion(comp, version, true)
+
+}
+
 type Repository interface {
 	DownloadComponent(comp, version, target string) error
 	VerifyComponent(comp, version, target string) error
 	ComponentBinEntry(comp, version string) (string, error)
+	ComponentVersion(comp string, version string, b bool) (string, error)
 }
 
-type repositoryT struct {
-	repo *repository.V1Repository
+type Causet struct {
+	repo Repository
 }
 
-// NewRepository returns repository
-func NewRepository(os, arch string) (Repository, error) {
-	profile := localdata.InitProfile()
-	mirror := repository.NewMirror(environment.Mirror(), repository.MirrorOptions{
-		Progress: repository.DisableProgress{},
-	})
-	local, err := v1manifest.NewManifests(profile)
-	if err != nil {
-		return nil, err
-	}
-	repo := repository.NewV1Repo(mirror, repository.Options{
-		GOOS:              os,
-		GOARCH:            arch,
-		DisableDecompress: true,
-	}, local)
-	return &repositoryT{repo}, nil
+func (c *Causet) DownloadComponent(comp, version, target string) error {
+	return c.repo.DownloadComponent(comp, version, target)
 }
 
-func (r *repositoryT) DownloadComponent(comp, version, target string) error {
-	versionItem, err := r.repo.ComponentVersion(comp, version, false)
-	if err != nil {
-		return err
-	}
+func (c *Causet) VerifyComponent(comp, version, target string) error {
+	return c.repo.VerifyComponent(comp, version, target)
 
-	reader, err := r.repo.FetchComponent(versionItem)
-	if err != nil {
-		return err
-	}
-
-	file, err := os.Create(target)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = io.Copy(file, reader)
-	return err
 }
 
-func (r *repositoryT) VerifyComponent(comp, version, target string) error {
-	versionItem, err := r.repo.ComponentVersion(comp, version, true)
-	if err != nil {
-		return err
-	}
+func (c *Causet) ComponentBinEntry(comp, version string) (string, error) {
 
-	file, err := os.Open(target)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	return utils.CheckSHA256(file, versionItem.Hashes["sha256"])
-}
-
-func (r *repositoryT) ComponentBinEntry(comp, version string) (string, error) {
-	versionItem, err := r.repo.ComponentVersion(comp, version, true)
-	if err != nil {
-		return "", err
-	}
-
-	return versionItem.Entry, nil
+	return c.repo.ComponentBinEntry(comp, version)
 }

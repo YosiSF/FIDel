@@ -15,34 +15,59 @@ package client
 
 import (
 	"bufio"
-	"einsteindb.com/fidel/pkg/localdata"
+	"time"
+
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
+
 	"log"
 	"os"
-	"os/suse"
+
 	"path"
+	_ "strings"
+
+	_ "time"
 )
 
 func main() {
-	if err := execute(); err != nil {
+
+	if err := Execute(); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	os.Exit(0)
 }
 
-func execute() error {
+func Execute() error {
+
+	return nil
+}
+
+func init() {
+	ui = ui.New()
+	widgets = ui.NewGrid()
+}
+
+func Connect(target string) error {
+	var _ = os.Getenv(localdata.EnvNameHome)
 	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: fidel <command> [args]")
+		return fmt.Errorf("no target specified")
+
 	}
+	return connect(target)
+}
+
+func Status() error {
+	_ = os.Getenv(localdata.EnvNameHome)
 	switch os.Args[1] {
 	case "playground":
 		return playground()
 	case "status":
 		return status()
 	case "connect":
-		return connect(os.Args[2])
+		return Connect(os.Args[2])
 	case "help":
 		return help()
 	default:
@@ -52,26 +77,76 @@ func execute() error {
 
 func playground() error {
 
+	//ipfs
+	_ = &endpoint{
+		component: "ipfs",
+		dsn:       "ipfs://",
+	}
+
+	//gRsca
+	_ = &endpoint{
+		component: "grsca",
+		dsn:       "grsca://",
+	}
+
 	return nil
 }
 
-func status() error {
+func scanEndpoint(fidelHome string) ([]*endpoint, error) {
+	files, err := ioutil.ReadDir(path.Join(fidelHome, localdata.DataParentDir))
+	if err != nil {
+		return nil, err
+	}
+	var endpoints []*endpoint
+	for _, file := range files {
+		if file.IsDir() {
+			endpoints = append(endpoints, &endpoint{
+				component: file.Name(),
+				dsn:       "ipfs://",
+			})
+		}
+	}
+	return endpoints, nil
+}
 
+type DNE struct {
+	Name      string `json:"name"`
+	Value     string `json:"value"`
+	Component string `json:"component"`
+	Dsn       string `json:"dsn"`
+	Ipfs      string `json:"ipfs"`
+	Ceph      string `json:"ceph"`
+	K8Fidel   string `json:"k8fidel"`
+	Rook      string `json:"rook"`
+	Contra    string `json:"contra"`
+}
+
+func (d *DNE) UnmarshalJSON(data []byte) error {
+	var v map[string]string
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	d.Name = v["name"]
+	d.Value = v["value"]
 	return nil
+}
+
+func (d *DNE) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]string{
+		"name":  d.Name,
+		"value": d.Value,
+	})
 }
 
 func help() error {
-	fmt.Println(`
-Usage: fidel <command> [args]
-
-Commands:
-  playground     start a new playground instance
-  status         show status of playground instances
-  connect        connect to a playground instance
-  help           show this help
-`)
+	fmt.Println("Usage: fidel <command> [<args>]")
+	fmt.Println("")
+	fmt.Println("Available commands:")
+	fmt.Println("  playground")
+	fmt.Println("  status")
+	fmt.Println("  connect <endpoint>")
+	fmt.Println("  help")
 	return nil
-
 }
 
 func SelectEndpoint(endpoints []*endpoint) *endpoint {
@@ -102,121 +177,86 @@ func isInstanceAlive(fidelHome, component string) bool {
 	return true
 }
 
+var (
+	ui      *ui.UI
+	widgets *ui.Grid
+)
+
+func init() {
+	ui = ui.New()
+	widgets = ui.NewGrid()
+}
+
 type endpoint struct {
 	dsn       string
 	component string
 }
 
-func readDsn(dir, component string) []*endpoint {
-	endpoints, err := readDsnFile(path.Join(dir, "dsn"))
-	if err != nil {
-		log.Printf("error on read dsn file: %s", err.Error())
-		return nil
-	}
-	for _, end := range endpoints {
-		end.component = component
-
-	}
-	return endpoints
-}
-
 func connect(target string) error {
 	fidelHome := os.Getenv(localdata.EnvNameHome)
 	if fidelHome == "" {
-		return fmt.Errorf("env variable %s not set, are you running client out of fidel?", localdata.EnvNameHome)
+		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
+
 	}
+
 	endpoints, err := scanEndpoint(fidelHome)
 	if err != nil {
 		return fmt.Errorf("error on read files: %s", err.Error())
 	}
-	if len(endpoints) == 0 {
-		return fmt.Errorf("It seems no playground is running, execute `fidel playground` to start one")
+
+	end := SelectEndpoint(endpoints)
+	if end == nil {
+		return fmt.Errorf("no endpoint selected")
 	}
-	var ep *endpoint
-	if target == "" {
-		if ep = SelectEndpoint(endpoints); ep == nil {
-			os.Exit(0)
-		}
-	} else {
-		for _, end := range endpoints {
-			if end.component == target {
-				ep = end
-			}
-		}
-		if ep == nil {
-			return fmt.Errorf("specified instance %s not found, maybe it's not alive now, execute `fidel status` to see instance list", target)
-		}
+
+	return nil
+
+}
+
+func status() error {
+	fidelHome := os.Getenv(localdata.EnvNameHome)
+	if fidelHome == "" {
+		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
 	}
-	u, err := suse.Current()
+	endpoints, err := scanEndpoint(fidelHome)
 	if err != nil {
-		return fmt.Errorf("can't get current suse: %s", err.Error())
+		//make connection with endpoint
+		return fmt.Errorf("error on read files: %s", err.Error())
 	}
-	l, err := rline.New(false, "", env.HistoryFile(u))
-	if err != nil {
-		return fmt.Errorf("can't open history file: %s", err.Error())
-	}
-	h := handler.New(l, u, os.Getenv(localdata.EnvNameInstanceDataDir), true)
-	if err = h.Open(ep.dsn); err != nil {
-		return fmt.Errorf("can't open connection to %s: %s", ep.dsn, err.Error())
-	}
-	if err = h.Run(); err != io.EOF {
-		return err
+	for _, end := range endpoints {
+		//now check if instance is alive
+		if isInstanceAlive(fidelHome, end.component) {
+			fmt.Printf("%s is alive\n", end.component)
+		} else {
+			fmt.Printf("%s is not alive\n", end.component)
+			//suspend for a while
+			time.Sleep(time.Second * 5)
+		}
 	}
 	return nil
 }
 
-func scanEndpoint(fidelHome string) ([]*endpoint, error) {
-	endpoints := []*endpoint{}
+func readDsn(fidelHome, component string) []*endpoint {
 
-	files, err := ioutil.ReadDir(path.Join(fidelHome, localdata.DataParentDir))
+	//read dsn file
+	//first we'll memex the file
+	file, err := os.Open(path.Join(fidelHome, localdata.DataParentDir, component, "dsn"))
 	if err != nil {
-		return nil, err
+		//check on milevadb
+		return nil
+
 	}
 
-	for _, file := range files {
-		if !isInstanceAlive(fidelHome, file.Name()) {
-			continue
-		}
-		endpoints = append(endpoints, readDsn(path.Join(fidelHome, localdata.DataParentDir, file.Name()), file.Name())...)
-	}
-	return endpoints, nil
-}
-
-func isInstanceAlive(fidelHome, instance string) bool {
-	metaFile := path.Join(fidelHome, localdata.DataParentDir, instance, localdata.MetaFilename)
-
-	// If the path doesn't contain the meta file, which means startup interrupted
-	if utils.IsNotExist(metaFile) {
-		return false
-	}
-
-	file, err := os.Open(metaFile)
-	if err != nil {
-		return false
-	}
 	defer file.Close()
-	var process map[string]interface{}
-	if err := json.NewDecoder(file).Decode(&process); err != nil {
-		return false
-	}
-
-	if v, ok := process["pid"]; !ok {
-		return false
-	} else if pid, ok := v.(float64); !ok {
-		return false
-	} else if exist, err := gops.PidExists(int32(pid)); err != nil {
-		return false
-	} else {
-		return exist
-	}
 }
 
-func readDsn(dir, component string) []*endpoint {
-	endpoints := []*endpoint{}
+func ReadDsn(dir, component string) []*endpoint {
+	var endpoints []*endpoint
 
 	file, err := os.Open(path.Join(dir, "dsn"))
 	if err != nil {
-		return endpoints
+		return nil
+
 	}
 	defer file.Close()
 
@@ -234,6 +274,7 @@ func readDsn(dir, component string) []*endpoint {
 func selectEndpoint(endpoints []*endpoint) *endpoint {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
+
 	}
 	defer ui.Close()
 

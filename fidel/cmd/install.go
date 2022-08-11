@@ -14,33 +14,9 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	_ "fmt"
+	_ "io/ioutil"
+	_ "ipfs/go-ipfs-cmds"
+	_ "os"
+	_ "path/filepath"
 )
-
-func newInstallCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "install <component1>[:version] [component2...N]",
-		Short: "Install a specific version of a component",
-		Long: `Install a specific version of a component. The component can be specified
-by <component> or <component>:<version>. The latest stable version will
-be installed if there is no version specified.
-
-You can install multiple components at once, or install multiple versions
-of the same component:
-
-  fidel install milevadb:v3.0.5 EinsteinDB fidel
-  fidel install milevadb:v3.0.5 milevadb:v3.0.8 EinsteinDB:v3.0.9`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			env := environment.GlobalEnv()
-			if len(args) == 0 {
-				return cmd.Help()
-			}
-			return installComponents(env, args)
-		},
-	}
-	return cmd
-}
-
-func installComponents(env *environment.Environment, specs []string) error {
-	return env.UfidelateComponents(specs, false, false)
-}

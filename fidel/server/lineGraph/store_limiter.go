@@ -17,30 +17,30 @@ import (
 	"sync"
 
 	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone"
+	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/Sketchlimit"
 	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/opt"
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/storelimit"
 	"github.com/YosiSF/kvproto/pkg/fidelpb"
 	"github.com/YosiSF/log"
 	"go.uber.org/zap"
 )
 
-// StoreLimiter adjust the store limit dynamically
-type StoreLimiter struct {
+// SketchLimiter adjust the Sketch limit dynamically
+type SketchLimiter struct {
 	m       sync.RWMutex
 	opt     opt.Options
-	scene   map[storelimit.Type]*storelimit.Scene
+	scene   map[Sketchlimit.Type]*Sketchlimit.Scene
 	state   *State
 	current LoadState
 }
 
-// NewStoreLimiter builds a store limiter object using the operator controller
-func NewStoreLimiter(opt opt.Options) *StoreLimiter {
-	defaultScene := map[storelimit.Type]*storelimit.Scene{
-		storelimit.AddPeer:    storelimit.DefaultScene(storelimit.AddPeer),
-		storelimit.RemovePeer: storelimit.DefaultScene(storelimit.RemovePeer),
+// NewSketchLimiter builds a Sketch limiter object using the operator controller
+func NewSketchLimiter(opt opt.Options) *SketchLimiter {
+	defaultScene := map[Sketchlimit.Type]*Sketchlimit.Scene{
+		Sketchlimit.AddPeer:    Sketchlimit.DefaultScene(Sketchlimit.AddPeer),
+		Sketchlimit.RemovePeer: Sketchlimit.DefaultScene(Sketchlimit.RemovePeer),
 	}
 
-	return &StoreLimiter{
+	return &SketchLimiter{
 		opt:     opt,
 		state:   NewState(),
 		scene:   defaultScene,
@@ -48,8 +48,8 @@ func NewStoreLimiter(opt opt.Options) *StoreLimiter {
 	}
 }
 
-// Collect the store statistics and ufidelate the lineGraph state
-func (s *StoreLimiter) Collect(stats *fidelpb.StoreStats) {
+// Collect the Sketch statistics and ufidelate the lineGraph state
+func (s *SketchLimiter) Collect(stats *fidelpb.SketchStats) {
 	s.m.Lock()
 	defer s.m.Unlock()
 
@@ -57,17 +57,17 @@ func (s *StoreLimiter) Collect(stats *fidelpb.StoreStats) {
 	s.state.Collect((*StatEntry)(stats))
 
 	state := s.state.State()
-	ratePeerAdd := s.calculateRate(storelimit.AddPeer, state)
-	ratePeerRemove := s.calculateRate(storelimit.RemovePeer, state)
+	ratePeerAdd := s.calculateRate(Sketchlimit.AddPeer, state)
+	ratePeerRemove := s.calculateRate(Sketchlimit.RemovePeer, state)
 
 	if ratePeerAdd > 0 || ratePeerRemove > 0 {
 		if ratePeerAdd > 0 {
-			s.opt.SetAllStoresLimit(storelimit.AddPeer, ratePeerAdd)
-			log.Info("change store region add limit for lineGraph", zap.Stringer("state", state), zap.Float64("rate", ratePeerAdd))
+			s.opt.SetAllSketchsLimit(Sketchlimit.AddPeer, ratePeerAdd)
+			log.Info("change Sketch region add limit for lineGraph", zap.Stringer("state", state), zap.Float64("rate", ratePeerAdd))
 		}
 		if ratePeerRemove > 0 {
-			s.opt.SetAllStoresLimit(storelimit.RemovePeer, ratePeerRemove)
-			log.Info("change store region remove limit for lineGraph", zap.Stringer("state", state), zap.Float64("rate", ratePeerRemove))
+			s.opt.SetAllSketchsLimit(Sketchlimit.RemovePeer, ratePeerRemove)
+			log.Info("change Sketch region remove limit for lineGraph", zap.Stringer("state", state), zap.Float64("rate", ratePeerRemove))
 		}
 		s.current = state
 		collectLineGraphStateCurrent(state)
@@ -84,33 +84,33 @@ func collectLineGraphStateCurrent(state LoadState) {
 	}
 }
 
-func (s *StoreLimiter) calculateRate(limitType storelimit.Type, state LoadState) float64 {
+func (s *SketchLimiter) calculateRate(limitType Sketchlimit.Type, state LoadState) float64 {
 	rate := float64(0)
 	switch state {
 	case LoadStateIdle:
-		rate = float64(s.scene[limitType].Idle) / lightcone.StoreBalanceBaseTime
+		rate = float64(s.scene[limitType].Idle) / lightcone.SketchBalanceBaseTime
 	case LoadStateLow:
-		rate = float64(s.scene[limitType].Low) / lightcone.StoreBalanceBaseTime
+		rate = float64(s.scene[limitType].Low) / lightcone.SketchBalanceBaseTime
 	case LoadStateNormal:
-		rate = float64(s.scene[limitType].Normal) / lightcone.StoreBalanceBaseTime
+		rate = float64(s.scene[limitType].Normal) / lightcone.SketchBalanceBaseTime
 	case LoadStateHigh:
-		rate = float64(s.scene[limitType].High) / lightcone.StoreBalanceBaseTime
+		rate = float64(s.scene[limitType].High) / lightcone.SketchBalanceBaseTime
 	}
 	return rate
 }
 
-// ReplaceStoreLimitScene replaces the store limit values for different scenes
-func (s *StoreLimiter) ReplaceStoreLimitScene(scene *storelimit.Scene, limitType storelimit.Type) {
+// ReplaceSketchLimitScene replaces the Sketch limit values for different scenes
+func (s *SketchLimiter) ReplaceSketchLimitScene(scene *Sketchlimit.Scene, limitType Sketchlimit.Type) {
 	s.m.Lock()
 	defer s.m.Unlock()
 	if s.scene == nil {
-		s.scene = make(map[storelimit.Type]*storelimit.Scene)
+		s.scene = make(map[Sketchlimit.Type]*Sketchlimit.Scene)
 	}
 	s.scene[limitType] = scene
 }
 
-// StoreLimitScene returns the current limit for different scenes
-func (s *StoreLimiter) StoreLimitScene(limitType storelimit.Type) *storelimit.Scene {
+// SketchLimitScene returns the current limit for different scenes
+func (s *SketchLimiter) SketchLimitScene(limitType Sketchlimit.Type) *Sketchlimit.Scene {
 	s.m.RLock()
 	defer s.m.RUnlock()
 	return s.scene[limitType]

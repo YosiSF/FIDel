@@ -134,9 +134,9 @@ func (*testRegionKey) TestRegionKey(c *C) {
 func (*testRegionKey) TestSetRegion(c *C) {
 	regions := NewRegionsInfo()
 	for i := 0; i < 100; i++ {
-		peer1 := &fidelpb.Peer{StoreId: uint64(i%5 + 1), Id: uint64(i*5 + 1)}
-		peer2 := &fidelpb.Peer{StoreId: uint64((i+1)%5 + 1), Id: uint64(i*5 + 2)}
-		peer3 := &fidelpb.Peer{StoreId: uint64((i+2)%5 + 1), Id: uint64(i*5 + 3)}
+		peer1 := &fidelpb.Peer{SketchId: uint64(i%5 + 1), Id: uint64(i*5 + 1)}
+		peer2 := &fidelpb.Peer{SketchId: uint64((i+1)%5 + 1), Id: uint64(i*5 + 2)}
+		peer3 := &fidelpb.Peer{SketchId: uint64((i+2)%5 + 1), Id: uint64(i*5 + 3)}
 		region := NewRegionInfo(&fidelpb.Region{
 			Id:       uint64(i + 1),
 			Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
@@ -146,9 +146,9 @@ func (*testRegionKey) TestSetRegion(c *C) {
 		regions.SetRegion(region)
 	}
 
-	peer1 := &fidelpb.Peer{StoreId: uint64(4), Id: uint64(101)}
-	peer2 := &fidelpb.Peer{StoreId: uint64(5), Id: uint64(102)}
-	peer3 := &fidelpb.Peer{StoreId: uint64(1), Id: uint64(103)}
+	peer1 := &fidelpb.Peer{SketchId: uint64(4), Id: uint64(101)}
+	peer2 := &fidelpb.Peer{SketchId: uint64(5), Id: uint64(102)}
+	peer3 := &fidelpb.Peer{SketchId: uint64(1), Id: uint64(103)}
 	region := NewRegionInfo(&fidelpb.Region{
 		Id:       uint64(21),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
@@ -163,9 +163,9 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	c.Assert(len(regions.GetRegions()), Equals, 97)
 
 	regions.SetRegion(region)
-	peer1 = &fidelpb.Peer{StoreId: uint64(2), Id: uint64(101)}
-	peer2 = &fidelpb.Peer{StoreId: uint64(3), Id: uint64(102)}
-	peer3 = &fidelpb.Peer{StoreId: uint64(1), Id: uint64(103)}
+	peer1 = &fidelpb.Peer{SketchId: uint64(2), Id: uint64(101)}
+	peer2 = &fidelpb.Peer{SketchId: uint64(3), Id: uint64(102)}
+	peer3 = &fidelpb.Peer{SketchId: uint64(1), Id: uint64(103)}
 	region = NewRegionInfo(&fidelpb.Region{
 		Id:       uint64(21),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
@@ -206,10 +206,10 @@ func (*testRegionKey) TestSetRegion(c *C) {
 
 func (*testRegionKey) TestShouldRemoveFromSubTree(c *C) {
 	regions := NewRegionsInfo()
-	peer1 := &fidelpb.Peer{StoreId: uint64(1), Id: uint64(1)}
-	peer2 := &fidelpb.Peer{StoreId: uint64(2), Id: uint64(2)}
-	peer3 := &fidelpb.Peer{StoreId: uint64(3), Id: uint64(3)}
-	peer4 := &fidelpb.Peer{StoreId: uint64(3), Id: uint64(3)}
+	peer1 := &fidelpb.Peer{SketchId: uint64(1), Id: uint64(1)}
+	peer2 := &fidelpb.Peer{SketchId: uint64(2), Id: uint64(2)}
+	peer3 := &fidelpb.Peer{SketchId: uint64(3), Id: uint64(3)}
+	peer4 := &fidelpb.Peer{SketchId: uint64(3), Id: uint64(3)}
 	region := NewRegionInfo(&fidelpb.Region{
 		Id:       uint64(1),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer4},
@@ -241,7 +241,7 @@ func (*testRegionKey) TestShouldRemoveFromSubTree(c *C) {
 	region.learners = append(region.learners, peer4)
 	c.Assert(regions.shouldRemoveFromSubTree(region, origin), Equals, false)
 
-	region.voters[2].StoreId = 4
+	region.voters[2].SketchId = 4
 	c.Assert(regions.shouldRemoveFromSubTree(region, origin), Equals, true)
 }
 
@@ -251,30 +251,30 @@ func checkRegions(c *C, regions *RegionsInfo) {
 	learnerMap := make(map[uint64]uint64)
 	pendingPeerMap := make(map[uint64]uint64)
 	for _, item := range regions.GetRegions() {
-		if leaderCount, ok := leaderMap[item.leader.StoreId]; ok {
-			leaderMap[item.leader.StoreId] = leaderCount + 1
+		if leaderCount, ok := leaderMap[item.leader.SketchId]; ok {
+			leaderMap[item.leader.SketchId] = leaderCount + 1
 		} else {
-			leaderMap[item.leader.StoreId] = 1
+			leaderMap[item.leader.SketchId] = 1
 		}
 		for _, follower := range item.GetFollowers() {
-			if followerCount, ok := followerMap[follower.StoreId]; ok {
-				followerMap[follower.StoreId] = followerCount + 1
+			if followerCount, ok := followerMap[follower.SketchId]; ok {
+				followerMap[follower.SketchId] = followerCount + 1
 			} else {
-				followerMap[follower.StoreId] = 1
+				followerMap[follower.SketchId] = 1
 			}
 		}
 		for _, learner := range item.GetLearners() {
-			if learnerCount, ok := learnerMap[learner.StoreId]; ok {
-				learnerMap[learner.StoreId] = learnerCount + 1
+			if learnerCount, ok := learnerMap[learner.SketchId]; ok {
+				learnerMap[learner.SketchId] = learnerCount + 1
 			} else {
-				learnerMap[learner.StoreId] = 1
+				learnerMap[learner.SketchId] = 1
 			}
 		}
 		for _, pendingPeer := range item.GetPendingPeers() {
-			if pendingPeerCount, ok := pendingPeerMap[pendingPeer.StoreId]; ok {
-				pendingPeerMap[pendingPeer.StoreId] = pendingPeerCount + 1
+			if pendingPeerCount, ok := pendingPeerMap[pendingPeer.SketchId]; ok {
+				pendingPeerMap[pendingPeer.SketchId] = pendingPeerCount + 1
 			} else {
-				pendingPeerMap[pendingPeer.StoreId] = 1
+				pendingPeerMap[pendingPeer.SketchId] = 1
 			}
 		}
 	}
@@ -295,7 +295,7 @@ func checkRegions(c *C, regions *RegionsInfo) {
 func BenchmarkRandomRegion(b *testing.B) {
 	regions := NewRegionsInfo()
 	for i := 0; i < 5000000; i++ {
-		peer := &fidelpb.Peer{StoreId: 1, Id: uint64(i + 1)}
+		peer := &fidelpb.Peer{SketchId: 1, Id: uint64(i + 1)}
 		region := NewRegionInfo(&fidelpb.Region{
 			Id:       uint64(i + 1),
 			Peers:    []*fidelpb.Peer{peer},
@@ -328,7 +328,7 @@ func newRegionInfoID(idAllocator id.Allocator) *RegionInfo {
 	)
 	for i := 0; i < 3; i++ {
 		id, _ := idAllocator.Alloc()
-		p := &fidelpb.Peer{Id: id, StoreId: id}
+		p := &fidelpb.Peer{Id: id, SketchId: id}
 		if i == 0 {
 			leader = p
 		}

@@ -86,14 +86,14 @@ func newImportCmd() *cobra.Command {
 			}
 			log.Warnf("MilevaDB-Ansible and FIDel SolitonAutomata can NOT be used together, please DO NOT try to use ansible to manage the imported solitonAutomata anymore to avoid metadata conflict.")
 			log.Infof(prompt)
-			if !skipConfirm {
+			if !skiscaonfirm {
 				err = cliutil.PromptForConfirmOrAbortError("Do you want to continue? [y/N]: ")
 				if err != nil {
 					return err
 				}
 			}
 
-			if !skipConfirm {
+			if !skiscaonfirm {
 				err = cliutil.PromptForConfirmOrAbortError(
 					"Prepared to import MilevaDB %s solitonAutomata %s.\nDo you want to continue? [y/N]:",
 					clsMeta.Version,

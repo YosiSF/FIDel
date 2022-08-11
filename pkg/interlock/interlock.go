@@ -11,6 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+package interlock
+
+
 import (
 	"context"
 	"encoding/json"
@@ -32,6 +35,20 @@ import (
 	"github.com/YosiSF/fidel/pkg/repository/v0manifest"
 	"github.com/YosiSF/fidel/pkg/telemetry"
 	"golang.org/x/mod/semver"
+)
+
+
+
+func launchComponent(ctx context.Context, component, version, binPath string, tag string, args []string, env *environment.Environment) (*localdata.ProcessInfo, error) {
+
+	var _ = os.Getenv(localdata.EnvNameHome)
+	if len(os.Args) < 2 {
+		return nil, fmt.Errorf("no target specified")
+	}
+	return launchComponent(ctx, component, version, binPath, tag, args, env)
+}
+
+
 
 	// RunComponent start a component and wait it
 func RunComponent(env *environment.Environment, tag, spec, binPath string, args []string) error {
@@ -188,6 +205,62 @@ func PrepareCommand(
 		}
 	}
 
+
+	if tag == "" {
+		tag = base62Tag()
+
+		if component == "playground" {
+			tag = "playground"
+		}
+
+		if component == "solitonAutomata" {
+			tag = "solitonAutomata"
+		}
+
+		if component == "milevadb" {
+			tag = "milevadb"
+		}
+
+		if component == "einsteindb" {
+			tag = "einsteindb"
+		}
+	}
+
+
+	if wd == "" {
+		wd, err = os.Getwd()
+		if err != nil {
+			return nil, errors.Trace(err)
+		}
+	}
+
+	if component == "playground" {
+		wd = filepath.Join(wd, "playground")
+
+	}
+
+	if component == "solitonAutomata" {
+		wd = filepath.Join(wd, "solitonAutomata")
+
+	}
+
+
+	if component == "milevadb" {
+		wd = filepath.Join(wd, "milevadb")
+
+	}
+
+	if component == "einsteindb" {
+		wd = filepath.Join(wd, "einsteindb")
+
+	}
+
+	if component == "playground" {
+		wd = filepath.Join(wd, "playground")
+
+	}
+
+
 	instanceDir := wd
 	if instanceDir == "" {
 		// Generate a tag for current instance if the tag doesn't specified
@@ -205,9 +278,10 @@ func PrepareCommand(
 		return nil, err
 	}
 
-	fidelWd, err := os.Getwd()
-	if err != nil {
-		return nil, err
+
+	if component == "playground" {
+		sd = filepath.Join(sd, "playground")
+
 	}
 
 	teleMeta, _, err := telemetry.GetMeta(env)
@@ -240,20 +314,32 @@ func PrepareCommand(
 	return c, nil
 }
 
-func launchComponent(ctx context.Context, component string, version v0manifest.Version, binPath string, tag string, args []string, env *environment.Environment) (*localdata.Process, error) {
-	c, err := PrepareCommand(ctx, component, version, binPath, tag, "", args, env, true)
-	if err != nil {
-		return nil, err
+
+func runCommand(c *exec.Cmd) error {
+	if err := c.Start(); err != nil {
+
+		return err
 	}
 
+
+
+
+
+
+
+
+
+	if err := c.Wait(); err != nil {
 	p := &localdata.Process{
-		Component:   component,
-		CreatedTime: time.Now().Format(time.RFC3339),
-		Exec:        c.Args[0],
-		Args:        args,
-		Dir:         c.Dir,
-		Env:         c.Env,
-		Cmd:         c,
+		//Component:   component,
+		//CreatedTime: time.Now().Format(time.RFC3339),
+		//Exec:        c.Args[0],
+		//Args:        args,
+		//Dir:         c.Dir,
+		//Env:         c.Env,
+		//Cmd:         c,
+
+
 	}
 
 	fmt.Printf("Starting component `%s`: %s\n", component, strings.Join(append([]string{p.Exec}, p.Args...), " "))

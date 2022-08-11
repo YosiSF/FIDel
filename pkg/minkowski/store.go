@@ -1,4 +1,4 @@
-// Copyright 2020 WHTCORPS INC EinsteinDB TM 
+// Copyright 2020 WHTCORPS INC EinsteinDB TM
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,31 +15,39 @@ package minkowski
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/YosiSF/errcode"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/log"
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/storelimit"
-	"go.uber.org/zap"
 )
 
 const (
-	// Interval to save store meta (including heartbeat ts) to etcd.
-	storePersistInterval = 5 * time.Minute
-	lowSpaceThreshold    = 100 * (1 << 10) // 100 GB
-	highSpaceThreshold   = 300 * (1 << 10) // 300 GB
-	mb                   = 1 << 20         // megabyte
+
+	// SketchPersistInterval SketchAvailableSpaceRatio is the ratio of available space to capacity.
+	// SketchAvailable is the available state of the Sketch.
+	// Interval to save Sketch meta (including heartbeat ts) to etcd.
+	SketchPersistInterval = 5 * time.Minute
+
+	// SketchAvailableSpaceRatio is the ratio of available space to capacity.
+	lowSpaceThreshold      = 100 * (1 << 10) // 100 GB
+	lowSpaceRatio          = 0.8
+	lowSpaceRatioStable    = 0.9
+	lowSpaceRatioCritical  = 0.95
+	highSpaceThreshold     = 300 * (1 << 10) // 300 GB
+	highSpaceRatio         = 0.2
+	highSpaceRatioStable   = 0.1
+	highSpaceRatioCritical = 0.05
+	mb                     = 1 << 20 // megabyte
+
 )
 
-// StoreInfo contains information about a store.
-type StoreInfo struct {
-	meta                *fidelpb.Store
-	stats               *fidelpb.StoreStats
+// SketchInfo contains information about a Sketch.
+type SketchInfo struct {
+	meta                *fidelpb.Sketch
+	stats               *fidelpb.SketchStats
 	pauseLeaderTransfer bool // not allow to be used as source or target of transfer leader
 	leaderCount         int
 	regionCount         int
@@ -49,27 +57,27 @@ type StoreInfo struct {
 	lastPersistTime     time.Time
 	leaderWeight        float64
 	regionWeight        float64
-	available           map[storelimit.Type]func() bool
+	available           map[Sketchlimit.Type]func() bool
 }
 
-// NewStoreInfo creates StoreInfo with meta data.
-func NewStoreInfo(store *fidelpb.Store, opts ...StoreCreateOption) *StoreInfo {
-	storeInfo := &StoreInfo{
-		meta:         store,
-		stats:        &fidelpb.StoreStats{},
+// NewSketchInfo creates SketchInfo with meta data.
+func NewSketchInfo(Sketch *fidelpb.Sketch, opts ...SketchCreateOption) *SketchInfo {
+	SketchInfo := &SketchInfo{
+		meta:         Sketch,
+		stats:        &fidelpb.SketchStats{},
 		leaderWeight: 1.0,
 		regionWeight: 1.0,
 	}
 	for _, opt := range opts {
-		opt(storeInfo)
+		opt(SketchInfo)
 	}
-	return storeInfo
+	return SketchInfo
 }
 
-// Clone creates a copy of current StoreInfo.
-func (s *StoreInfo) Clone(opts ...StoreCreateOption) *StoreInfo {
-	meta := proto.Clone(s.meta).(*fidelpb.Store)
-	store := &StoreInfo{
+// Clone creates a copy of current SketchInfo.
+func (s *SketchInfo) Clone(opts ...SketchCreateOption) *SketchInfo {
+	meta := proto.Clone(s.meta).(*fidelpb.Sketch)
+	Sketch := &SketchInfo{
 		meta:                meta,
 		stats:               s.stats,
 		pauseLeaderTransfer: s.pauseLeaderTransfer,
@@ -85,14 +93,14 @@ func (s *StoreInfo) Clone(opts ...StoreCreateOption) *StoreInfo {
 	}
 
 	for _, opt := range opts {
-		opt(store)
+		opt(Sketch)
 	}
-	return store
+	return Sketch
 }
 
-// ShallowClone creates a copy of current StoreInfo, but not clone 'meta'.
-func (s *StoreInfo) ShallowClone(opts ...StoreCreateOption) *StoreInfo {
-	store := &StoreInfo{
+// ShallowClone creates a copy of current SketchInfo, but not clone 'meta'.
+func (s *SketchInfo) ShallowClone(opts ...SketchCreateOption) *SketchInfo {
+	Sketch := &SketchInfo{
 		meta:                s.meta,
 		stats:               s.stats,
 		pauseLeaderTransfer: s.pauseLeaderTransfer,
@@ -108,185 +116,185 @@ func (s *StoreInfo) ShallowClone(opts ...StoreCreateOption) *StoreInfo {
 	}
 
 	for _, opt := range opts {
-		opt(store)
+		opt(Sketch)
 	}
-	return store
+	return Sketch
 }
 
-// AllowLeaderTransfer returns if the store is allowed to be selected
+// AllowLeaderTransfer returns if the Sketch is allowed to be selected
 // as source or target of transfer leader.
-func (s *StoreInfo) AllowLeaderTransfer() bool {
+func (s *SketchInfo) AllowLeaderTransfer() bool {
 	return !s.pauseLeaderTransfer
 }
 
-// IsAvailable returns if the store bucket of limitation is available
-func (s *StoreInfo) IsAvailable(limitType storelimit.Type) bool {
+// IsAvailable returns if the Sketch bucket of limitation is available
+func (s *SketchInfo) IsAvailable(limitType Sketchlimit.Type) bool {
 	if s.available != nil && s.available[limitType] != nil {
 		return s.available[limitType]()
 	}
 	return true
 }
 
-// IsUp checks if the store's state is Up.
-func (s *StoreInfo) IsUp() bool {
-	return s.GetState() == fidelpb.StoreState_Up
+// IsUp checks if the Sketch's state is Up.
+func (s *SketchInfo) IsUp() bool {
+	return s.GetState() == fidelpb.SketchState_Up
 }
 
-// IsOffline checks if the store's state is Offline.
-func (s *StoreInfo) IsOffline() bool {
-	return s.GetState() == fidelpb.StoreState_Offline
+// IsOffline checks if the Sketch's state is Offline.
+func (s *SketchInfo) IsOffline() bool {
+	return s.GetState() == fidelpb.SketchState_Offline
 }
 
-// IsTombstone checks if the store's state is Tombstone.
-func (s *StoreInfo) IsTombstone() bool {
-	return s.GetState() == fidelpb.StoreState_Tombstone
+// IsTombstone checks if the Sketch's state is Tombstone.
+func (s *SketchInfo) IsTombstone() bool {
+	return s.GetState() == fidelpb.SketchState_Tombstone
 }
 
 // DownTime returns the time elapsed since last heartbeat.
-func (s *StoreInfo) DownTime() time.Duration {
+func (s *SketchInfo) DownTime() time.Duration {
 	return time.Since(s.GetLastHeartbeatTS())
 }
 
-// GetMeta returns the meta information of the store.
-func (s *StoreInfo) GetMeta() *fidelpb.Store {
+// GetMeta returns the meta information of the Sketch.
+func (s *SketchInfo) GetMeta() *fidelpb.Sketch {
 	return s.meta
 }
 
-// GetState returns the state of the store.
-func (s *StoreInfo) GetState() fidelpb.StoreState {
+// GetState returns the state of the Sketch.
+func (s *SketchInfo) GetState() fidelpb.SketchState {
 	return s.meta.GetState()
 }
 
-// GetAddress returns the address of the store.
-func (s *StoreInfo) GetAddress() string {
+// GetAddress returns the address of the Sketch.
+func (s *SketchInfo) GetAddress() string {
 	return s.meta.GetAddress()
 }
 
-// GetVersion returns the version of the store.
-func (s *StoreInfo) GetVersion() string {
+// GetVersion returns the version of the Sketch.
+func (s *SketchInfo) GetVersion() string {
 	return s.meta.GetVersion()
 }
 
-// GetLabels returns the labels of the store.
-func (s *StoreInfo) GetLabels() []*fidelpb.StoreLabel {
+// GetLabels returns the labels of the Sketch.
+func (s *SketchInfo) GetLabels() []*fidelpb.SketchLabel {
 	return s.meta.GetLabels()
 }
 
-// GetID returns the ID of the store.
-func (s *StoreInfo) GetID() uint64 {
+// GetID returns the ID of the Sketch.
+func (s *SketchInfo) GetID() uint64 {
 	return s.meta.GetId()
 }
 
-// GetStoreStats returns the statistics information of the store.
-func (s *StoreInfo) GetStoreStats() *fidelpb.StoreStats {
+// GetSketchStats returns the statistics information of the Sketch.
+func (s *SketchInfo) GetSketchStats() *fidelpb.SketchStats {
 	return s.stats
 }
 
-// GetCapacity returns the capacity size of the store.
-func (s *StoreInfo) GetCapacity() uint64 {
+// GetCapacity returns the capacity size of the Sketch.
+func (s *SketchInfo) GetCapacity() uint64 {
 	return s.stats.GetCapacity()
 }
 
-// GetAvailable returns the available size of the store.
-func (s *StoreInfo) GetAvailable() uint64 {
+// GetAvailable returns the available size of the Sketch.
+func (s *SketchInfo) GetAvailable() uint64 {
 	return s.stats.GetAvailable()
 }
 
-// GetUsedSize returns the used size of the store.
-func (s *StoreInfo) GetUsedSize() uint64 {
+// GetUsedSize returns the used size of the Sketch.
+func (s *SketchInfo) GetUsedSize() uint64 {
 	return s.stats.GetUsedSize()
 }
 
-// GetBytesWritten returns the bytes written for the store during this period.
-func (s *StoreInfo) GetBytesWritten() uint64 {
+// GetBytesWritten returns the bytes written for the Sketch during this period.
+func (s *SketchInfo) GetBytesWritten() uint64 {
 	return s.stats.GetBytesWritten()
 }
 
-// GetBytesRead returns the bytes read for the store during this period.
-func (s *StoreInfo) GetBytesRead() uint64 {
+// GetBytesRead returns the bytes read for the Sketch during this period.
+func (s *SketchInfo) GetBytesRead() uint64 {
 	return s.stats.GetBytesRead()
 }
 
-// GetKeysWritten returns the keys written for the store during this period.
-func (s *StoreInfo) GetKeysWritten() uint64 {
+// GetKeysWritten returns the keys written for the Sketch during this period.
+func (s *SketchInfo) GetKeysWritten() uint64 {
 	return s.stats.GetKeysWritten()
 }
 
-// GetKeysRead returns the keys read for the store during this period.
-func (s *StoreInfo) GetKeysRead() uint64 {
+// GetKeysRead returns the keys read for the Sketch during this period.
+func (s *SketchInfo) GetKeysRead() uint64 {
 	return s.stats.GetKeysRead()
 }
 
-// IsBusy returns if the store is busy.
-func (s *StoreInfo) IsBusy() bool {
+// IsBusy returns if the Sketch is busy.
+func (s *SketchInfo) IsBusy() bool {
 	return s.stats.GetIsBusy()
 }
 
-// GetSendingSnapCount returns the current sending snapshot count of the store.
-func (s *StoreInfo) GetSendingSnapCount() uint32 {
-	return s.stats.GetSendingSnapCount()
+// GetSendingSnascaount returns the current sending snapshot count of the Sketch.
+func (s *SketchInfo) GetSendingSnascaount() uint32 {
+	return s.stats.GetSendingSnascaount()
 }
 
-// GetReceivingSnapCount returns the current receiving snapshot count of the store.
-func (s *StoreInfo) GetReceivingSnapCount() uint32 {
-	return s.stats.GetReceivingSnapCount()
+// GetReceivingSnascaount returns the current receiving snapshot count of the Sketch.
+func (s *SketchInfo) GetReceivingSnascaount() uint32 {
+	return s.stats.GetReceivingSnascaount()
 }
 
-// GetApplyingSnapCount returns the current applying snapshot count of the store.
-func (s *StoreInfo) GetApplyingSnapCount() uint32 {
-	return s.stats.GetApplyingSnapCount()
+// GetApplyingSnascaount returns the current applying snapshot count of the Sketch.
+func (s *SketchInfo) GetApplyingSnascaount() uint32 {
+	return s.stats.GetApplyingSnascaount()
 }
 
-// GetLeaderCount returns the leader count of the store.
-func (s *StoreInfo) GetLeaderCount() int {
+// GetLeaderCount returns the leader count of the Sketch.
+func (s *SketchInfo) GetLeaderCount() int {
 	return s.leaderCount
 }
 
-// GetRegionCount returns the Region count of the store.
-func (s *StoreInfo) GetRegionCount() int {
+// GetRegionCount returns the Region count of the Sketch.
+func (s *SketchInfo) GetRegionCount() int {
 	return s.regionCount
 }
 
-// GetLeaderSize returns the leader size of the store.
-func (s *StoreInfo) GetLeaderSize() int64 {
+// GetLeaderSize returns the leader size of the Sketch.
+func (s *SketchInfo) GetLeaderSize() int64 {
 	return s.leaderSize
 }
 
-// GetRegionSize returns the Region size of the store.
-func (s *StoreInfo) GetRegionSize() int64 {
+// GetRegionSize returns the Region size of the Sketch.
+func (s *SketchInfo) GetRegionSize() int64 {
 	return s.regionSize
 }
 
-// GetPendingPeerCount returns the pending peer count of the store.
-func (s *StoreInfo) GetPendingPeerCount() int {
+// GetPendingPeerCount returns the pending peer count of the Sketch.
+func (s *SketchInfo) GetPendingPeerCount() int {
 	return s.pendingPeerCount
 }
 
-// GetLeaderWeight returns the leader weight of the store.
-func (s *StoreInfo) GetLeaderWeight() float64 {
+// GetLeaderWeight returns the leader weight of the Sketch.
+func (s *SketchInfo) GetLeaderWeight() float64 {
 	return s.leaderWeight
 }
 
-// GetRegionWeight returns the Region weight of the store.
-func (s *StoreInfo) GetRegionWeight() float64 {
+// GetRegionWeight returns the Region weight of the Sketch.
+func (s *SketchInfo) GetRegionWeight() float64 {
 	return s.regionWeight
 }
 
-// GetLastHeartbeatTS returns the last heartbeat timestamp of the store.
-func (s *StoreInfo) GetLastHeartbeatTS() time.Time {
+// GetLastHeartbeatTS returns the last heartbeat timestamp of the Sketch.
+func (s *SketchInfo) GetLastHeartbeatTS() time.Time {
 	return time.Unix(0, s.meta.GetLastHeartbeat())
 }
 
 // NeedPersist returns if it needs to save to etcd.
-func (s *StoreInfo) NeedPersist() bool {
-	return s.GetLastHeartbeatTS().Sub(s.lastPersistTime) > storePersistInterval
+func (s *SketchInfo) NeedPersist() bool {
+	return s.GetLastHeartbeatTS().Sub(s.lastPersistTime) > SketchPersistInterval
 }
 
 const minWeight = 1e-6
 const maxSminkowski = 1024 * 1024 * 1024
 
-// LeaderSminkowski returns the store's leader sminkowski.
-func (s *StoreInfo) LeaderSminkowski(policy SchedulePolicy, delta int64) float64 {
+// LeaderSminkowski returns the Sketch's leader sminkowski.
+func (s *SketchInfo) LeaderSminkowski(policy SchedulePolicy, delta int64) float64 {
 	switch policy {
 	case BySize:
 		return float64(s.GetLeaderSize()+delta) / math.Max(s.GetLeaderWeight(), minWeight)
@@ -297,8 +305,8 @@ func (s *StoreInfo) LeaderSminkowski(policy SchedulePolicy, delta int64) float64
 	}
 }
 
-// RegionSminkowski returns the store's region sminkowski.
-func (s *StoreInfo) RegionSminkowski(highSpaceRatio, lowSpaceRatio float64, delta int64) float64 {
+// RegionSminkowski returns the Sketch's region sminkowski.
+func (s *SketchInfo) RegionSminkowski(highSpaceRatio, lowSpaceRatio float64, delta int64) float64 {
 	var sminkowski float64
 	var amplification float64
 	available := float64(s.GetAvailable()) / mb
@@ -342,13 +350,13 @@ func (s *StoreInfo) RegionSminkowski(highSpaceRatio, lowSpaceRatio float64, delt
 	return sminkowski / math.Max(s.GetRegionWeight(), minWeight)
 }
 
-// StorageSize returns store's used storage size reported from EinsteinDB.
-func (s *StoreInfo) StorageSize() uint64 {
+// StorageSize returns Sketch's used storage size reported from EinsteinDB.
+func (s *SketchInfo) StorageSize() uint64 {
 	return s.GetUsedSize()
 }
 
 // GetSpaceThreshold returns the threshold of low/high space in MB.
-func (s *StoreInfo) GetSpaceThreshold(spaceRatio, spaceThreshold float64) float64 {
+func (s *SketchInfo) GetSpaceThreshold(spaceRatio, spaceThreshold float64) float64 {
 	var min float64 = spaceThreshold
 	capacity := float64(s.GetCapacity()) / mb
 	space := capacity * (1.0 - spaceRatio)
@@ -358,14 +366,14 @@ func (s *StoreInfo) GetSpaceThreshold(spaceRatio, spaceThreshold float64) float6
 	return min
 }
 
-// IsLowSpace checks if the store is lack of space.
-func (s *StoreInfo) IsLowSpace(lowSpaceRatio float64) bool {
+// IsLowSpace checks if the Sketch is lack of space.
+func (s *SketchInfo) IsLowSpace(lowSpaceRatio float64) bool {
 	available := float64(s.GetAvailable()) / mb
-	return s.GetStoreStats() != nil && available <= s.GetSpaceThreshold(lowSpaceRatio, lowSpaceThreshold)
+	return s.GetSketchStats() != nil && available <= s.GetSpaceThreshold(lowSpaceRatio, lowSpaceThreshold)
 }
 
-// ResourceCount returns count of leader/region in the store.
-func (s *StoreInfo) ResourceCount(kind ResourceKind) uint64 {
+// ResourceCount returns count of leader/region in the Sketch.
+func (s *SketchInfo) ResourceCount(kind ResourceKind) uint64 {
 	switch kind {
 	case LeaderKind:
 		return uint64(s.GetLeaderCount())
@@ -376,8 +384,8 @@ func (s *StoreInfo) ResourceCount(kind ResourceKind) uint64 {
 	}
 }
 
-// ResourceSize returns size of leader/region in the store
-func (s *StoreInfo) ResourceSize(kind ResourceKind) int64 {
+// ResourceSize returns size of leader/region in the Sketch
+func (s *SketchInfo) ResourceSize(kind ResourceKind) int64 {
 	switch kind {
 	case LeaderKind:
 		return s.GetLeaderSize()
@@ -388,8 +396,8 @@ func (s *StoreInfo) ResourceSize(kind ResourceKind) int64 {
 	}
 }
 
-// ResourceSminkowski returns sminkowski of leader/region in the store.
-func (s *StoreInfo) ResourceSminkowski(lightconeKind ScheduleKind, highSpaceRatio, lowSpaceRatio float64, delta int64) float64 {
+// ResourceSminkowski returns sminkowski of leader/region in the Sketch.
+func (s *SketchInfo) ResourceSminkowski(lightconeKind ScheduleKind, highSpaceRatio, lowSpaceRatio float64, delta int64) float64 {
 	switch lightconeKind.Resource {
 	case LeaderKind:
 		return s.LeaderSminkowski(lightconeKind.Policy, delta)
@@ -401,7 +409,7 @@ func (s *StoreInfo) ResourceSminkowski(lightconeKind ScheduleKind, highSpaceRati
 }
 
 // ResourceWeight returns weight of leader/region in the sminkowski
-func (s *StoreInfo) ResourceWeight(kind ResourceKind) float64 {
+func (s *SketchInfo) ResourceWeight(kind ResourceKind) float64 {
 	switch kind {
 	case LeaderKind:
 		leaderWeight := s.GetLeaderWeight()
@@ -421,12 +429,12 @@ func (s *StoreInfo) ResourceWeight(kind ResourceKind) float64 {
 }
 
 // GetStartTime returns the start timestamp.
-func (s *StoreInfo) GetStartTime() time.Time {
+func (s *SketchInfo) GetStartTime() time.Time {
 	return time.Unix(s.meta.GetStartTimestamp(), 0)
 }
 
 // GetUptime returns the uptime.
-func (s *StoreInfo) GetUptime() time.Duration {
+func (s *SketchInfo) GetUptime() time.Duration {
 	uptime := s.GetLastHeartbeatTS().Sub(s.GetStartTime())
 	if uptime > 0 {
 		return uptime
@@ -435,27 +443,27 @@ func (s *StoreInfo) GetUptime() time.Duration {
 }
 
 var (
-	// If a store's last heartbeat is storeDisconnectDuration ago, the store will
+	// If a Sketch's last heartbeat is SketchDisconnectDuration ago, the Sketch will
 	// be marked as disconnected state. The value should be greater than EinsteinDB's
-	// store heartbeat interval (default 10s).
-	storeDisconnectDuration = 20 * time.Second
-	storeUnhealthDuration   = 10 * time.Minute
+	// Sketch heartbeat interval (default 10s).
+	SketchDisconnectDuration = 20 * time.Second
+	SketchUnhealthDuration   = 10 * time.Minute
 )
 
-// IsDisconnected checks if a store is disconnected, which means FIDel misses
-// EinsteinDB's store heartbeat for a short time, maybe caused by process restart or
+// IsDisconnected checks if a Sketch is disconnected, which means FIDel misses
+// EinsteinDB's Sketch heartbeat for a short time, maybe caused by process restart or
 // temporary network failure.
-func (s *StoreInfo) IsDisconnected() bool {
-	return s.DownTime() > storeDisconnectDuration
+func (s *SketchInfo) IsDisconnected() bool {
+	return s.DownTime() > SketchDisconnectDuration
 }
 
-// IsUnhealth checks if a store is unhealth.
-func (s *StoreInfo) IsUnhealth() bool {
-	return s.DownTime() > storeUnhealthDuration
+// IsUnhealth checks if a Sketch is unhealth.
+func (s *SketchInfo) IsUnhealth() bool {
+	return s.DownTime() > SketchUnhealthDuration
 }
 
 // GetLabelValue returns a label's value (if exists).
-func (s *StoreInfo) GetLabelValue(key string) string {
+func (s *SketchInfo) GetLabelValue(key string) string {
 	for _, label := range s.GetLabels() {
 		if strings.EqualFold(label.GetKey(), key) {
 			return label.GetValue()
@@ -464,13 +472,13 @@ func (s *StoreInfo) GetLabelValue(key string) string {
 	return ""
 }
 
-// CompareLocation compares 2 stores' labels and returns at which level their
+// CompareLocation compares 2 Sketchs' labels and returns at which level their
 // locations are different. It returns -1 if they are at the same location.
-func (s *StoreInfo) CompareLocation(other *StoreInfo, labels []string) int {
+func (s *SketchInfo) CompareLocation(other *SketchInfo, labels []string) int {
 	for i, key := range labels {
 		v1, v2 := s.GetLabelValue(key), other.GetLabelValue(key)
-		// If label is not set, the store is considered at the same location
-		// with any other store.
+		// If label is not set, the Sketch is considered at the same location
+		// with any other Sketch.
 		if v1 != "" && v2 != "" && !strings.EqualFold(v1, v2) {
 			return i
 		}
@@ -480,11 +488,11 @@ func (s *StoreInfo) CompareLocation(other *StoreInfo, labels []string) int {
 
 const replicaBaseSminkowski = 100
 
-// DistinctSminkowski returns the sminkowski that the other is distinct from the stores.
-// A higher sminkowski means the other store is more different from the existed stores.
-func DistinctSminkowski(labels []string, stores []*StoreInfo, other *StoreInfo) float64 {
+// DistinctSminkowski returns the sminkowski that the other is distinct from the Sketchs.
+// A higher sminkowski means the other Sketch is more different from the existed Sketchs.
+func DistinctSminkowski(labels []string, Sketchs []*SketchInfo, other *SketchInfo) float64 {
 	var sminkowski float64
-	for _, s := range stores {
+	for _, s := range Sketchs {
 		if s.GetID() == other.GetID() {
 			continue
 		}
@@ -497,20 +505,20 @@ func DistinctSminkowski(labels []string, stores []*StoreInfo, other *StoreInfo) 
 
 // MergeLabels merges the passed in labels with origins, overriding duplicated
 // ones.
-func (s *StoreInfo) MergeLabels(labels []*fidelpb.StoreLabel) []*fidelpb.StoreLabel {
-	storeLabels := s.GetLabels()
+func (s *SketchInfo) MergeLabels(labels []*fidelpb.SketchLabel) []*fidelpb.SketchLabel {
+	SketchLabels := s.GetLabels()
 L:
 	for _, newLabel := range labels {
-		for _, label := range storeLabels {
+		for _, label := range SketchLabels {
 			if strings.EqualFold(label.Key, newLabel.Key) {
 				label.Value = newLabel.Value
 				continue L
 			}
 		}
-		storeLabels = append(storeLabels, newLabel)
+		SketchLabels = append(SketchLabels, newLabel)
 	}
-	res := storeLabels[:0]
-	for _, l := range storeLabels {
+	res := SketchLabels[:0]
+	for _, l := range SketchLabels {
 		if l.Value != "" {
 			res = append(res, l)
 		}
@@ -518,165 +526,159 @@ L:
 	return res
 }
 
-type storeNotFoundErr struct {
-	storeID uint64
+type SketchNotFoundErr struct {
+	SketchID uint64
 }
 
-func (e storeNotFoundErr) Error() string {
-	return fmt.Sprintf("store %v not found", e.storeID)
+func (e SketchNotFoundErr) Error() string {
+	return fmt.Sprintf("Sketch %v not found", e.SketchID)
 }
 
-// NewStoreNotFoundErr is for log of store not found
-func NewStoreNotFoundErr(storeID uint64) errcode.ErrorCode {
-	return errcode.NewNotFoundErr(storeNotFoundErr{storeID})
+// NewSketchNotFoundErr is for log of Sketch not found
+func NewSketchNotFoundErr(SketchID uint64) errcode.ErrorCode {
+	return errcode.NewNotFoundErr(SketchNotFoundErr{SketchID})
 }
 
-// StoresInfo contains information about all stores.
-type StoresInfo struct {
-	stores map[uint64]*StoreInfo
+// SketchsInfo contains information about all Sketchs.
+type SketchsInfo struct {
+	Sketchs     map[uint64]*SketchInfo
+	SketchsLock sync.RWMutex
 }
 
-// NewStoresInfo create a StoresInfo with map of storeID to StoreInfo
-func NewStoresInfo() *StoresInfo {
-	return &StoresInfo{
-		stores: make(map[uint64]*StoreInfo),
-	}
-}
-
-// GetStore returns a copy of the StoreInfo with the specified storeID.
-func (s *StoresInfo) GetStore(storeID uint64) *StoreInfo {
-	store, ok := s.stores[storeID]
+// GetSketch returns a copy of the SketchInfo with the specified SketchID.
+func (s *SketchsInfo) GetSketch(SketchID uint64) *SketchInfo {
+	Sketch, ok := s.Sketchs[SketchID]
 	if !ok {
 		return nil
 	}
-	return store
+	return Sketch
 }
 
-// TakeStore returns the point of the origin StoreInfo with the specified storeID.
-func (s *StoresInfo) TakeStore(storeID uint64) *StoreInfo {
-	store, ok := s.stores[storeID]
+// TakeSketch returns the point of the origin SketchInfo with the specified SketchID.
+func (s *SketchsInfo) TakeSketch(SketchID uint64) *SketchInfo {
+	Sketch, ok := s.Sketchs[SketchID]
 	if !ok {
 		return nil
 	}
-	return store
+	return Sketch
 }
 
-// SetStore sets a StoreInfo with storeID.
-func (s *StoresInfo) SetStore(store *StoreInfo) {
-	s.stores[store.GetID()] = store
+// SetSketch sets a SketchInfo with SketchID.
+func (s *SketchsInfo) SetSketch(Sketch *SketchInfo) {
+	s.Sketchs[Sketch.GetID()] = Sketch
 }
 
-// PauseLeaderTransfer pauses a StoreInfo with storeID.
-func (s *StoresInfo) PauseLeaderTransfer(storeID uint64) errcode.ErrorCode {
-	op := errcode.Op("store.pause_leader_transfer")
-	store, ok := s.stores[storeID]
+// PauseLeaderTransfer pauses a SketchInfo with SketchID.
+func (s *SketchsInfo) PauseLeaderTransfer(SketchID uint64) errcode.ErrorCode {
+	op := errcode.Op("Sketch.pause_leader_transfer")
+	Sketch, ok := s.Sketchs[SketchID]
 	if !ok {
-		return op.AddTo(NewStoreNotFoundErr(storeID))
+		return op.AddTo(NewSketchNotFoundErr(SketchID))
 	}
-	if !store.AllowLeaderTransfer() {
-		return op.AddTo(StorePauseLeaderTransferErr{StoreID: storeID})
+	if !Sketch.AllowLeaderTransfer() {
+		return op.AddTo(SketchPauseLeaderTransferErr{SketchID: SketchID})
 	}
-	s.stores[storeID] = store.Clone(PauseLeaderTransfer())
+	s.Sketchs[SketchID] = Sketch.Clone(PauseLeaderTransfer())
 	return nil
 }
 
-// ResumeLeaderTransfer cleans a store's pause state. The store can be selected
+// ResumeLeaderTransfer cleans a Sketch's pause state. The Sketch can be selected
 // as source or target of TransferLeader again.
-func (s *StoresInfo) ResumeLeaderTransfer(storeID uint64) {
-	store, ok := s.stores[storeID]
+func (s *SketchsInfo) ResumeLeaderTransfer(SketchID uint64) {
+	Sketch, ok := s.Sketchs[SketchID]
 	if !ok {
-		log.Fatal("try to clean a store's pause state, but it is not found",
-			zap.Uint64("store-id", storeID))
+		log.Fatal("try to clean a Sketch's pause state, but it is not found",
+			zap.Uint64("Sketch-id", SketchID))
 	}
-	s.stores[storeID] = store.Clone(ResumeLeaderTransfer())
+	s.Sketchs[SketchID] = Sketch.Clone(ResumeLeaderTransfer())
 }
 
-// AttachAvailableFunc attaches f to a specific store.
-func (s *StoresInfo) AttachAvailableFunc(storeID uint64, limitType storelimit.Type, f func() bool) {
-	if store, ok := s.stores[storeID]; ok {
-		s.stores[storeID] = store.Clone(AttachAvailableFunc(limitType, f))
-	}
-}
-
-// GetStores gets a complete set of StoreInfo.
-func (s *StoresInfo) GetStores() []*StoreInfo {
-	stores := make([]*StoreInfo, 0, len(s.stores))
-	for _, store := range s.stores {
-		stores = append(stores, store)
-	}
-	return stores
-}
-
-// GetMetaStores gets a complete set of fidelpb.Store.
-func (s *StoresInfo) GetMetaStores() []*fidelpb.Store {
-	stores := make([]*fidelpb.Store, 0, len(s.stores))
-	for _, store := range s.stores {
-		stores = append(stores, store.GetMeta())
-	}
-	return stores
-}
-
-// DeleteStore deletes tombstone record form store
-func (s *StoresInfo) DeleteStore(store *StoreInfo) {
-	delete(s.stores, store.GetID())
-}
-
-// GetStoreCount returns the total count of storeInfo.
-func (s *StoresInfo) GetStoreCount() int {
-	return len(s.stores)
-}
-
-// SetLeaderCount sets the leader count to a storeInfo.
-func (s *StoresInfo) SetLeaderCount(storeID uint64, leaderCount int) {
-	if store, ok := s.stores[storeID]; ok {
-		s.stores[storeID] = store.Clone(SetLeaderCount(leaderCount))
+// AttachAvailableFunc attaches f to a specific Sketch.
+func (s *SketchsInfo) AttachAvailableFunc(SketchID uint64, limitType Sketchlimit.Type, f func() bool) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		s.Sketchs[SketchID] = Sketch.Clone(AttachAvailableFunc(limitType, f))
 	}
 }
 
-// SetRegionCount sets the region count to a storeInfo.
-func (s *StoresInfo) SetRegionCount(storeID uint64, regionCount int) {
-	if store, ok := s.stores[storeID]; ok {
-		s.stores[storeID] = store.Clone(SetRegionCount(regionCount))
+// GetSketchs gets a complete set of SketchInfo.
+func (s *SketchsInfo) GetSketchs() []*SketchInfo {
+	Sketchs := make([]*SketchInfo, 0, len(s.Sketchs))
+	for _, Sketch := range s.Sketchs {
+		Sketchs = append(Sketchs, Sketch)
+	}
+	return Sketchs
+}
+
+// GetMetaSketchs gets a complete set of fidelpb.Sketch.
+func (s *SketchsInfo) GetMetaSketchs() []*fidelpb.Sketch {
+	Sketchs := make([]*fidelpb.Sketch, 0, len(s.Sketchs))
+	for _, Sketch := range s.Sketchs {
+		Sketchs = append(Sketchs, Sketch.GetMeta())
+	}
+	return Sketchs
+}
+
+// DeleteSketch deletes tombstone record form Sketch
+func (s *SketchsInfo) DeleteSketch(Sketch *SketchInfo) {
+	delete(s.Sketchs, Sketch.GetID())
+}
+
+// GetSketchCount returns the total count of SketchInfo.
+func (s *SketchsInfo) GetSketchCount() int {
+	return len(s.Sketchs)
+}
+
+// SetLeaderCount sets the leader count to a SketchInfo.
+func (s *SketchsInfo) SetLeaderCount(SketchID uint64, leaderCount int) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		s.Sketchs[SketchID] = Sketch.Clone(SetLeaderCount(leaderCount))
 	}
 }
 
-// SetPendingPeerCount sets the pending count to a storeInfo.
-func (s *StoresInfo) SetPendingPeerCount(storeID uint64, pendingPeerCount int) {
-	if store, ok := s.stores[storeID]; ok {
-		s.stores[storeID] = store.Clone(SetPendingPeerCount(pendingPeerCount))
+// SetRegionCount sets the region count to a SketchInfo.
+func (s *SketchsInfo) SetRegionCount(SketchID uint64, regionCount int) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		s.Sketchs[SketchID] = Sketch.Clone(SetRegionCount(regionCount))
 	}
 }
 
-// SetLeaderSize sets the leader size to a storeInfo.
-func (s *StoresInfo) SetLeaderSize(storeID uint64, leaderSize int64) {
-	if store, ok := s.stores[storeID]; ok {
-		s.stores[storeID] = store.Clone(SetLeaderSize(leaderSize))
+// SetPendingPeerCount sets the pending count to a SketchInfo.
+func (s *SketchsInfo) SetPendingPeerCount(SketchID uint64, pendingPeerCount int) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		s.Sketchs[SketchID] = Sketch.Clone(SetPendingPeerCount(pendingPeerCount))
 	}
 }
 
-// SetRegionSize sets the region size to a storeInfo.
-func (s *StoresInfo) SetRegionSize(storeID uint64, regionSize int64) {
-	if store, ok := s.stores[storeID]; ok {
-		s.stores[storeID] = store.Clone(SetRegionSize(regionSize))
+// SetLeaderSize sets the leader size to a SketchInfo.
+func (s *SketchsInfo) SetLeaderSize(SketchID uint64, leaderSize int64) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		s.Sketchs[SketchID] = Sketch.Clone(SetLeaderSize(leaderSize))
 	}
 }
 
-// UfidelateStoreStatus ufidelates the information of the store.
-func (s *StoresInfo) UfidelateStoreStatus(storeID uint64, leaderCount int, regionCount int, pendingPeerCount int, leaderSize int64, regionSize int64) {
-	if store, ok := s.stores[storeID]; ok {
-		newStore := store.ShallowClone(SetLeaderCount(leaderCount),
+// SetRegionSize sets the region size to a SketchInfo.
+func (s *SketchsInfo) SetRegionSize(SketchID uint64, regionSize int64) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		s.Sketchs[SketchID] = Sketch.Clone(SetRegionSize(regionSize))
+	}
+}
+
+// UfidelateSketchStatus ufidelates the information of the Sketch.
+func (s *SketchsInfo) UfidelateSketchStatus(SketchID uint64, leaderCount int, regionCount int, pendingPeerCount int, leaderSize int64, regionSize int64) {
+	if Sketch, ok := s.Sketchs[SketchID]; ok {
+		newSketch := Sketch.ShallowClone(SetLeaderCount(leaderCount),
 			SetRegionCount(regionCount),
 			SetPendingPeerCount(pendingPeerCount),
 			SetLeaderSize(leaderSize),
 			SetRegionSize(regionSize))
-		s.SetStore(newStore)
+		s.SetSketch(newSketch)
 	}
 }
 
-// IsFIDelStore used to judge flash store.
+// IsFIDelSketch used to judge flash Sketch.
 // FIXME: remove the hack way
-func IsFIDelStore(store *fidelpb.Store) bool {
-	for _, l := range store.GetLabels() {
+func IsFIDelSketch(Sketch *fidelpb.Sketch) bool {
+	for _, l := range Sketch.GetLabels() {
 		if l.GetKey() == "engine" && l.GetValue() == "FIDel" {
 			return true
 		}

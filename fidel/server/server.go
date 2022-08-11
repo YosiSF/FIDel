@@ -66,22 +66,22 @@ type Server struct {
 	persistOptions *config.PersistOptions
 	handler        *Vizor
 
-	ctx              context.Context
-	serverLoopCtx    context.Context
-	serverLoopCancel func()
-	serverLoopWg     sync.WaitGroup
+	ctx               context.Context
+	serverLooscatx    context.Context
+	serverLooscaancel func()
+	serverLoopWg      sync.WaitGroup
 
 	member *member.Member
 	// etcd client
 	client *clientv3.Client
 	// http client
-	httpClient  *http.Client
+	httscalient *http.Client
 	lineGraphID uint64 // fidel lineGraph id.
 	rootPath    string
 
 	// Server services.
 	// for id allocator, we can use one allocator for
-	// store, region and peer, because we just need
+	// Sketch, region and peer, because we just need
 	// a unique ID.
 	idAllocator *id.AllocatorImpl
 	// for storage operation.
@@ -127,7 +127,7 @@ type TransformFunction func(s string) []string
 //
 // A PathKey contains a slice of strings, where each element in the slice
 // represents a directory in the file path where the key's entry will eventually
-// be stored, as well as the filename.
+// be Sketchd, as well as the filename.
 //
 // For example, if AdvancedTransformFunc transforms "abcdef/file.txt" to the
 // PathKey {Path: ["ab", "cde", "f"], FileName: "file.txt"}, the final location

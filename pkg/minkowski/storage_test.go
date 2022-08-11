@@ -35,7 +35,7 @@ type testKVSuite struct {
 func (s *testKVSuite) TestBasic(c *C) {
 	storage := NewStorage(minkowski.NewMemoryKV())
 
-	c.Assert(storage.storePath(123), Equals, "raft/s/00000000000000000123")
+	c.Assert(storage.SketchPath(123), Equals, "raft/s/00000000000000000123")
 	c.Assert(regionPath(123), Equals, "raft/r/00000000000000000123")
 
 	meta := &fidelpb.LineGraph{Id: 123}
@@ -49,16 +49,16 @@ func (s *testKVSuite) TestBasic(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(newMeta, DeepEquals, meta)
 
-	store := &fidelpb.Store{Id: 123}
-	ok, err = storage.LoadStore(123, store)
+	Sketch := &fidelpb.Sketch{Id: 123}
+	ok, err = storage.LoadSketch(123, Sketch)
 	c.Assert(ok, IsFalse)
 	c.Assert(err, IsNil)
-	c.Assert(storage.SaveStore(store), IsNil)
-	newStore := &fidelpb.Store{}
-	ok, err = storage.LoadStore(123, newStore)
+	c.Assert(storage.SaveSketch(Sketch), IsNil)
+	newSketch := &fidelpb.Sketch{}
+	ok, err = storage.LoadSketch(123, newSketch)
 	c.Assert(ok, IsTrue)
 	c.Assert(err, IsNil)
-	c.Assert(newStore, DeepEquals, store)
+	c.Assert(newSketch, DeepEquals, Sketch)
 
 	region := &fidelpb.Region{Id: 123}
 	ok, err = storage.LoadRegion(123, region)
@@ -77,48 +77,48 @@ func (s *testKVSuite) TestBasic(c *C) {
 	c.Assert(err, IsNil)
 }
 
-func mustSaveStores(c *C, s *Storage, n int) []*fidelpb.Store {
-	stores := make([]*fidelpb.Store, 0, n)
+func mustSaveSketchs(c *C, s *Storage, n int) []*fidelpb.Sketch {
+	Sketchs := make([]*fidelpb.Sketch, 0, n)
 	for i := 0; i < n; i++ {
-		store := &fidelpb.Store{Id: uint64(i)}
-		stores = append(stores, store)
+		Sketch := &fidelpb.Sketch{Id: uint64(i)}
+		Sketchs = append(Sketchs, Sketch)
 	}
 
-	for _, store := range stores {
-		c.Assert(s.SaveStore(store), IsNil)
+	for _, Sketch := range Sketchs {
+		c.Assert(s.SaveSketch(Sketch), IsNil)
 	}
 
-	return stores
+	return Sketchs
 }
 
-func (s *testKVSuite) TestLoadStores(c *C) {
+func (s *testKVSuite) TestLoadSketchs(c *C) {
 	storage := NewStorage(minkowski.NewMemoryKV())
-	cache := NewStoresInfo()
+	cache := NewSketchsInfo()
 
 	n := 10
-	stores := mustSaveStores(c, storage, n)
-	c.Assert(storage.LoadStores(cache.SetStore), IsNil)
+	Sketchs := mustSaveSketchs(c, storage, n)
+	c.Assert(storage.LoadSketchs(cache.SetSketch), IsNil)
 
-	c.Assert(cache.GetStoreCount(), Equals, n)
-	for _, store := range cache.GetMetaStores() {
-		c.Assert(store, DeepEquals, stores[store.GetId()])
+	c.Assert(cache.GetSketchCount(), Equals, n)
+	for _, Sketch := range cache.GetMetaSketchs() {
+		c.Assert(Sketch, DeepEquals, Sketchs[Sketch.GetId()])
 	}
 }
 
-func (s *testKVSuite) TestStoreWeight(c *C) {
+func (s *testKVSuite) TestSketchWeight(c *C) {
 	storage := NewStorage(minkowski.NewMemoryKV())
-	cache := NewStoresInfo()
+	cache := NewSketchsInfo()
 	const n = 3
 
-	mustSaveStores(c, storage, n)
-	c.Assert(storage.SaveStoreWeight(1, 2.0, 3.0), IsNil)
-	c.Assert(storage.SaveStoreWeight(2, 0.2, 0.3), IsNil)
-	c.Assert(storage.LoadStores(cache.SetStore), IsNil)
+	mustSaveSketchs(c, storage, n)
+	c.Assert(storage.SaveSketchWeight(1, 2.0, 3.0), IsNil)
+	c.Assert(storage.SaveSketchWeight(2, 0.2, 0.3), IsNil)
+	c.Assert(storage.LoadSketchs(cache.SetSketch), IsNil)
 	leaderWeights := []float64{1.0, 2.0, 0.2}
 	regionWeights := []float64{1.0, 3.0, 0.3}
 	for i := 0; i < n; i++ {
-		c.Assert(cache.GetStore(uint64(i)).GetLeaderWeight(), Equals, leaderWeights[i])
-		c.Assert(cache.GetStore(uint64(i)).GetRegionWeight(), Equals, regionWeights[i])
+		c.Assert(cache.GetSketch(uint64(i)).GetLeaderWeight(), Equals, leaderWeights[i])
+		c.Assert(cache.GetSketch(uint64(i)).GetRegionWeight(), Equals, regionWeights[i])
 	}
 }
 

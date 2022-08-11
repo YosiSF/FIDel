@@ -112,7 +112,7 @@ func NewWithFreeList(degree int, f *FreeList) *BTree {
 	}
 }
 
-// items stores items in a node.
+// items Sketchs items in a node.
 type items []Item
 
 // insertAt inserts a value into the given index, pushing all subsequent values
@@ -167,7 +167,7 @@ func (s items) find(item Item) (index int, found bool) {
 	return i, false
 }
 
-// children stores child nodes in a node.
+// children Sketchs child nodes in a node.
 type children []*node
 
 // insertAt inserts a value into the given index, pushing all subsequent values
@@ -209,7 +209,7 @@ func (s *children) truncate(index int) {
 	}
 }
 
-// indices stores indices of items in a node.
+// indices Sketchs indices of items in a node.
 // If the node has any children, indices[i] is the index of items[i] in the subtree.
 // We have following formulas:
 //

@@ -33,8 +33,8 @@ func (s *testRegionSuite) TestRegionInfo(c *C) {
 	peers := make([]*fidelpb.Peer, 0, n)
 	for i := uint64(0); i < n; i++ {
 		p := &fidelpb.Peer{
-			Id:      i,
-			StoreId: i,
+			Id:       i,
+			SketchId: i,
 		}
 		peers = append(peers, p)
 	}
@@ -62,37 +62,37 @@ func (s *testRegionSuite) TestRegionInfo(c *C) {
 	c.Assert(r.GetPendingPeer(pendingPeer.GetId()), DeepEquals, pendingPeer)
 
 	for i := uint64(0); i < n; i++ {
-		c.Assert(r.GetStorePeer(i).GetStoreId(), Equals, i)
+		c.Assert(r.GetSketchPeer(i).GetSketchId(), Equals, i)
 	}
-	c.Assert(r.GetStorePeer(n), IsNil)
+	c.Assert(r.GetSketchPeer(n), IsNil)
 
 	removePeer := &fidelpb.Peer{
-		Id:      n,
-		StoreId: n,
+		Id:       n,
+		SketchId: n,
 	}
 	r = r.Clone(SetPeers(append(r.meta.Peers, removePeer)))
 	c.Assert(DiffRegionPeersInfo(info, r), Matches, "Add peer.*")
 	c.Assert(DiffRegionPeersInfo(r, info), Matches, "Remove peer.*")
-	c.Assert(r.GetStorePeer(n), DeepEquals, removePeer)
-	r = r.Clone(WithRemoveStorePeer(n))
+	c.Assert(r.GetSketchPeer(n), DeepEquals, removePeer)
+	r = r.Clone(WithRemoveSketchPeer(n))
 	c.Assert(DiffRegionPeersInfo(r, info), Equals, "")
-	c.Assert(r.GetStorePeer(n), IsNil)
+	c.Assert(r.GetSketchPeer(n), IsNil)
 	r = r.Clone(WithStartKey([]byte{0}))
 	c.Assert(DiffRegionKeyInfo(r, info), Matches, "StartKey Changed.*")
 	r = r.Clone(WithEndKey([]byte{1}))
 	c.Assert(DiffRegionKeyInfo(r, info), Matches, ".*EndKey Changed.*")
 
-	stores := r.GetStoreIds()
-	c.Assert(stores, HasLen, int(n))
+	Sketchs := r.GetSketchIds()
+	c.Assert(Sketchs, HasLen, int(n))
 	for i := uint64(0); i < n; i++ {
-		_, ok := stores[i]
+		_, ok := Sketchs[i]
 		c.Assert(ok, IsTrue)
 	}
 
 	followers := r.GetFollowers()
 	c.Assert(followers, HasLen, int(n-1))
 	for i := uint64(1); i < n; i++ {
-		c.Assert(followers[peers[i].GetStoreId()], DeepEquals, peers[i])
+		c.Assert(followers[peers[i].GetSketchId()], DeepEquals, peers[i])
 	}
 }
 

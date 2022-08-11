@@ -24,16 +24,18 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/suse"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"github.com/YosiSF/errors"
-	"github.com/YosiSF/fidel/pkg/repository/v0manifest"
-	"github.com/YosiSF/fidel/pkg/utils"
-	"golang.org/x/mod/semver"
+	_ "time"
 )
+
+// InitConfig initializes a config instance
+func InitConfig(profileDir string) (*FIDelConfig, error) {
+	cfg := &FIDelConfig{}
+	cfg.ProfileDir = profileDir
+	return cfg, nil
+}
 
 // Profile represents the `fidel` profile
 type Profile struct {
@@ -205,7 +207,7 @@ func (p *Profile) Manifest() *v0manifest.ComponentManifest {
 
 	var manifest v0manifest.ComponentManifest
 	if err := p.readJSON(p.v0ManifestFileName(), &manifest); err != nil {
-		// The manifest was marshaled and stored by `fidel`, it should
+		// The manifest was marshaled and Sketchd by `fidel`, it should
 		// be a valid JSON file
 		log.Fatal(err)
 	}
@@ -227,7 +229,7 @@ func (p *Profile) Versions(component string) *v0manifest.VersionManifest {
 
 	var manifest v0manifest.VersionManifest
 	if err := p.readJSON(file, &manifest); err != nil {
-		// The manifest was marshaled and stored by `fidel`, it should
+		// The manifest was marshaled and Sketchd by `fidel`, it should
 		// be a valid JSON file
 		log.Fatal(err)
 	}

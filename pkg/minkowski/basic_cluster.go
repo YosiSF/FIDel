@@ -16,48 +16,69 @@ package minkowski
 import (
 	"bytes"
 	"sync"
-
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/log"
-	"github.com/YosiSF/fidel/nVMdaemon/pkg/slice"
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/storelimit"
-	"go.uber.org/zap"
+	_ "time"
 )
+
+// NewBasicLineGraphWithSketchs NewBasicLineGraph creates a BasicLineGraph.
+
+func NewBasicLineGraphWithSketchs(Sketchs []*SketchInfo) *BasicLineGraph {
+	return &BasicLineGraph{
+		Sketchs: NewSketchsInfoWithSketchs(Sketchs),
+		Regions: NewRegionsInfo(),
+	}
+
+}
+
+func NewSketchsInfoWithSketchs(Sketchs []*SketchInfo) *SketchsInfo {
+	return &SketchsInfo{
+		Sketchs:     make(map[uint64]*SketchInfo),
+		SketchsLock: sync.RWMutex{},
+		SketchsList: Sketchs,
+	}
+
+}
+
+// NewSketchsInfo creates a SketchsInfo.
+func NewSketchsInfo() *SketchsInfo {
+	return &SketchsInfo{
+		Sketchs: make(map[uint64]*SketchInfo),
+	}
+}
 
 // BasicLineGraph provides basic data member and interface for a EinsteinDB lineGraph.
 type BasicLineGraph struct {
 	sync.RWMutex
-	Stores  *StoresInfo
+	Sketchs *SketchsInfo
 	Regions *RegionsInfo
 }
 
 // NewBasicLineGraph creates a BasicLineGraph.
 func NewBasicLineGraph() *BasicLineGraph {
 	return &BasicLineGraph{
-		Stores:  NewStoresInfo(),
+		Sketchs: NewSketchsInfo(),
 		Regions: NewRegionsInfo(),
 	}
 }
 
-// GetStores returns all Stores in the lineGraph.
-func (bc *BasicLineGraph) GetStores() []*StoreInfo {
+// GetSketchs returns all Sketchs in the lineGraph.
+func (bc *BasicLineGraph) GetSketchs() []*SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Stores.GetStores()
+	return bc.Sketchs.GetSketchs()
 }
 
-// GetMetaStores gets a complete set of fidelpb.Store.
-func (bc *BasicLineGraph) GetMetaStores() []*fidelpb.Store {
+// GetMetaSketchs gets a complete set of fidelpb.Sketch.
+func (bc *BasicLineGraph) GetMetaSketchs() []*fidelpb.Sketch {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Stores.GetMetaStores()
+	return bc.Sketchs.GetMetaSketchs()
 }
 
-// GetStore searches for a store by ID.
-func (bc *BasicLineGraph) GetStore(storeID uint64) *StoreInfo {
+// GetSketch searches for a Sketch by ID.
+func (bc *BasicLineGraph) GetSketch(SketchID uint64) *SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Stores.GetStore(storeID)
+	return bc.Sketchs.GetSketch(SketchID)
 }
 
 // GetRegion searches for a region by ID.
@@ -81,44 +102,44 @@ func (bc *BasicLineGraph) GetMetaRegions() []*fidelpb.Region {
 	return bc.Regions.GetMetaRegions()
 }
 
-// GetStoreRegions gets all RegionInfo with a given storeID.
-func (bc *BasicLineGraph) GetStoreRegions(storeID uint64) []*RegionInfo {
+// GetSketchRegions gets all RegionInfo with a given SketchID.
+func (bc *BasicLineGraph) GetSketchRegions(SketchID uint64) []*RegionInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStoreRegions(storeID)
+	return bc.Regions.GetSketchRegions(SketchID)
 }
 
-// GetRegionStores returns all Stores that contains the region's peer.
-func (bc *BasicLineGraph) GetRegionStores(region *RegionInfo) []*StoreInfo {
+// GetRegionSketchs returns all Sketchs that contains the region's peer.
+func (bc *BasicLineGraph) GetRegionSketchs(region *RegionInfo) []*SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	var Stores []*StoreInfo
-	for id := range region.GetStoreIds() {
-		if store := bc.Stores.GetStore(id); store != nil {
-			Stores = append(Stores, store)
+	var Sketchs []*SketchInfo
+	for id := range region.GetSketchIds() {
+		if Sketch := bc.Sketchs.GetSketch(id); Sketch != nil {
+			Sketchs = append(Sketchs, Sketch)
 		}
 	}
-	return Stores
+	return Sketchs
 }
 
-// GetFollowerStores returns all Stores that contains the region's follower peer.
-func (bc *BasicLineGraph) GetFollowerStores(region *RegionInfo) []*StoreInfo {
+// GetFollowerSketchs returns all Sketchs that contains the region's follower peer.
+func (bc *BasicLineGraph) GetFollowerSketchs(region *RegionInfo) []*SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	var Stores []*StoreInfo
+	var Sketchs []*SketchInfo
 	for id := range region.GetFollowers() {
-		if store := bc.Stores.GetStore(id); store != nil {
-			Stores = append(Stores, store)
+		if Sketch := bc.Sketchs.GetSketch(id); Sketch != nil {
+			Sketchs = append(Sketchs, Sketch)
 		}
 	}
-	return Stores
+	return Sketchs
 }
 
-// GetLeaderStore returns all Stores that contains the region's leader peer.
-func (bc *BasicLineGraph) GetLeaderStore(region *RegionInfo) *StoreInfo {
+// GetLeaderSketch returns all Sketchs that contains the region's leader peer.
+func (bc *BasicLineGraph) GetLeaderSketch(region *RegionInfo) *SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Stores.GetStore(region.GetLeader().GetStoreId())
+	return bc.Sketchs.GetSketch(region.GetLeader().GetSketchId())
 }
 
 // GetAdjacentRegions returns region's info that is adjacent with specific region.
@@ -128,66 +149,66 @@ func (bc *BasicLineGraph) GetAdjacentRegions(region *RegionInfo) (*RegionInfo, *
 	return bc.Regions.GetAdjacentRegions(region)
 }
 
-// PauseLeaderTransfer prevents the store from been selected as source or
-// target store of TransferLeader.
-func (bc *BasicLineGraph) PauseLeaderTransfer(storeID uint64) error {
+// PauseLeaderTransfer prevents the Sketch from been selected as source or
+// target Sketch of TransferLeader.
+func (bc *BasicLineGraph) PauseLeaderTransfer(SketchID uint64) error {
 	bc.Lock()
 	defer bc.Unlock()
-	return bc.Stores.PauseLeaderTransfer(storeID)
+	return bc.Sketchs.PauseLeaderTransfer(SketchID)
 }
 
-// ResumeLeaderTransfer cleans a store's pause state. The store can be selected
+// ResumeLeaderTransfer cleans a Sketch's pause state. The Sketch can be selected
 // as source or target of TransferLeader again.
-func (bc *BasicLineGraph) ResumeLeaderTransfer(storeID uint64) {
+func (bc *BasicLineGraph) ResumeLeaderTransfer(SketchID uint64) {
 	bc.Lock()
 	defer bc.Unlock()
-	bc.Stores.ResumeLeaderTransfer(storeID)
+	bc.Sketchs.ResumeLeaderTransfer(SketchID)
 }
 
-// AttachAvailableFunc attaches an available function to a specific store.
-func (bc *BasicLineGraph) AttachAvailableFunc(storeID uint64, limitType storelimit.Type, f func() bool) {
+// AttachAvailableFunc attaches an available function to a specific Sketch.
+func (bc *BasicLineGraph) AttachAvailableFunc(SketchID uint64, limitType Sketchlimit.Type, f func() bool) {
 	bc.Lock()
 	defer bc.Unlock()
-	bc.Stores.AttachAvailableFunc(storeID, limitType, f)
+	bc.Sketchs.AttachAvailableFunc(SketchID, limitType, f)
 }
 
-// UfidelateStoreStatus ufidelates the information of the store.
-func (bc *BasicLineGraph) UfidelateStoreStatus(storeID uint64, leaderCount int, regionCount int, pendingPeerCount int, leaderSize int64, regionSize int64) {
+// UfidelateSketchStatus ufidelates the information of the Sketch.
+func (bc *BasicLineGraph) UfidelateSketchStatus(SketchID uint64, leaderCount int, regionCount int, pendingPeerCount int, leaderSize int64, regionSize int64) {
 	bc.Lock()
 	defer bc.Unlock()
-	bc.Stores.UfidelateStoreStatus(storeID, leaderCount, regionCount, pendingPeerCount, leaderSize, regionSize)
+	bc.Sketchs.UfidelateSketchStatus(SketchID, leaderCount, regionCount, pendingPeerCount, leaderSize, regionSize)
 }
 
 const randomRegionMaxRetry = 10
 
-// RandFollowerRegion returns a random region that has a follower on the store.
-func (bc *BasicLineGraph) RandFollowerRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+// RandFollowerRegion returns a random region that has a follower on the Sketch.
+func (bc *BasicLineGraph) RandFollowerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
-	regions := bc.Regions.RandFollowerRegions(storeID, ranges, randomRegionMaxRetry)
+	regions := bc.Regions.RandFollowerRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
 	return bc.selectRegion(regions, opts...)
 }
 
-// RandLeaderRegion returns a random region that has leader on the store.
-func (bc *BasicLineGraph) RandLeaderRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+// RandLeaderRegion returns a random region that has leader on the Sketch.
+func (bc *BasicLineGraph) RandLeaderRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
-	regions := bc.Regions.RandLeaderRegions(storeID, ranges, randomRegionMaxRetry)
+	regions := bc.Regions.RandLeaderRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
 	return bc.selectRegion(regions, opts...)
 }
 
-// RandPendingRegion returns a random region that has a pending peer on the store.
-func (bc *BasicLineGraph) RandPendingRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+// RandPendingRegion returns a random region that has a pending peer on the Sketch.
+func (bc *BasicLineGraph) RandPendingRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
-	regions := bc.Regions.RandPendingRegions(storeID, ranges, randomRegionMaxRetry)
+	regions := bc.Regions.RandPendingRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
 	return bc.selectRegion(regions, opts...)
 }
 
-// RandLearnerRegion returns a random region that has a learner peer on the store.
-func (bc *BasicLineGraph) RandLearnerRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+// RandLearnerRegion returns a random region that has a learner peer on the Sketch.
+func (bc *BasicLineGraph) RandLearnerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
-	regions := bc.Regions.RandLearnerRegions(storeID, ranges, randomRegionMaxRetry)
+	regions := bc.Regions.RandLearnerRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
 	return bc.selectRegion(regions, opts...)
 }
@@ -211,53 +232,53 @@ func (bc *BasicLineGraph) GetRegionCount() int {
 	return bc.Regions.GetRegionCount()
 }
 
-// GetStoreCount returns the total count of storeInfo.
-func (bc *BasicLineGraph) GetStoreCount() int {
+// GetSketchCount returns the total count of SketchInfo.
+func (bc *BasicLineGraph) GetSketchCount() int {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Stores.GetStoreCount()
+	return bc.Sketchs.GetSketchCount()
 }
 
-// GetStoreRegionCount gets the total count of a store's leader and follower RegionInfo by storeID.
-func (bc *BasicLineGraph) GetStoreRegionCount(storeID uint64) int {
+// GetSketchRegionCount gets the total count of a Sketch's leader and follower RegionInfo by SketchID.
+func (bc *BasicLineGraph) GetSketchRegionCount(SketchID uint64) int {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStoreLeaderCount(storeID) + bc.Regions.GetStoreFollowerCount(storeID) + bc.Regions.GetStoreLearnerCount(storeID)
+	return bc.Regions.GetSketchLeaderCount(SketchID) + bc.Regions.GetSketchFollowerCount(SketchID) + bc.Regions.GetSketchLearnerCount(SketchID)
 }
 
-// GetStoreLeaderCount get the total count of a store's leader RegionInfo.
-func (bc *BasicLineGraph) GetStoreLeaderCount(storeID uint64) int {
+// GetSketchLeaderCount get the total count of a Sketch's leader RegionInfo.
+func (bc *BasicLineGraph) GetSketchLeaderCount(SketchID uint64) int {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStoreLeaderCount(storeID)
+	return bc.Regions.GetSketchLeaderCount(SketchID)
 }
 
-// GetStoreFollowerCount get the total count of a store's follower RegionInfo.
-func (bc *BasicLineGraph) GetStoreFollowerCount(storeID uint64) int {
+// GetSketchFollowerCount get the total count of a Sketch's follower RegionInfo.
+func (bc *BasicLineGraph) GetSketchFollowerCount(SketchID uint64) int {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStoreFollowerCount(storeID)
+	return bc.Regions.GetSketchFollowerCount(SketchID)
 }
 
-// GetStorePendingPeerCount gets the total count of a store's region that includes pending peer.
-func (bc *BasicLineGraph) GetStorePendingPeerCount(storeID uint64) int {
+// GetSketchPendingPeerCount gets the total count of a Sketch's region that includes pending peer.
+func (bc *BasicLineGraph) GetSketchPendingPeerCount(SketchID uint64) int {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStorePendingPeerCount(storeID)
+	return bc.Regions.GetSketchPendingPeerCount(SketchID)
 }
 
-// GetStoreLeaderRegionSize get total size of store's leader regions.
-func (bc *BasicLineGraph) GetStoreLeaderRegionSize(storeID uint64) int64 {
+// GetSketchLeaderRegionSize get total size of Sketch's leader regions.
+func (bc *BasicLineGraph) GetSketchLeaderRegionSize(SketchID uint64) int64 {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStoreLeaderRegionSize(storeID)
+	return bc.Regions.GetSketchLeaderRegionSize(SketchID)
 }
 
-// GetStoreRegionSize get total size of store's regions.
-func (bc *BasicLineGraph) GetStoreRegionSize(storeID uint64) int64 {
+// GetSketchRegionSize get total size of Sketch's regions.
+func (bc *BasicLineGraph) GetSketchRegionSize(SketchID uint64) int64 {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Regions.GetStoreLeaderRegionSize(storeID) + bc.Regions.GetStoreFollowerRegionSize(storeID) + bc.Regions.GetStoreLearnerRegionSize(storeID)
+	return bc.Regions.GetSketchLeaderRegionSize(SketchID) + bc.Regions.GetSketchFollowerRegionSize(SketchID) + bc.Regions.GetSketchLearnerRegionSize(SketchID)
 }
 
 // GetAverageRegionSize returns the average region approximate size.
@@ -267,25 +288,25 @@ func (bc *BasicLineGraph) GetAverageRegionSize() int64 {
 	return bc.Regions.GetAverageRegionSize()
 }
 
-// PutStore put a store.
-func (bc *BasicLineGraph) PutStore(store *StoreInfo) {
+// PutSketch put a Sketch.
+func (bc *BasicLineGraph) PutSketch(Sketch *SketchInfo) {
 	bc.Lock()
 	defer bc.Unlock()
-	bc.Stores.SetStore(store)
+	bc.Sketchs.SetSketch(Sketch)
 }
 
-// DeleteStore deletes a store.
-func (bc *BasicLineGraph) DeleteStore(store *StoreInfo) {
+// DeleteSketch deletes a Sketch.
+func (bc *BasicLineGraph) DeleteSketch(Sketch *SketchInfo) {
 	bc.Lock()
 	defer bc.Unlock()
-	bc.Stores.DeleteStore(store)
+	bc.Sketchs.DeleteSketch(Sketch)
 }
 
-// TakeStore returns the point of the origin StoreInfo with the specified storeID.
-func (bc *BasicLineGraph) TakeStore(storeID uint64) *StoreInfo {
+// TakeSketch returns the point of the origin SketchInfo with the specified SketchID.
+func (bc *BasicLineGraph) TakeSketch(SketchID uint64) *SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
-	return bc.Stores.TakeStore(storeID)
+	return bc.Sketchs.TakeSketch(SketchID)
 }
 
 // PreCheckPutRegion checks if the region is valid to put.
@@ -370,33 +391,33 @@ func (bc *BasicLineGraph) GetOverlaps(region *RegionInfo) []*RegionInfo {
 // RegionSetInformer provides access to a shared informer of regions.
 type RegionSetInformer interface {
 	GetRegionCount() int
-	RandFollowerRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	RandLeaderRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	RandLearnerRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	RandPendingRegion(storeID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandFollowerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandLeaderRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandLearnerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandPendingRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
 	GetAverageRegionSize() int64
-	GetStoreRegionCount(storeID uint64) int
+	GetSketchRegionCount(SketchID uint64) int
 	GetRegion(id uint64) *RegionInfo
 	GetAdjacentRegions(region *RegionInfo) (*RegionInfo, *RegionInfo)
 	ScanRegions(startKey, endKey []byte, limit int) []*RegionInfo
 }
 
-// StoreSetInformer provides access to a shared informer of stores.
-type StoreSetInformer interface {
-	GetStores() []*StoreInfo
-	GetStore(id uint64) *StoreInfo
+// SketchSetInformer provides access to a shared informer of Sketchs.
+type SketchSetInformer interface {
+	GetSketchs() []*SketchInfo
+	GetSketch(id uint64) *SketchInfo
 
-	GetRegionStores(region *RegionInfo) []*StoreInfo
-	GetFollowerStores(region *RegionInfo) []*StoreInfo
-	GetLeaderStore(region *RegionInfo) *StoreInfo
+	GetRegionSketchs(region *RegionInfo) []*SketchInfo
+	GetFollowerSketchs(region *RegionInfo) []*SketchInfo
+	GetLeaderSketch(region *RegionInfo) *SketchInfo
 }
 
-// StoreSetContextSwitch is used to control stores' status.
-type StoreSetContextSwitch interface {
+// SketchSetContextSwitch is used to control Sketchs' status.
+type SketchSetContextSwitch interface {
 	PauseLeaderTransfer(id uint64) error
 	ResumeLeaderTransfer(id uint64)
 
-	AttachAvailableFunc(id uint64, limitType storelimit.Type, f func() bool)
+	AttachAvailableFunc(id uint64, limitType Sketchlimit.Type, f func() bool)
 }
 
 // KeyRange is a key range.

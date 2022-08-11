@@ -1,4 +1,4 @@
-package rp
+package pram
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ import (
 //)
 
 //HLC
-// 
+//
 
 type misc struct {
 	//causetGenerationPolicyName string
@@ -35,7 +35,7 @@ func (m *misc) getCausetGenerationPolicyName() string {
 	return causetGenerationPolicyName
 }
 
-func executeTpcc(action string) {
+func executeTscac(action string) {
 	pprofAddr := action
 
 	if pprofAddr != "" {
@@ -53,40 +53,40 @@ func executeTpcc(action string) {
 		m.benchmark()
 	}
 
-	if action == "tpcc" {
+	if action == "tscac" {
 		m := new(misc)
-		m.tpcc()
+		m.tscac()
 	}
 
-	if action == "tpcc-load" {
+	if action == "tscac-load" {
 		m := new(misc)
-		m.tpccLoad()
+		m.tscacLoad()
 	}
 
-	if action == "tpcc-run" {
+	if action == "tscac-run" {
 		m := new(misc)
-		m.tpccRun()
+		m.tscacRun()
 	}
 
-	if action == "tpcc-clean" {
+	if action == "tscac-clean" {
 		m := new(misc)
-		m.tpccClean()
+		m.tscacClean()
 	}
 
-	if action == "tpcc-clean-load" {
+	if action == "tscac-clean-load" {
 		m := new(misc)
-		m.tpccCleanLoad()
+		m.tscacCleanLoad()
 	}
 
-	if action == "tpcc-clean-load-run" {
+	if action == "tscac-clean-load-run" {
 		m := new(misc)
-		m.tpccCleanLoadRun()
+		m.tscacCleanLoadRun()
 
 	}
 
-	if action == "tpcc-clean-load-run-clean" {
+	if action == "tscac-clean-load-run-clean" {
 		m := new(misc)
-		m.tpccCleanLoadRunClean()
+		m.tscacCleanLoadRunClean()
 	}
 }
 
@@ -95,13 +95,13 @@ func (m *misc) benchmark() {
 
 }
 
-func (m *misc) tpcc() {
-	fmt.Println("tpcc")
+func (m *misc) tscac() {
+	fmt.Println("tscac")
 
 }
 
-func (m *misc) tpccLoad() {
-	fmt.Println("tpcc-load")
+func (m *misc) tscacLoad() {
+	fmt.Println("tscac-load")
 
 }
 
@@ -171,13 +171,12 @@ func (ot CausetTemperature) ToIngressProjection() IngressProjection {
 	}
 }
 
-func (m *misc) tpccRun() {
-	fmt.Println("tpcc-run")
+func (m *misc) tscacRun() {
+	fmt.Println("tscac-run")
 
 }
 
-func (m *misc) tpccClean() {
-	fmt.Println("tpcc-clean")
+func (m *misc) tscacClean() {
+	fmt.Println("tscac-clean")
 
 }
-

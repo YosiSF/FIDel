@@ -1,4 +1,4 @@
-// Copyright 2020 WHTCORPS INC EinsteinDB TM 
+// Copyright 2020 WHTCORPS INC EinsteinDB TM
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,717 @@ package minkowski
 
 import (
 	"bytes"
+
 	"encoding/hex"
+
 	"fmt"
+	_ "fmt"
 	"reflect"
+	
 	"sort"
 	"strings"
 	"unsafe"
+	go:proto "github.com/gogo/protobuf/proto"
 
 	"github.com/gogo/protobuf/proto"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/replication_modepb"
+	"github.com/gogo/protobuf/types"
+	"github.com/gogo/protobuf/types/any"
+	"github.com/gogo/protobuf/types/descriptor"
+	"github.com/gogo/protobuf/types/duration"
+	"github.com/gogo/protobuf/types/empty"
+	"github.com/gogo/protobuf/types/struct"
+	"github.com/gogo/protobuf/types/timestamp"
+	"github.com/gogo/protobuf/types/wrappers"
+
+protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
+
+reflect "reflect"
+	"github.com/gogo/protobuf/types/any"
+	"github.com/gogo/protobuf/types/descriptor"
+	"github.com/gogo/protobuf/types/duration"
+
+sync "sync"
 )
 
-// RegionInfo records detail region info.
+const (
+	// Empty_TYPE The type of the message is empty.
+	Empty_TYPE = 0
+	// String_TYPE The type of the message is a string.
+	String_TYPE = 1
+	// Bytes_TYPE The type of the message is a bytes.
+	Bytes_TYPE = 2
+	// Int64_TYPE The type of the message is a int64.
+	Int64_TYPE = 3
+	// Float64_TYPE The type of the message is a float64.
+	Float64_TYPE = 4
+	// Bool_TYPE The type of the message is a bool.
+	Bool_TYPE = 5
+	// Timestamp_TYPE The type of the message is a timestamp.
+	Timestamp_TYPE = 6
+	// Duration_TYPE The type of the message is a duration.
+	Duration_TYPE = 7
+	// The type of the message is a datetime.
+	Datetime_TYPE = 8
+	// The type of the message is a time.
+	Time_TYPE = 9
+	// The type of the message is a date.
+	Date_TYPE = 10
+	// The type of the message is a year.
+	Year_TYPE = 11
+	// The type of the message is a month.
+	Month_TYPE = 12
+	// The type of the message is a week.
+	Week_TYPE = 13
+	// The type of the message is a day.
+	Day_TYPE = 14
+	// The type of the message is a hour.
+	Hour_TYPE = 15
+	// The type of the message is a minute.
+	Minute_TYPE = 16
+	// The type of the message is a second.
+	Second_TYPE = 17
+	// The type of the message is a millisecond.
+	Millisecond_TYPE = 18
+	// The type of the message is a microsecond.
+	Microsecond_TYPE = 19
+	// The type of the message is a nanosecond.
+	Nanosecond_TYPE = 20
+
+
+	// RegionType is the type of the region.
+	RegionType = "region"
+	// PeerType is the type of the peer.
+	PeerType = "peer"
+	// StoreType is the type of the store.
+	StoreType = "store"
+	// RegionEpochType is the type of the region epoch.
+	RegionEpochType = "region_epoch"
+	// StoreEpochType is the type of the store epoch.
+	StoreEpochType = "store_epoch"
+	// RegionPeerType is the type of the region peer.
+	RegionPeerType = "region_peer"
+	// StorePeerType is the type of the store peer.
+	StorePeerType = "store_peer"
+	// Verify that this generated code is sufficiently up-to-date.
+	// _ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
+	// _ = protoimpl.EnforceVersion(20)
+
+
+)
+
+
+// Region is the region.
+type Region struct {
+	// The ID of the region.
+	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The start key of the region.
+	StartKey []byte `protobuf:"bytes,2,opt,name=start_key,json=startKey,proto3" json:"start_key,omitempty"`
+	// The end key of the region.
+	EndKey []byte `protobuf:"bytes,3,opt,name=end_key,json=endKey,proto3" json:"end_key,omitempty"`
+	// The ID of the leader peer.
+	Leader uint64 `protobuf:"varint,4,opt,name=leader,proto3" json:"leader,omitempty"`
+	// The ID of the region epoch.
+	RegionEpoch *RegionEpoch `protobuf:"bytes,5,opt,name=region_epoch,json=regionEpoch,proto3" json:"region_epoch,omitempty"`
+	// The peers of the region.
+	Peers []*Peer `protobuf:"bytes,6,rep,name=peers,proto3" json:"peers,omitempty"`q
+	// The ID of the store.
+	StoreId uint64 `protobuf:"varint,7,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
+	// The ID of the store epoch.
+	StoreEpoch *StoreEpoch `protobuf:"bytes,8,opt,name=store_epoch,json=storeEpoch,proto3" json:"store_epoch,omitempty"`
+	// The ID of the store peer.
+	StorePeer *StorePeer `protobuf:"bytes,9,opt,name=store_peer,json=storePeer,proto3" json:"store_peer,omitempty"`
+	// The ID of the region peer.
+	RegionPeer *RegionPeer `protobuf:"bytes,10,opt,name=region_peer,json=regionPeer,proto3" json:"region_peer,omitempty"`
+	// The ID of the region epoch.
+	RegionEpochId uint64 `protobuf:"varint,11,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
+	
+}
+
+
+// RegionEpoch is the region epoch.
+type RegionEpoch struct {
+	// The ID of the region.
+	RegionId uint64 `protobuf:"varint,1,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
+	// The version of the region.
+	Version uint64 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	// The confver of the region.
+	ConfVer uint64 `protobuf:"varint,3,opt,name=conf_ver,json=confVer,proto3" json:"conf_ver,omitempty"`
+	// The confver of the region.
+	VersionHash []byte `protobuf:"bytes,4,opt,name=version_hash,json=versionHash,proto3" json:"version_hash,omitempty"`
+	// The confver of the region.
+	ConfVerHash []byte `protobuf:"bytes,5,opt,name=conf_ver_hash,json=confVerHash,proto3" json:"conf_ver_hash,omitempty"`
+	
+}
+
+func init() {
+	//proto.RegisterType((*Region)(nil), "spacetimepb.Region")
+	//proto.RegisterType((*RegionEpoch)(nil), "spacetimepb.RegionEpoch")
+	//proto.RegisterType((*Peer)(nil), "spacetimepb.Peer")
+	//proto.RegisterType((*StorePeer)(nil), "spacetimepb.StorePeer")
+	//
+	//protoimpl.X.MessageName(reflect.TypeOf([]byte{}), "")
+	//
+	//// Register the type of the global LazyMsg.
+	//protoimpl.RegisterType((*LazyMsg)(nil), "minkowski.LazyMsg")
+	//
+	//// Register the type of the global Empty.
+	//protoimpl.RegisterType((*Empty)(nil), "minkowski.Empty")
+
+	// Register the type of the global Message.
+	protoimpl.RegisterType((*Message)(nil), "minkowski.Message")
+
+	// Register the type of the global Region.
+	protoimpl.RegisterType((*Region)(nil), "minkowski.Region")
+
+	// Register the type of the global RegionEpoch.
+	protoimpl.RegisterType((*RegionEpoch)(nil), "minkowski.RegionEpoch")
+
+	// Register the type of the global Peer.
+	protoimpl.RegisterType((*Peer)(nil), "minkowski.Peer")
+
+	// Register the type of the global StorePeer.
+	protoimpl.RegisterType((*StorePeer)(nil), "minkowski.StorePeer")
+
+	// Register the type of the global RegionPeer.
+	protoimpl.RegisterType((*RegionPeer)(nil), "minkowski.RegionPeer")
+}
+
+
+// Message is the message.
+type Message struct {
+	// The type of the message.
+	Type Message_Type `protobuf:"varint,1,opt,name=type,proto3,enum=minkowski.Message_Type" json:"type,omitempty"`
+	// The body of the message.
+	Body []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	// The ID of the message.
+	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+	// The ID of the sender.
+	Sender uint64 `protobuf:"varint,4,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The ID of the receiver.
+	Receiver uint64 `protobuf:"varint,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	// The ID of the region.
+	RegionId uint64 `protobuf:"varint,6,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
+	// The ID of the region epoch.
+	RegionEpochId uint64 `protobuf:"varint,7,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
+	// The ID of the store.
+	StoreId uint64 `protobuf:"varint,8,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
+	// The ID of the store epoch.
+	StoreEpochId uint64 `protobuf:"varint,9,opt,name=store_epoch_id,json=storeEpochId,proto3" json:"store_epoch_id,omitempty"`
+	// The ID of the store peer.
+	StorePeerId uint64 `protobuf:"varint,10,opt,name=store_peer_id,json=storePeerId,proto3" json:"store_peer_id,omitempty"`
+	// The ID of the region peer.
+	RegionPeerId uint64 `protobuf:"varint,11,opt,name=region_peer_id,json=regionPeerId,proto3" json:"region_peer_id,omitempty"`
+	// The ID of the region peer.
+	// The ID of the region epoch.
+
+}
+
+type LazyMsg struct {
+
+
+	// The type of the message.
+	Type_ string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+
+	// The body of the message.
+	Body []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	// The ID of the message.
+	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+	// The ID of the sender.
+	Sender uint64 `protobuf:"varint,4,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The ID of the receiver.
+	Receiver uint64 `protobuf:"varint,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	// The ID of the region.
+
+	RegionId uint64 `protobuf:"varint,6,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
+	// The ID of the region epoch.
+
+
+	RegionEpochId uint64 `protobuf:"varint,7,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
+	// The ID of the store.
+
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	Content       *Content `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+}
+
+
+type Content struct {
+	// The type of the message.
+	Type_ string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// The body of the message.
+	Body []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	// The ID of the message.
+	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+	// The ID of the sender.
+	Sender uint64 `protobuf:"varint,4,opt,name=sender,proto3" json:"sender,omitempty"`
+	// The ID of the receiver.
+	Receiver uint64 `protobuf:"varint,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
+
+}
+
+
+
+func (x *LazyMsg) GetType() string {
+	if x != nil {
+		return x.Type_
+	}
+	return ""
+}
+
+
+func (x *Content) GetEmpty() *Empty {
+	if x != nil {
+		return x.Empty
+	}
+	return nil
+}
+
+
+
+func (x *LazyMsg) Reset() {
+	*x = LazyMsg{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_minkowski_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LazyMsg) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LazyMsg) ProtoMessage() {}
+
+func (x *LazyMsg) ProtoReflect() protoreflect.Message {
+	mi := &file_minkowski_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+
+func (x *LazyMsg) ProtoReflect() protoreflect.Message {
+	mi := &file_minkowski_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *LazyMsg) Descriptor() ([]byte, []int) {
+	return file_minkowski_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *LazyMsg) Type() string {
+	if x != nil {
+		return x.Type_
+	}
+	return ""
+}
+
+func (x *LazyMsg) GetContent() *Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+
+func (x *Content) Reset() {
+
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+// Empty is the null value for parameters.
+type Empty struct {
+
+
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Empty) Reset() {
+	*x = Empty{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_yages_schema_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Empty) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Empty) ProtoMessage() {}
+
+func (x *Empty) ProtoReflect() protoreflect.Message {
+	mi := &file_yages_schema_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Empty.ProtoReflect.Descriptor instead.
+func (*Empty) Descriptor() ([]byte, []int) {
+	return file_yages_schema_proto_rawDescGZIP(), []int{0}
+}
+
+// Content is the payload used in YAGES services.
+type Content struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Text string `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+}
+
+func (x *Content) Reset() {
+	*x = Content{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_yages_schema_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Content) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Content) ProtoMessage() {}
+
+func (x *Content) ProtoReflect() protoreflect.Message {
+	mi := &file_yages_schema_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Content.ProtoReflect.Descriptor instead.
+func (*Content) Descriptor() ([]byte, []int) {
+	return file_yages_schema_proto_rawDescGZIP(), []int{1}
+}
+
+
+
+
+
+
+func (x *Content) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+//}
+
+
+func (x *Content) GetEmpty() *Empty {
+
+	if x != nil {
+		return x.Empty
+	}
+	return nil
+}
+
+func (x *Content) GetLazy() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy
+	}
+	return nil
+}
+
+func (x *Content) GetLazy2() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy2
+	}
+	return nil
+}
+
+func (x *Content) GetLazy3() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy3
+	}
+	return nil
+}
+
+func (x *Content) GetLazy4() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy4
+	}
+	return nil
+}
+
+func (x *Content) GetLazy5() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy5
+	}
+	return nil
+}
+
+func (x *Content) GetLazy6() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy6
+	}
+	return nil
+}
+
+func (x *Content) GetLazy7() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy7
+	}
+	return nil
+}
+
+func (x *Content) GetLazy8() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy8
+	}
+	return nil
+}
+
+func (x *Content) GetLazy9() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy9
+	}
+	return nil
+}
+
+func (x *Content) GetLazy10() *LazyMsg {
+
+	if x != nil {
+		return x.Lazy10
+	}
+	return nil
+}
+
+func (x *Content) GetLazy11() *LazyMsg {
+
+var regionSchemaProtoMap = []byte{
+	0x0a, 0x12, 0x79, 0x61, 0x67, 0x65, 0x73, 0x2d, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x2e, 0x70,
+	0x72, 0x6f, 0x74,	 0x6f, 0x12, 0x05, 0x79, 0x61, 0x67, 0x65, 0x73, 0x22, 0x07, 0x0a, 0x05, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x22, 0x1d, 0x0a, 0x07, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x12,
+	0x12, 0x0a, 0x04, 0x74, 0x65, 0x78, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74,
+	0x65, 0x78, 0x74, 0x32, 0x5b, 0x0a, 0x04, 0x45, 0x63, 0x68, 0x6f, 0x12, 0x26, 0x0a, 0x04, 0x50,
+	0x69, 0x6e, 0x67, 0x12, 0x0c, 0x2e, 0x79, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x45, 0x6d, 0x70, 0x74,
+	0x79, 0x1a, 0x0e, 0x2e, 0x79, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e,
+	0x74, 0x22, 0x00, 0x12, 0x2b, 0x0a, 0x07, 0x52, 0x65, 0x76, 0x65, 0x72, 0x73, 0x65, 0x12, 0x0e,
+	0x2e, 0x79, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x1a, 0x0e,
+	0x2e, 0x79, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x00,
+	0x42, 0x09, 0x5a, 0x07, 0x2e, 0x2f, 0x79, 0x61, 0x67, 0x65, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
+}
+
+
+
+func file_yages_schema_proto_rawDescGZIP() []byte {
+	file_yages_schema_proto_rawDescOnce.Do(func() {
+		file_yages_schema_proto_rawDescData = protoimpl.X.CompressGZIP(file_yages_schema_proto_rawDescData)
+	})
+	return file_yages_schema_proto_rawDescData
+}
+
+var file_yages_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_yages_schema_proto_goTypes = []interface{}{
+	(*Empty)(nil),   // 0: yages.Empty
+	(*Content)(nil), // 1: yages.Content
+}
+var file_yages_schema_proto_depIdxs = []int32{
+	0, // 0: yages.Echo.Ping:input_type -> yages.Empty
+	1, // 1: yages.Echo.Reverse:input_type -> yages.Content
+	1, // 2: yages.Echo.Ping:output_type -> yages.Content
+	1, // 3: yages.Echo.Reverse:output_type -> yages.Content
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
+}
+
+func init() { file_yages_schema_proto_init() }
+func file_yages_schema_proto_init() {
+	if File_yages_schema_proto != nil {
+		return
+	}
+	if !protoimpl.UnsafeEnabled {
+		file_yages_schema_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Empty); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_yages_schema_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Content); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: regionSchemaProtoMap,
+			NumEnums:      0,
+			NumMessages:   2,
+			NumExtensions: 0,
+			NumServices:   1,
+		},
+		GoTypes:           file_yages_schema_proto_goTypes,
+		DependencyIndexes: file_yages_schema_proto_depIdxs,
+		MessageInfos:      file_yages_schema_proto_msgTypes,
+	}.Build()
+	File_yages_schema_proto = out.File
+	regionSchemaProtoMap = nil
+	file_yages_schema_proto_goTypes = nil
+	file_yages_schema_proto_depIdxs = nil
+}
+
+
+		writtenBytes += p.GetWrittenBytes()
+	}
+	return writtenBytes
+}
+
+func (s peerSlice) Less(i, j int) bool {
+	return bytes.Compare(s[i].GetId(), s[j].GetId()) < 0
+}
+
+func (s peerSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+// Marshal serializes the RegionInfo into bytes.
+func (r *RegionInfo) Marshal() ([]byte, error) {
+
+	return proto.Marshal(r.meta), nil
+}
+
+// Unmarshal deserializes the RegionInfo from bytes.
+func (r *RegionInfo) Unmarshal(data []byte) error {
+	return proto.Unmarshal(data, r.meta)
+}
+
+// GetApproximateSize returns the approximate size of the region.
+func (r *RegionInfo) GetApproximateSize() int64 {
+	return r.approximateSize
+}
+
+// GetApproximateKeys returns the approximate keys of the region.
+func (r *RegionInfo) GetApproximateKeys() int64 {
+	return r.approximateKeys
+}
+
+type Region struct {
+	meta              *fidelpb.Region
+	leader            *fidelpb.Peer
+	learners          []*fidelpb.Peer
+	voters            []*fidelpb.Peer
+	downPeers         []*fidelpb.PeerStats
+	pendingPeers      []*fidelpb.Peer
+	writtenBytes      uint64
+	writtenKeys       uint64
+	readBytes         uint64
+	readKeys          uint64
+	approximateSize   int64
+	approximateKeys   int64
+	interval          *fidelpb.TimeInterval
+	replicationStatus *fidelpb.RegionReplicationStatus
+
+	// The following fields are used for cache.
+
+	// The cached region info.
+	cachedRegion *RegionInfo
+	// The cached region info version.
+	cachedVersion uint64
+}
+
+// GetDownPeers returns the down peers.
+func (r *RegionInfo) GetDownPeers() []*fidelpb.PeerStats {
+	return r.downPeers
+}
+
+// GetPendingPeers returns the pending peers.
+func (r *RegionInfo) GetPendingPeers() []*fidelpb.Peer {
+	return r.pendingPeers
+}
+
+// GetWrittenBytes returns the written bytes.
+func (r *RegionInfo) GetWrittenBytes() uint64 {
+	return r.writtenBytes
+}
+
+// GetWrittenKeys returns the written keys.
+func (r *RegionInfo) GetWrittenKeys() uint64 {
+	return r.writtenKeys
+}
+
+// NewRegion creates a new Region.
+func NewRegion(meta *fidelpb.Region, leader *fidelpb.Peer, opts ...RegionCreateOption) *Region {
+	region := &Region{
+		meta:   meta,
+		leader: leader,
+	}
+
+	for _, opt := range opts {
+		opt(region)
+	}
+	classifyVoterAndLearner(region)
+	return region
+}
+
+// BraneRookForIpfsViaMilevaDB RegionInfo records detail region info.
 // Read-Only once created.
-type RegionInfo struct {
+type BraneRookForIpfsViaMilevaDB struct {
 	meta              *fidelpb.Region
 	learners          []*fidelpb.Peer
 	voters            []*fidelpb.Peer
@@ -221,44 +916,90 @@ func (r *RegionInfo) GetPendingLearner(peerID uint64) *fidelpb.Peer {
 	return nil
 }
 
-// GetStorePeer returns the peer in specified store.
-func (r *RegionInfo) GetStorePeer(storeID uint64) *fidelpb.Peer {
+// GetSketchPeer returns the peer in specified Sketch.
+func (r *RegionInfo) GetSketchPeer(SketchID uint64) *fidelpb.Peer {
 	for _, peer := range r.meta.GetPeers() {
-		if peer.GetStoreId() == storeID {
+		if peer.GetSketchId() == SketchID {
 			return peer
 		}
 	}
 	return nil
 }
 
-// GetStoreVoter returns the voter in specified store.
-func (r *RegionInfo) GetStoreVoter(storeID uint64) *fidelpb.Peer {
+type regionInfoSlice []*RegionInfo
+
+	func (p regionInfoSlice) Len() int {
+		return len(p)
+
+	}
+
+	func (p regionInfoSlice) Less(i, j int) bool {
+return p[i].GetID() < p[j].GetID()
+
+	}
+
+
+	func (p regionInfoSlice) Swap(i, j int) {
+		p[i], p[j] = p[j], p[i]
+
+	}
+
+	func (p regionInfoSlice) Sort() {
+		sort.Sort(p)
+
+	}
+
+
+	func (p regionInfoSlice) Search(regionID uint64) int {
+		return sort.Search(len(p), func(i int) bool {
+			return p[i].GetID() >= regionID
+		})
+
+	}
+
+	func (p regionInfoSlice) SearchFirst(regionID uint64) int {
+		return sort.Search(len(p), func(i int) bool {
+			return p[i].GetID() > regionID
+		})
+
+	}
+
+
+	func (p regionInfoSlice) SearchLast(regionID uint64) int {
+		return sort.Search(len(p), func(i int) bool {
+			return p[i].GetID() >= regionID
+		})-1
+
+	}
+
+// GetSketchVoter returns the voter in specified Sketch.
+func (r *RegionInfo) GetSketchVoter(SketchID uint64) *fidelpb.Peer {
 	for _, peer := range r.voters {
-		if peer.GetStoreId() == storeID {
+		if peer.GetSketchId() == SketchID {
 			return peer
 		}
 	}
 	return nil
 }
 
-// GetStoreLearner returns the learner peer in specified store.
-func (r *RegionInfo) GetStoreLearner(storeID uint64) *fidelpb.Peer {
+// GetSketchLearner returns the learner peer in specified Sketch.
+func (r *RegionInfo) GetSketchLearner(SketchID uint64) *fidelpb.Peer {
 	for _, peer := range r.learners {
-		if peer.GetStoreId() == storeID {
+		if peer.GetSketchId() == SketchID {
 			return peer
 		}
 	}
 	return nil
 }
 
-// GetStoreIds returns a map indicate the region distributed.
-func (r *RegionInfo) GetStoreIds() map[uint64]struct{} {
+// GetSketchIds returns a map indicate the region distributed.
+func (r *RegionInfo) GetSketchIds() map[uint64]struct{} {
 	peers := r.meta.GetPeers()
-	stores := make(map[uint64]struct{}, len(peers))
+	Sketchs := make(map[uint64]struct{}, len(peers))
 	for _, peer := range peers {
-		stores[peer.GetStoreId()] = struct{}{}
+		Sketchs[peer.GetSketchId()] = struct{}{}
 	}
-	return stores
+	return Sketchs
 }
 
 // GetFollowers returns a map indicate the follow peers distributed.
@@ -267,7 +1008,7 @@ func (r *RegionInfo) GetFollowers() map[uint64]*fidelpb.Peer {
 	followers := make(map[uint64]*fidelpb.Peer, len(peers))
 	for _, peer := range peers {
 		if r.leader == nil || r.leader.GetId() != peer.GetId() {
-			followers[peer.GetStoreId()] = peer
+			followers[peer.GetSketchId()] = peer
 		}
 	}
 	return followers
@@ -284,13 +1025,13 @@ func (r *RegionInfo) GetFollower() *fidelpb.Peer {
 }
 
 // GetDiffFollowers returns the followers which is not located in the same
-// store as any other followers of the another specified region.
+// Sketch as any other followers of the another specified region.
 func (r *RegionInfo) GetDiffFollowers(other *RegionInfo) []*fidelpb.Peer {
 	res := make([]*fidelpb.Peer, 0, len(r.meta.Peers))
 	for _, p := range r.GetFollowers() {
 		diff := true
 		for _, o := range other.GetFollowers() {
-			if p.GetStoreId() == o.GetStoreId() {
+			if p.GetSketchId() == o.GetSketchId() {
 				diff = false
 				break
 			}
@@ -550,10 +1291,10 @@ func (rst *regionSubTree) RandomRegions(n int, ranges []KeyRange) []*RegionInfo 
 type RegionsInfo struct {
 	tree         *regionTree
 	regions      *regionMap                // regionID -> regionInfo
-	leaders      map[uint64]*regionSubTree // storeID -> regionSubTree
-	followers    map[uint64]*regionSubTree // storeID -> regionSubTree
-	learners     map[uint64]*regionSubTree // storeID -> regionSubTree
-	pendingPeers map[uint64]*regionSubTree // storeID -> regionSubTree
+	leaders      map[uint64]*regionSubTree // SketchID -> regionSubTree
+	followers    map[uint64]*regionSubTree // SketchID -> regionSubTree
+	learners     map[uint64]*regionSubTree // SketchID -> regionSubTree
+	pendingPeers map[uint64]*regionSubTree // SketchID -> regionSubTree
 }
 
 // NewRegionsInfo creates RegionsInfo with tree, regions, leaders and followers
@@ -634,45 +1375,45 @@ func (r *RegionsInfo) AddRegion(region *RegionInfo) []*RegionInfo {
 
 	// Add to leaders and followers.
 	for _, peer := range region.GetVoters() {
-		storeID := peer.GetStoreId()
+		SketchID := peer.GetSketchId()
 		if peer.GetId() == region.leader.GetId() {
 			// Add leader peer to leaders.
-			store, ok := r.leaders[storeID]
+			Sketch, ok := r.leaders[SketchID]
 			if !ok {
-				store = newRegionSubTree()
-				r.leaders[storeID] = store
+				Sketch = newRegionSubTree()
+				r.leaders[SketchID] = Sketch
 			}
-			store.ufidelate(region)
+			Sketch.ufidelate(region)
 		} else {
 			// Add follower peer to followers.
-			store, ok := r.followers[storeID]
+			Sketch, ok := r.followers[SketchID]
 			if !ok {
-				store = newRegionSubTree()
-				r.followers[storeID] = store
+				Sketch = newRegionSubTree()
+				r.followers[SketchID] = Sketch
 			}
-			store.ufidelate(region)
+			Sketch.ufidelate(region)
 		}
 	}
 
 	// Add to learners.
 	for _, peer := range region.GetLearners() {
-		storeID := peer.GetStoreId()
-		store, ok := r.learners[storeID]
+		SketchID := peer.GetSketchId()
+		Sketch, ok := r.learners[SketchID]
 		if !ok {
-			store = newRegionSubTree()
-			r.learners[storeID] = store
+			Sketch = newRegionSubTree()
+			r.learners[SketchID] = Sketch
 		}
-		store.ufidelate(region)
+		Sketch.ufidelate(region)
 	}
 
 	for _, peer := range region.pendingPeers {
-		storeID := peer.GetStoreId()
-		store, ok := r.pendingPeers[storeID]
+		SketchID := peer.GetSketchId()
+		Sketch, ok := r.pendingPeers[SketchID]
 		if !ok {
-			store = newRegionSubTree()
-			r.pendingPeers[storeID] = store
+			Sketch = newRegionSubTree()
+			r.pendingPeers[SketchID] = Sketch
 		}
-		store.ufidelate(region)
+		Sketch.ufidelate(region)
 	}
 
 	return overlaps
@@ -697,11 +1438,11 @@ func (r *RegionsInfo) removeRegionFromTreeAndMap(region *RegionInfo) {
 func (r *RegionsInfo) removeRegionFromSubTree(region *RegionInfo) {
 	// Remove from leaders and followers.
 	for _, peer := range region.meta.GetPeers() {
-		storeID := peer.GetStoreId()
-		r.leaders[storeID].remove(region)
-		r.followers[storeID].remove(region)
-		r.learners[storeID].remove(region)
-		r.pendingPeers[storeID].remove(region)
+		SketchID := peer.GetSketchId()
+		r.leaders[SketchID].remove(region)
+		r.followers[SketchID].remove(region)
+		r.learners[SketchID].remove(region)
+		r.pendingPeers[SketchID].remove(region)
 	}
 }
 
@@ -712,9 +1453,6 @@ func (s peerSlice) Len() int {
 }
 func (s peerSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
-}
-func (s peerSlice) Less(i, j int) bool {
-	return s[i].GetId() < s[j].GetId()
 }
 
 // shouldRemoveFromSubTree return true when the region leader changed, peer transferred,
@@ -727,7 +1465,7 @@ func (r *RegionsInfo) shouldRemoveFromSubTree(region *RegionInfo, origin *Region
 		sort.Sort(peerSlice(origin))
 		sort.Sort(peerSlice(other))
 		for index, peer := range origin {
-			if peer.GetStoreId() == other[index].GetStoreId() && peer.GetId() == other[index].GetId() {
+			if peer.GetSketchId() == other[index].GetSketchId() && peer.GetId() == other[index].GetId() {
 				continue
 			}
 			return true
@@ -768,36 +1506,36 @@ func (r *RegionsInfo) GetRegions() []*RegionInfo {
 	return regions
 }
 
-// GetStoreRegions gets all RegionInfo with a given storeID
-func (r *RegionsInfo) GetStoreRegions(storeID uint64) []*RegionInfo {
-	regions := make([]*RegionInfo, 0, r.GetStoreLeaderCount(storeID)+r.GetStoreFollowerCount(storeID))
-	if leaders, ok := r.leaders[storeID]; ok {
+// GetSketchRegions gets all RegionInfo with a given SketchID
+func (r *RegionsInfo) GetSketchRegions(SketchID uint64) []*RegionInfo {
+	regions := make([]*RegionInfo, 0, r.GetSketchLeaderCount(SketchID)+r.GetSketchFollowerCount(SketchID))
+	if leaders, ok := r.leaders[SketchID]; ok {
 		regions = append(regions, leaders.scanRanges()...)
 	}
-	if followers, ok := r.followers[storeID]; ok {
+	if followers, ok := r.followers[SketchID]; ok {
 		regions = append(regions, followers.scanRanges()...)
 	}
 	return regions
 }
 
-// GetStoreLeaderRegionSize get total size of store's leader regions
-func (r *RegionsInfo) GetStoreLeaderRegionSize(storeID uint64) int64 {
-	return r.leaders[storeID].TotalSize()
+// GetSketchLeaderRegionSize get total size of Sketch's leader regions
+func (r *RegionsInfo) GetSketchLeaderRegionSize(SketchID uint64) int64 {
+	return r.leaders[SketchID].TotalSize()
 }
 
-// GetStoreFollowerRegionSize get total size of store's follower regions
-func (r *RegionsInfo) GetStoreFollowerRegionSize(storeID uint64) int64 {
-	return r.followers[storeID].TotalSize()
+// GetSketchFollowerRegionSize get total size of Sketch's follower regions
+func (r *RegionsInfo) GetSketchFollowerRegionSize(SketchID uint64) int64 {
+	return r.followers[SketchID].TotalSize()
 }
 
-// GetStoreLearnerRegionSize get total size of store's learner regions
-func (r *RegionsInfo) GetStoreLearnerRegionSize(storeID uint64) int64 {
-	return r.learners[storeID].TotalSize()
+// GetSketchLearnerRegionSize get total size of Sketch's learner regions
+func (r *RegionsInfo) GetSketchLearnerRegionSize(SketchID uint64) int64 {
+	return r.learners[SketchID].TotalSize()
 }
 
-// GetStoreRegionSize get total size of store's regions
-func (r *RegionsInfo) GetStoreRegionSize(storeID uint64) int64 {
-	return r.GetStoreLeaderRegionSize(storeID) + r.GetStoreFollowerRegionSize(storeID) + r.GetStoreLearnerRegionSize(storeID)
+// GetSketchRegionSize get total size of Sketch's regions
+func (r *RegionsInfo) GetSketchRegionSize(SketchID uint64) int64 {
+	return r.GetSketchLeaderRegionSize(SketchID) + r.GetSketchFollowerRegionSize(SketchID) + r.GetSketchLearnerRegionSize(SketchID)
 }
 
 // GetMetaRegions gets a set of fidelpb.Region from regionMap
@@ -814,79 +1552,79 @@ func (r *RegionsInfo) GetRegionCount() int {
 	return r.regions.Len()
 }
 
-// GetStoreRegionCount gets the total count of a store's leader and follower RegionInfo by storeID
-func (r *RegionsInfo) GetStoreRegionCount(storeID uint64) int {
-	return r.GetStoreLeaderCount(storeID) + r.GetStoreFollowerCount(storeID) + r.GetStoreLearnerCount(storeID)
+// GetSketchRegionCount gets the total count of a Sketch's leader and follower RegionInfo by SketchID
+func (r *RegionsInfo) GetSketchRegionCount(SketchID uint64) int {
+	return r.GetSketchLeaderCount(SketchID) + r.GetSketchFollowerCount(SketchID) + r.GetSketchLearnerCount(SketchID)
 }
 
-// GetStorePendingPeerCount gets the total count of a store's region that includes pending peer
-func (r *RegionsInfo) GetStorePendingPeerCount(storeID uint64) int {
-	return r.pendingPeers[storeID].length()
+// GetSketchPendingPeerCount gets the total count of a Sketch's region that includes pending peer
+func (r *RegionsInfo) GetSketchPendingPeerCount(SketchID uint64) int {
+	return r.pendingPeers[SketchID].length()
 }
 
-// GetStoreLeaderCount get the total count of a store's leader RegionInfo
-func (r *RegionsInfo) GetStoreLeaderCount(storeID uint64) int {
-	return r.leaders[storeID].length()
+// GetSketchLeaderCount get the total count of a Sketch's leader RegionInfo
+func (r *RegionsInfo) GetSketchLeaderCount(SketchID uint64) int {
+	return r.leaders[SketchID].length()
 }
 
-// GetStoreFollowerCount get the total count of a store's follower RegionInfo
-func (r *RegionsInfo) GetStoreFollowerCount(storeID uint64) int {
-	return r.followers[storeID].length()
+// GetSketchFollowerCount get the total count of a Sketch's follower RegionInfo
+func (r *RegionsInfo) GetSketchFollowerCount(SketchID uint64) int {
+	return r.followers[SketchID].length()
 }
 
-// GetStoreLearnerCount get the total count of a store's learner RegionInfo
-func (r *RegionsInfo) GetStoreLearnerCount(storeID uint64) int {
-	return r.learners[storeID].length()
+// GetSketchLearnerCount get the total count of a Sketch's learner RegionInfo
+func (r *RegionsInfo) GetSketchLearnerCount(SketchID uint64) int {
+	return r.learners[SketchID].length()
 }
 
-// RandPendingRegion randomly gets a store's region with a pending peer.
-func (r *RegionsInfo) RandPendingRegion(storeID uint64, ranges []KeyRange) *RegionInfo {
-	return r.pendingPeers[storeID].RandomRegion(ranges)
+// RandPendingRegion randomly gets a Sketch's region with a pending peer.
+func (r *RegionsInfo) RandPendingRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+	return r.pendingPeers[SketchID].RandomRegion(ranges)
 }
 
-// RandPendingRegions randomly gets a store's n regions with a pending peer.
-func (r *RegionsInfo) RandPendingRegions(storeID uint64, ranges []KeyRange, n int) []*RegionInfo {
-	return r.pendingPeers[storeID].RandomRegions(n, ranges)
+// RandPendingRegions randomly gets a Sketch's n regions with a pending peer.
+func (r *RegionsInfo) RandPendingRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+	return r.pendingPeers[SketchID].RandomRegions(n, ranges)
 }
 
-// RandLeaderRegion randomly gets a store's leader region.
-func (r *RegionsInfo) RandLeaderRegion(storeID uint64, ranges []KeyRange) *RegionInfo {
-	return r.leaders[storeID].RandomRegion(ranges)
+// RandLeaderRegion randomly gets a Sketch's leader region.
+func (r *RegionsInfo) RandLeaderRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+	return r.leaders[SketchID].RandomRegion(ranges)
 }
 
-// RandLeaderRegions randomly gets a store's n leader regions.
-func (r *RegionsInfo) RandLeaderRegions(storeID uint64, ranges []KeyRange, n int) []*RegionInfo {
-	return r.leaders[storeID].RandomRegions(n, ranges)
+// RandLeaderRegions randomly gets a Sketch's n leader regions.
+func (r *RegionsInfo) RandLeaderRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+	return r.leaders[SketchID].RandomRegions(n, ranges)
 }
 
-// RandFollowerRegion randomly gets a store's follower region.
-func (r *RegionsInfo) RandFollowerRegion(storeID uint64, ranges []KeyRange) *RegionInfo {
-	return r.followers[storeID].RandomRegion(ranges)
+// RandFollowerRegion randomly gets a Sketch's follower region.
+func (r *RegionsInfo) RandFollowerRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+	return r.followers[SketchID].RandomRegion(ranges)
 }
 
-// RandFollowerRegions randomly gets a store's n follower regions.
-func (r *RegionsInfo) RandFollowerRegions(storeID uint64, ranges []KeyRange, n int) []*RegionInfo {
-	return r.followers[storeID].RandomRegions(n, ranges)
+// RandFollowerRegions randomly gets a Sketch's n follower regions.
+func (r *RegionsInfo) RandFollowerRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+	return r.followers[SketchID].RandomRegions(n, ranges)
 }
 
-// RandLearnerRegion randomly gets a store's learner region.
-func (r *RegionsInfo) RandLearnerRegion(storeID uint64, ranges []KeyRange) *RegionInfo {
-	return r.learners[storeID].RandomRegion(ranges)
+// RandLearnerRegion randomly gets a Sketch's learner region.
+func (r *RegionsInfo) RandLearnerRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+	return r.learners[SketchID].RandomRegion(ranges)
 }
 
-// RandLearnerRegions randomly gets a store's n learner regions.
-func (r *RegionsInfo) RandLearnerRegions(storeID uint64, ranges []KeyRange, n int) []*RegionInfo {
-	return r.learners[storeID].RandomRegions(n, ranges)
+// RandLearnerRegions randomly gets a Sketch's n learner regions.
+func (r *RegionsInfo) RandLearnerRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+	return r.learners[SketchID].RandomRegions(n, ranges)
 }
 
-// GetLeader return leader RegionInfo by storeID and regionID(now only used in test)
-func (r *RegionsInfo) GetLeader(storeID uint64, region *RegionInfo) *RegionInfo {
-	return r.leaders[storeID].find(region).region
+// GetLeader return leader RegionInfo by SketchID and regionID(now only used in test)
+func (r *RegionsInfo) GetLeader(SketchID uint64, region *RegionInfo) *RegionInfo {
+	return r.leaders[SketchID].find(region).region
 }
 
-// GetFollower return follower RegionInfo by storeID and regionID(now only used in test)
-func (r *RegionsInfo) GetFollower(storeID uint64, region *RegionInfo) *RegionInfo {
-	return r.followers[storeID].find(region).region
+// GetFollower return follower RegionInfo by SketchID and regionID(now only used in test)
+func (r *RegionsInfo) GetFollower(SketchID uint64, region *RegionInfo) *RegionInfo {
+	return r.followers[SketchID].find(region).region
 }
 
 // ScanRange scans regions intersecting [start key, end key), returns at most
@@ -981,8 +1719,33 @@ func DiffRegionKeyInfo(origin *RegionInfo, other *RegionInfo) string {
 	return strings.Join(ret, ", ")
 }
 
-func isInvolved(region *RegionInfo, startKey, endKey []byte) bool {
-	return bytes.Compare(region.GetStartKey(), startKey) >= 0 && (len(endKey) == 0 || (len(region.GetEndKey()) > 0 && bytes.Compare(region.GetEndKey(), endKey) <= 0))
+
+// DiffRegionInfo return the difference of region info between two RegionInfo
+func DiffRegionInfo(origin *RegionInfo, other *RegionInfo) string {
+	var ret []string
+	ret = append(ret, DiffRegionPeersInfo(origin, other))
+	ret = append(ret, DiffRegionKeyInfo(origin, other))
+	return strings.Join(ret, ", ")
+}
+
+
+// DiffRegionInfo return the difference of region info between two RegionInfo
+func DiffRegionInfoWithDesc(origin *RegionInfo, other *RegionInfo) string {
+	var ret []string
+	ret = append(ret, DiffRegionPeersInfo(origin, other))
+	ret = append(ret, DiffRegionKeyInfo(origin, other))
+	return strings.Join(ret, ", ")
+
+}
+
+
+// DiffRegionInfo return the difference of region info between two RegionInfo
+func DiffRegionInfoWithDesc2(origin *RegionInfo, other *RegionInfo) string {
+	var ret []string
+	ret = append(ret, DiffRegionPeersInfo(origin, other))
+	ret = append(ret, DiffRegionKeyInfo(origin, other))
+	return strings.Join(ret, ", ")
+
 }
 
 // String converts slice of bytes to string without copy.

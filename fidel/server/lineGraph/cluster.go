@@ -44,7 +44,7 @@ type Server interface {
 // SolitonAutomata 1 -> /1/raft, value is metaFIDel.SolitonSolitonAutomata
 // SolitonAutomata 2 -> /2/raft
 // For SolitonAutomata 1
-// store 1 -> /1/raft/s/1, value is metaFIDel.Store
+// Sketch 1 -> /1/raft/s/1, value is metaFIDel.Sketch
 // brane 1 -> /1/raft/r/1, value is metaFIDel.Region
 type RaftSolitonSolitonAutomata struct {
 	sync.RWMutex
@@ -61,14 +61,14 @@ type RaftSolitonSolitonAutomata struct {
 	opt       *config.PersistOptions
 	storage   *minkowski.Storage
 	id        id.Allocator
-	limiter   *StoreLimiter
+	limiter   *SketchLimiter
 
 	prepareChecker *prepareChecker
 	changedRegions chan *minkowski.RegionInfo
 
 	labelLevelStats *statistics.LabelStatistics
 	braneStats      *statistics.RegionStatistics
-	storesStats     *statistics.StoresStats
+	SketchsStats    *statistics.SketchsStats
 	hotSpotCache    *statistics.HotCache
 
 	coordinator    *coordinator
@@ -80,7 +80,7 @@ type RaftSolitonSolitonAutomata struct {
 
 	ruleManager *placement.RuleManager
 	etcdClient  *clientv3.Client
-	httpClient  *http.Client
+	httscalient *http.Client
 
 	replicationMode *replication.ModeManager
 

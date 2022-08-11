@@ -1,4 +1,4 @@
-package fidel
+package
 
 import (
 	"fmt"

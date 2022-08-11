@@ -11,20 +11,72 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ansible
+package solitonautomata
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/YosiSF/errors"
-	"github.com/YosiSF/fidel/pkg/logger/log"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"github.com/relex/aini"
 )
+
+type Topology struct {
+	GlobalOptions     spec.GlobalOptions
+	MonitoredOptions  spec.MonitoredOptions
+	InterlockOptions  spec.InterlockOptions
+	FoundationDBs     []spec.FoundationDBSpec
+}
+
+type spec struct {
+
+	GlobalOptions     spec.GlobalOptions
+	MonitoredOptions  spec.MonitoredOptions
+	MilevaDBServers   []spec.MilevaDBSpec
+	EinsteinDBServers []spec.EinsteinDBSpec
+	FIDelServers      []spec.FIDelSpec
+	PumpServers       []spec.PumpSpec
+	Drainers          []spec.DrainerSpec
+	Monitors          []spec.PrometheusSpec
+	Grafana           []spec.GrafanaSpec
+	Alertmanager      []spec.AlertManagerSpec
+	ServerConfigs     map[string]interface{}
+	SolitonAutomataMeta   map[string]interface{Topology *spec.Specification}
+}
+
+
+func (s *spec) GetTopology() *spec.Specification {
+	return s.SolitonAutomataMeta.Topology
+}
+
+
+
+type Meta struct {
+	Version string `json:"version"`
+	Suse    string `json:"suse"`
+}
+
+
+type Specification struct {
+	Name string
+	Meta Meta
+
+}
+
+type SolitonAutomata struct {
+	Name    string
+	Meta    *spec.SolitonAutomataMeta
+	Address string
+}
+
+func NewSolitonAutomata(name string, meta *spec.SolitonAutomataMeta) *SolitonAutomata {
+	return &SolitonAutomata{
+		Name: name,
+		Meta: meta,
+	}
+
+}
 
 // ReadInventory reads the inventory files of a MilevaDB solitonAutomata deployed by MilevaDB-Ansible
 func ReadInventory(dir, inventoryFileName string) (string, *spec.SolitonAutomataMeta, *aini.InventoryData, error) {

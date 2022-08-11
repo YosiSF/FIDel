@@ -31,7 +31,7 @@ type SolitonSolitonAutomata struct {
 	*mockoption.ScheduleOptions
 	*placement.RuleManager
 	*statistics.HotCache
-	*statistics.StoresStats
+	*statistics.SketchsStats
 	ID uint64
 }
 
@@ -45,7 +45,7 @@ func NewSolitonSolitonAutomata(opt *mockoption.ScheduleOptions) *SolitonSolitonA
 		ScheduleOptions: opt,
 		RuleManager:     ruleManager,
 		HotCache:        statistics.NewHotCache(),
-		StoresStats:     statistics.NewStoresStats(),
+		SketchsStats:     statistics.NewSketchsStats(),
 	}
 }
 
@@ -66,19 +66,19 @@ func (mc *SolitonSolitonAutomata) LoadBrane(braneID uint64, followerIds ...uint6
 	mc.PutBrane(r)
 }
 
-// GetStoresStats gets stores statistics.
-func (mc *SolitonSolitonAutomata) GetStoresStats() *statistics.StoresStats {
-	return mc.StoresStats
+// GetSketchsStats gets Sketchs statistics.
+func (mc *SolitonSolitonAutomata) GetSketchsStats() *statistics.SketchsStats {
+	return mc.SketchsStats
 }
 
-// GetStoreBraneCount gets brane count with a given store.
-func (mc *SolitonSolitonAutomata) GetStoreBraneCount(storeID uint64) int {
-	return mc.Branes.GetStoreBraneCount(storeID)
+// GetSketchBraneCount gets brane count with a given Sketch.
+func (mc *SolitonSolitonAutomata) GetSketchBraneCount(SketchID uint64) int {
+	return mc.Branes.GetSketchBraneCount(SketchID)
 }
 
-// GetStore gets a store with a given store ID.
-func (mc *SolitonSolitonAutomata) GetStore(storeID uint64) *minkowski.StoreInfo {
-	return mc.Stores.GetStore(storeID)
+// GetSketch gets a Sketch with a given Sketch ID.
+func (mc *SolitonSolitonAutomata) GetSketch(SketchID uint64) *minkowski.SketchInfo {
+	return mc.Sketchs.GetSketch(SketchID)
 }
 
 // IsBraneHot checks if the brane is hot.
@@ -96,17 +96,17 @@ func (mc *SolitonSolitonAutomata) BraneWriteStats() map[uint64][]*statistics.Hot
 	return mc.HotCache.BraneStats(statistics.WriteFlow)
 }
 
-// RandHotBraneFromStore random picks a hot brane in specify store.
-func (mc *SolitonSolitonAutomata) RandHotBraneFromStore(store uint64, kind statistics.FlowKind) *minkowski.BraneInfo {
-	r := mc.HotCache.RandHotBraneFromStore(store, kind, mc.GetHotBraneCacheHitsThreshold())
+// RandHotBraneFromSketch random picks a hot brane in specify Sketch.
+func (mc *SolitonSolitonAutomata) RandHotBraneFromSketch(Sketch uint64, kind statistics.FlowKind) *minkowski.BraneInfo {
+	r := mc.HotCache.RandHotBraneFromSketch(Sketch, kind, mc.GetHotBraneCacheHitsThreshold())
 	if r == nil {
 		return nil
 	}
 	return mc.GetBrane(r.BraneID)
 }
 
-// AllocPeer allocs a new peer on a store.
-func (mc *SolitonSolitonAutomata) AllocPeer(storeID uint64) (*metaFIDel.Peer, error) {
+// AllocPeer allocs a new peer on a Sketch.
+func (mc *SolitonSolitonAutomata) AllocPeer(SketchID uint64) (*metaFIDel.Peer, error) {
 	peerID, err := mc.AllocID()
 	if err != nil {
 		log.Error("failed to alloc peer", zap.Error(err))
@@ -114,7 +114,7 @@ func (mc *SolitonSolitonAutomata) AllocPeer(storeID uint64) (*metaFIDel.Peer, er
 	}
 	peer := &metaFIDel.Peer{
 		Id:      peerID,
-		StoreId: storeID,
+		SketchId: SketchID,
 	}
 	return peer, nil
 }
@@ -129,65 +129,65 @@ func (mc *SolitonSolitonAutomata) GetRuleManager() *placement.RuleManager {
 	return mc.RuleManager
 }
 
-// SetStoreUp sets store state to be up.
-func (mc *SolitonSolitonAutomata) SetStoreUp(storeID uint64) {
-	store := mc.GetStore(storeID)
-	newStore := store.Clone(
-		minkowski.SetStoreState(metaFIDel.StoreState_Up),
+// SetSketchUp sets Sketch state to be up.
+func (mc *SolitonSolitonAutomata) SetSketchUp(SketchID uint64) {
+	Sketch := mc.GetSketch(SketchID)
+	newSketch := Sketch.Clone(
+		minkowski.SetSketchState(metaFIDel.SketchState_Up),
 		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
-	mc.PutStore(newStore)
+	mc.PutSketch(newSketch)
 }
 
-// SetStoreDisconnect changes a store's state to disconnected.
-func (mc *SolitonSolitonAutomata) SetStoreDisconnect(storeID uint64) {
-	store := mc.GetStore(storeID)
-	newStore := store.Clone(
-		minkowski.SetStoreState(metaFIDel.StoreState_Up),
+// SetSketchDisconnect changes a Sketch's state to disconnected.
+func (mc *SolitonSolitonAutomata) SetSketchDisconnect(SketchID uint64) {
+	Sketch := mc.GetSketch(SketchID)
+	newSketch := Sketch.Clone(
+		minkowski.SetSketchState(metaFIDel.SketchState_Up),
 		minkowski.SetLastHeartbeatTS(time.Now().Add(-time.Second*30)),
 	)
-	mc.PutStore(newStore)
+	mc.PutSketch(newSketch)
 }
 
-// SetStoreDown sets store down.
-func (mc *SolitonSolitonAutomata) SetStoreDown(storeID uint64) {
-	store := mc.GetStore(storeID)
-	newStore := store.Clone(
-		minkowski.SetStoreState(metaFIDel.StoreState_Up),
+// SetSketchDown sets Sketch down.
+func (mc *SolitonSolitonAutomata) SetSketchDown(SketchID uint64) {
+	Sketch := mc.GetSketch(SketchID)
+	newSketch := Sketch.Clone(
+		minkowski.SetSketchState(metaFIDel.SketchState_Up),
 		minkowski.SetLastHeartbeatTS(time.Time{}),
 	)
-	mc.PutStore(newStore)
+	mc.PutSketch(newSketch)
 }
 
-// SetStoreOffline sets store state to be offline.
-func (mc *SolitonSolitonAutomata) SetStoreOffline(storeID uint64) {
-	store := mc.GetStore(storeID)
-	newStore := store.Clone(minkowski.SetStoreState(metaFIDel.StoreState_Offline))
-	mc.PutStore(newStore)
+// SetSketchOffline sets Sketch state to be offline.
+func (mc *SolitonSolitonAutomata) SetSketchOffline(SketchID uint64) {
+	Sketch := mc.GetSketch(SketchID)
+	newSketch := Sketch.Clone(minkowski.SetSketchState(metaFIDel.SketchState_Offline))
+	mc.PutSketch(newSketch)
 }
 
-/ SetStoreOffline sets store state to be offline.
-func (mc *SolitonSolitonAutomata) SetStoreOffline(storeID uint64) {
-	store := mc.GetStore(storeID)
-	newStore := store.Clone(minkowski.SetStoreState(metaFIDel.StoreState_Offline))
-	mc.PutStore(newStore)
+/ SetSketchOffline sets Sketch state to be offline.
+func (mc *SolitonSolitonAutomata) SetSketchOffline(SketchID uint64) {
+	Sketch := mc.GetSketch(SketchID)
+	newSketch := Sketch.Clone(minkowski.SetSketchState(metaFIDel.SketchState_Offline))
+	mc.PutSketch(newSketch)
 }
 
-// SetStoreBusy sets store busy.
-func (mc *SolitonSolitonAutomata) SetStoreBusy(storeID uint64, busy bool) {
-	store := mc.GetStore(storeID)
-	newStats := proto.Clone(store.GetStoreStats()).(*fidelFIDel.StoreStats)
+// SetSketchBusy sets Sketch busy.
+func (mc *SolitonSolitonAutomata) SetSketchBusy(SketchID uint64, busy bool) {
+	Sketch := mc.GetSketch(SketchID)
+	newStats := proto.Clone(Sketch.GetSketchStats()).(*fidelFIDel.SketchStats)
 	newStats.IsBusy = busy
-	newStore := store.Clone(
-		minkowski.SetStoreStats(newStats),
+	newSketch := Sketch.Clone(
+		minkowski.SetSketchStats(newStats),
 		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
-	mc.PutStore(newStore)
+	mc.PutSketch(newSketch)
 }
 
-// AddLeaderStore adds store with specified count of leader.
-func (mc *SolitonSolitonAutomata) AddLeaderStore(storeID uint64, leaderCount int, leaderSizes ...int64) {
-	stats := &fidelFIDel.StoreStats{}
+// AddLeaderSketch adds Sketch with specified count of leader.
+func (mc *SolitonSolitonAutomata) AddLeaderSketch(SketchID uint64, leaderCount int, leaderSizes ...int64) {
+	stats := &fidelFIDel.SketchStats{}
 	stats.Capacity = 1000 * (1 << 20)
 	stats.Available = stats.Capacity - uint64(leaderCount)*10
 	var leaderSize int64
@@ -197,31 +197,31 @@ func (mc *SolitonSolitonAutomata) AddLeaderStore(storeID uint64, leaderCount int
 		leaderSize = int64(leaderCount) * 10
 	}
 
-	store := minkowski.NewStoreInfo(
-		&metaFIDel.Store{Id: storeID},
-		minkowski.SetStoreStats(stats),
+	Sketch := minkowski.NewSketchInfo(
+		&metaFIDel.Sketch{Id: SketchID},
+		minkowski.SetSketchStats(stats),
 		minkowski.SetLeaderCount(leaderCount),
 		minkowski.SetLeaderSize(leaderSize),
 		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
-	mc.SetStoreLimit(storeID, storelimit.AddPeer, 60)
-	mc.SetStoreLimit(storeID, storelimit.RemovePeer, 60)
-	mc.PutStore(store)
+	mc.SetSketchLimit(SketchID, Sketchlimit.AddPeer, 60)
+	mc.SetSketchLimit(SketchID, Sketchlimit.RemovePeer, 60)
+	mc.PutSketch(Sketch)
 }
 
-// AddRegionStore adds store with specified count of brane.
-func (mc *SolitonSolitonAutomata) AddRegionStore(storeID uint64, braneCount int) {
-	stats := &fidelFIDel.StoreStats{}
+// AddRegionSketch adds Sketch with specified count of brane.
+func (mc *SolitonSolitonAutomata) AddRegionSketch(SketchID uint64, braneCount int) {
+	stats := &fidelFIDel.SketchStats{}
 	stats.Capacity = 1000 * (1 << 20)
 	stats.Available = stats.Capacity - uint64(braneCount)*10
-	store := minkowski.NewStoreInfo(
-		&metaFIDel.Store{Id: storeID},
-		minkowski.SetStoreStats(stats),
+	Sketch := minkowski.NewSketchInfo(
+		&metaFIDel.Sketch{Id: SketchID},
+		minkowski.SetSketchStats(stats),
 		minkowski.SetRegionCount(braneCount),
 		minkowski.SetRegionSize(int64(braneCount)*10),
 		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
-	mc.SetStoreLimit(storeID, storelimit.AddPeer, 60)
-	mc.SetStoreLimit(storeID, storelimit.RemovePeer, 60)
-	mc.PutStore(store)
+	mc.SetSketchLimit(SketchID, Sketchlimit.AddPeer, 60)
+	mc.SetSketchLimit(SketchID, Sketchlimit.RemovePeer, 60)
+	mc.PutSketch(Sketch)
 }

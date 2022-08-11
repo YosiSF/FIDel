@@ -16,17 +16,31 @@ package einstutil
 import (
 	"encoding/json"
 	"fmt"
-	"sync"
+
 	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-
-	"github.com/YosiSF/FIDel/errcode"
-	"github.com/YosiSF/FIDel/log"
-	"github.com/YosiSF/pkg/errors"
-	"github.com/unrolled/render"
+	_ "strings"
+	_ "time"
 )
+
+type JSONError struct {
+	Err error
+}
+
+func (e JSONError) Error() string {
+	return e.Err.Error()
+}
+
+func tagJSONError(err error) error {
+
+	switch err.(type) {
+	case *json.SyntaxError, *json.UnmarshalTypeError:
+		return JSONError{err}
+	}
+	return err
+}
 
 func DeferClose(c io.Closer, err *error) {
 	if cerr := c.Close(); cerr != nil && *err == nil {
@@ -37,15 +51,6 @@ func DeferClose(c io.Closer, err *error) {
 func (e JSONError) Error() string {
 	return e.Err.Error()
 }
-
-func tagJSONError(err error) error {
-	switch err.(type) {
-	case *json.SyntaxError, *json.UnmarshalTypeError:
-		return JSONError{err}
-	}
-	return err
-}
-
 
 func ReadJSON(r io.ReadCloser, data interface{}) error {
 	var err error
@@ -68,7 +73,6 @@ type FieldError struct {
 	error
 	field string
 }
-
 
 func ParseUint64VarsField(vars map[string]string, varName string) (uint64, *FieldError) {
 	str, ok := vars[varName]
@@ -113,9 +117,8 @@ func ErrorResp(rd *render.Render, w http.ResponseWriter, err error) {
 	}
 	if errCode := errcode.CodeChain(err); errCode != nil {
 		w.Header().Set("milevadb-Error-Code", errCode.Code().CodeStr().String())
-		rd.JSON(w, errCode.Code().HTTPCode(), errcode.NewJSONFormat(errCode))
+		rd.JSON(w, errCode.Code().HTTscaode(), errcode.NewJSONFormat(errCode))
 	} else {
 		rd.JSON(w, http.StatusInternalServerError, err.Error())
 	}
 }
-

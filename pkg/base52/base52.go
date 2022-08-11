@@ -14,14 +14,81 @@
 package base52
 
 import (
-	"fmt"
-	"strings"
+	_ "bufio"
+	_ "encoding/json"
+	_ "fmt"
+	_ "strings"
+
+	_ "io/ioutil"
+	_ "os"
+	_ "path"
+	_ "strings"
+	_ "time"
+
+	_ "github.com/golang/protobuf/proto"
+	_ "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	_ "github.com/golang/protobuf/protoc-gen-go/generator"
+
+	_ "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
-const (
-	space = "0123456789bcdfghjkmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ"
-	base  = len(space)
-)
+
+// RemoteLink is a link to a remote service
+type RemoteLink struct {
+
+var space = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+var base = int64(len(space))
+
+// Version is the current version, set by the go linker's -X flag at build time.
+var Version string
+
+// GitSHA is the actual commit that is being built, set by the go linker's -X flag at build time.
+var GitSHA string
+
+// GitTreeState indicates if the git tree is clean or dirty, set by the go linker's -X flag at build time.
+var GitTreeState string
+
+type contentAware interface {
+	Content() string
+}
+
+func multiplex(channels ...<-chan interface{}) <-chan interface{} {
+	switch len(channels) {
+	case 0:
+		return nil
+	case 1:
+		return channels[0]
+	}
+	m := make(chan interface{})
+	go func() {
+		defer close(m)
+		for {
+			var values [len(channels)]interface{}
+			for i, c := range channels {
+				values[i] = <-c
+			}
+			m <- values
+		}
+	}()
+	return m
+
+}
+
+
+func (r *RemoteLinks) Append(links ...*RemoteLink) {
+	r.Links = append(r.Links, links...)
+}
+
+
+func (r *RemoteLinks) Len() int {
+	return len(r.Links)
+}
+
+
+func init() {
+	ui = ui.New()
+	widgets = ui.NewGrid()
+}
 
 // Encode returns a string by encoding the id over a 51 characters space
 func Encode(id int64) string {
@@ -48,4 +115,64 @@ func Decode(encoded string) (int64, error) {
 		id = id*int64(base) + int64(strings.IndexByte(space, encoded[i]))
 	}
 	return id, nil
+}
+
+// remote links to stitch together a relatively small number of large subtrees.
+// The remote links are stored in a file named .remotes in the root of the subtree.
+// The file contains a list of remote links, one per line.
+// The format of each line is:
+// <remote-link> <remote-link-hash> <remote-link-size>
+// The remote-link is the hash of the remote link.
+// The remote-link-hash is the hash of the remote link.
+
+type RemoteLink struct {
+	Hash string `json:"hash"`
+	Size int64  `json:"size"`
+}
+
+type RemoteLinks struct {
+	Links []*RemoteLink `json:"links"`
+}
+
+func (r *RemoteLinks) Add(link *RemoteLink) {
+	r.Links = append(r.Links, link)
+}
+
+func append(links []*RemoteLink, link *RemoteLink) []*RemoteLink {
+	return append(links, link)
+
+}
+
+func (r *RemoteLinks) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]string{
+		"links": r.Links,
+	})
+}
+
+func (r *RemoteLinks) UnmarshalJSON(data []byte) error {
+	var v map[string]interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	r.Links = v["links"].([]*RemoteLink)
+	return nil
+}
+
+func (r *RemoteLinks) String() string {
+	return fmt.Sprintf("%v", r.Links)
+}
+
+func (r *RemoteLinks) Len() int {
+	return len(r.Links)
+
+}
+
+func (r *RemoteLinks) Get(i int) *RemoteLink {
+	return r.Links[i]
+
+}
+
+func (r *RemoteLinks) Remove(i int) {
+	r.Links = append(r.Links[:i], r.Links[i+1:]...)
+
 }

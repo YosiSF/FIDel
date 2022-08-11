@@ -21,17 +21,17 @@ import (
 
 type renderer struct {
 	isUFIDelaterRunning atomic.Bool
-	stopChan         chan struct{}
-	stopFinishedChan chan struct{}
-	renderFn         func()
+	stoscahan           chan struct{}
+	stopFinishedChan    chan struct{}
+	renderFn            func()
 }
 
 func newRenderer() *renderer {
 	return &renderer{
 		isUFIDelaterRunning: atomic.Bool{},
-		stopChan:         nil,
-		stopFinishedChan: nil,
-		renderFn:         nil,
+		stoscahan:           nil,
+		stopFinishedChan:    nil,
+		renderFn:            nil,
 	}
 }
 
@@ -42,7 +42,7 @@ func (r *renderer) startRenderLoop() {
 	if !r.isUFIDelaterRunning.CAS(false, true) {
 		return
 	}
-	r.stopChan = make(chan struct{})
+	r.stoscahan = make(chan struct{})
 	r.stopFinishedChan = make(chan struct{})
 	go r.renderLoopFn()
 }
@@ -51,9 +51,9 @@ func (r *renderer) stopRenderLoop() {
 	if !r.isUFIDelaterRunning.CAS(true, false) {
 		return
 	}
-	r.stopChan <- struct{}{}
-	close(r.stopChan)
-	r.stopChan = nil
+	r.stoscahan <- struct{}{}
+	close(r.stoscahan)
+	r.stoscahan = nil
 
 	<-r.stopFinishedChan
 	close(r.stopFinishedChan)
@@ -68,7 +68,7 @@ func (r *renderer) renderLoopFn() {
 		select {
 		case <-ticker.C:
 			r.renderFn()
-		case <-r.stopChan:
+		case <-r.stoscahan:
 			r.renderFn()
 			r.stopFinishedChan <- struct{}{}
 			return

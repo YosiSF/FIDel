@@ -11,271 +11,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package solitonautomata
 
-import (
-	"bytes"
-	"crypto/tls"
-	"fmt"
-	"strings"
-	"time"
-
-	"github.com/gogo/protobuf/jsonpb"
-	dmpb "github.com/YosiSF/dm/dm/pb"
-	"github.com/YosiSF/errors"
-	"github.com/YosiSF/fidel/pkg/utils"
-	"go.uber.org/zap"
-)
-
-var (
-	dmMembersURI = "apis/v1alpha1/members"
-
-	defaultRetryOpt = &utils.RetryOption{
-		Delay:   time.Second * 5,
-		Timeout: time.Second * 60,
-	}
-)
-
-// DMMasterClient is an HTTP client of the dm-master server
-type DMMasterClient struct {
-	addrs      []string
-	tlsEnabled bool
-	httpClient *utils.HTTPClient
+type FIDelCache interface {
+	Get(key string) (value interface{}, ok bool)
+	Set(key string, value interface{})
+	Del(key string)
+	Len() int
+	Cap() int
+	Clear()
 }
 
-// NewDMMasterClient returns a new FIDelClient
-func NewDMMasterClient(addrs []string, timeout time.Duration, tlsConfig *tls.Config) *DMMasterClient {
-	enableTLS := false
-	if tlsConfig != nil {
-		enableTLS = true
-	}
-
-	return &DMMasterClient{
-		addrs:      addrs,
-		tlsEnabled: enableTLS,
-		httpClient: utils.NewHTTPClient(timeout, tlsConfig),
-	}
+type LRUFIDelCache struct {
+	capacity int
 }
 
-// GetURL builds the the client URL of DMClient
-func (dm *DMMasterClient) GetURL(addr string) string {
-	httpPrefix := "http"
-	if dm.tlsEnabled {
-		httpPrefix = "https"
-	}
-	return fmt.Sprintf("%s://%s", httpPrefix, addr)
+func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (dm *DMMasterClient) getEndpoints(cmd string) (endpoints []string) {
-	for _, addr := range dm.addrs {
-		endpoint := fmt.Sprintf("%s/%s", dm.GetURL(addr), cmd)
-		endpoints = append(endpoints, endpoint)
-	}
-
-	return
+func (L LRUFIDelCache) Set(key string, value interface{}) {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (dm *DMMasterClient) getMember(endpoints []string) (*dmpb.ListMemberResponse, error) {
-	resp := &dmpb.ListMemberResponse{}
-	_, err := tryURLs(endpoints, func(endpoint string) ([]byte, error) {
-		body, err := dm.httpClient.Get(endpoint)
-		if err != nil {
-			return body, err
-		}
-
-		err = jsonpb.Unmarshal(strings.NewReader(string(body)), resp)
-
-		if err != nil {
-			return body, err
-		}
-
-		if !resp.Result {
-			return body, errors.New("dm-master get members failed: " + resp.Msg)
-		}
-
-		return body, nil
-	})
-	return resp, err
+type Dmapi struct {
+	cache FIDelCache
 }
 
-func (dm *DMMasterClient) deleteMember(endpoints []string) (*dmpb.OfflineWorkerResponse, error) {
-	resp := &dmpb.OfflineWorkerResponse{}
-	_, err := tryURLs(endpoints, func(endpoint string) ([]byte, error) {
-		body, statusCode, err := dm.httpClient.Delete(endpoint, nil)
-
-		if statusCode == 404 || bytes.Contains(body, []byte("not exists")) {
-			zap.L().Debug("member to offline does not exist, ignore.")
-			return body, nil
-		}
-		if err != nil {
-			return body, err
-		}
-
-		err = jsonpb.Unmarshal(strings.NewReader(string(body)), resp)
-
-		if err != nil {
-			return body, err
-		}
-
-		if !resp.Result {
-			return body, errors.New("dm-master offline member failed: " + resp.Msg)
-		}
-
-		return body, nil
-	})
-	return resp, err
+func (d *Dmapi) Len() int {
+	return d.cache.Len()
 }
 
-// GetMaster returns the dm master leader
-// returns isFound, isActive, isLeader, error
-func (dm *DMMasterClient) GetMaster(name string) (isFound bool, isActive bool, isLeader bool, err error) {
-	query := "?leader=true&master=true&names=" + name
-	endpoints := dm.getEndpoints(dmMembersURI + query)
-	memberResp, err := dm.getMember(endpoints)
-
-	if err != nil {
-		zap.L().Error("get dm master status failed", zap.Error(err))
-		return false, false, false, errors.AddStack(err)
-	}
-
-	for _, member := range memberResp.GetMembers() {
-		if leader := member.GetLeader(); leader != nil {
-			if leader.GetName() == name {
-				isFound = true
-				isLeader = true
-			}
-		} else if masters := member.GetMaster(); masters != nil {
-			for _, master := range masters.GetMasters() {
-				if master.GetName() == name {
-					isFound = true
-					isActive = master.GetAlive()
-				}
-			}
-		}
-	}
-	return
+func (d *Dmapi) Del(key string) {
+	d.cache.Del(key)
 }
 
-// GetWorker returns the dm worker status
-// returns (worker stage, error). If worker stage is "", that means this worker is in solitonAutomata
-func (dm *DMMasterClient) GetWorker(name string) (string, error) {
-	query := "?worker=true&names=" + name
-	endpoints := dm.getEndpoints(dmMembersURI + query)
-	memberResp, err := dm.getMember(endpoints)
-
-	if err != nil {
-		zap.L().Error("get dm worker status failed", zap.Error(err))
-		return "", err
-	}
-
-	stage := ""
-	for _, member := range memberResp.Members {
-		if workers := member.GetWorker(); workers != nil {
-			for _, worker := range workers.GetWorkers() {
-				if worker.GetName() == name {
-					stage = worker.GetStage()
-				}
-			}
-		}
-	}
-	if len(stage) > 0 {
-		stage = strings.ToUpper(stage[0:1]) + stage[1:]
-	}
-
-	return stage, nil
+func (d *Dmapi) Clear() {
+	d.cache.Clear()
 }
 
-// GetLeader gets leader of dm solitonAutomata
-func (dm *DMMasterClient) GetLeader(retryOpt *utils.RetryOption) (string, error) {
-	query := "?leader=true"
-	endpoints := dm.getEndpoints(dmMembersURI + query)
-
-	if retryOpt == nil {
-		retryOpt = defaultRetryOpt
-	}
-
-	var (
-		memberResp *dmpb.ListMemberResponse
-		err        error
-	)
-
-	if err := utils.Retry(func() error {
-		memberResp, err = dm.getMember(endpoints)
-		return errors.AddStack(err)
-	}, *retryOpt); err != nil {
-		return "", err
-	}
-
-	leaderName := ""
-	for _, member := range memberResp.Members {
-		if leader := member.GetLeader(); leader != nil {
-			leaderName = leader.GetName()
-		}
-	}
-	return leaderName, nil
+func (d *Dmapi) Get(key string) (value interface{}, ok bool) {
+	return d.cache.Get(key), false
 }
 
-// GetRegisteredMembers gets all registerer members of dm solitonAutomata
-func (dm *DMMasterClient) GetRegisteredMembers() ([]string, []string, error) {
-	query := "?master=true&worker=true"
-	endpoints := dm.getEndpoints(dmMembersURI + query)
-	memberResp, err := dm.getMember(endpoints)
-
-	var (
-		registeredMasters []string
-		registeredWorkers []string
-	)
-
-	if err != nil {
-		zap.L().Error("get dm master status failed", zap.Error(err))
-		return registeredMasters, registeredWorkers, errors.AddStack(err)
-	}
-
-	for _, member := range memberResp.Members {
-		if masters := member.GetMaster(); masters != nil {
-			for _, master := range masters.GetMasters() {
-				registeredMasters = append(registeredMasters, master.Name)
-			}
-		} else if workers := member.GetWorker(); workers != nil {
-			for _, worker := range workers.GetWorkers() {
-				registeredWorkers = append(registeredWorkers, worker.Name)
-			}
-		}
-	}
-
-	return registeredMasters, registeredWorkers, nil
-}
-
-// EvictDMMasterLeader evicts the dm master leader
-func (dm *DMMasterClient) EvictDMMasterLeader(retryOpt *utils.RetryOption) error {
-	return nil
-}
-
-// OfflineMember offlines the member of dm solitonAutomata
-func (dm *DMMasterClient) OfflineMember(query string, retryOpt *utils.RetryOption) error {
-	endpoints := dm.getEndpoints(dmMembersURI + query)
-
-	if retryOpt == nil {
-		retryOpt = defaultRetryOpt
-	}
-
-	if err := utils.Retry(func() error {
-		_, err := dm.deleteMember(endpoints)
-		return err
-	}, *retryOpt); err != nil {
-		return fmt.Errorf("error offline member %s, %v", query, err)
-	}
-	return nil
-}
-
-// OfflineWorker offlines the dm worker
-func (dm *DMMasterClient) OfflineWorker(name string, retryOpt *utils.RetryOption) error {
-	query := "/worker/" + name
-	return dm.OfflineMember(query, retryOpt)
-}
-
-// OfflineMaster offlines the dm master
-func (dm *DMMasterClient) OfflineMaster(name string, retryOpt *utils.RetryOption) error {
-	query := "/master/" + name
-	return dm.OfflineMember(query, retryOpt)
+func (d *Dmapi) Set(key string, value interface{}) {
+	d.cache.Set(key, value)
 }

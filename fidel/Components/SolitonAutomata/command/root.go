@@ -44,10 +44,10 @@ import (
 )
 
 var (
-	errNS       = errorx.NewNamespace("cmd")
-	rootCmd     *cobra.Command
-	gOpt        operator.Options
-	skipConfirm bool
+	errNS        = errorx.NewNamespace("cmd")
+	rootCmd      *cobra.Command
+	gOpt         operator.Options
+	skiscaonfirm bool
 )
 
 var milevadbSpec *spec.SpecManager
@@ -135,14 +135,14 @@ func init() {
 	// the value of wait-timeout is also used for `systemctl` commands, as the default timeout of systemd for
 	// start/stop operations is 90s, the default value of this argument is better be longer than that
 	rootCmd.PersistentFlags().Int64Var(&gOpt.OptTimeout, "wait-timeout", 120, "Timeout in seconds to wait for an operation to complete, ignored for operations that don't fit.")
-	rootCmd.PersistentFlags().BoolVarP(&skipConfirm, "yes", "y", false, "Skip all confirmations and assumes 'yes'")
+	rootCmd.PersistentFlags().BoolVarP(&skiscaonfirm, "yes", "y", false, "Skip all confirmations and assumes 'yes'")
 	rootCmd.PersistentFlags().BoolVar(&gOpt.NativeSSH, "native-ssh", gOpt.NativeSSH, "Use the native SSH client installed on local system instead of the build-in one.")
 
 	rootCmd.AddCommand(
 		newCheckCmd(),
 		newDeploy(),
 		newStartCmd(),
-		newStopCmd(),
+		newStoscamd(),
 		newRestartCmd(),
 		newScaleInCmd(),
 		newScaleOutCmd(),

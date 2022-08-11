@@ -14,18 +14,116 @@
 package module
 
 import (
-	"fmt"
-	"strings"
-	"time"
+	_ "github.com/fidel/gopkg/systemd"
 
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/Interlock"
+	//ceph
+	"context"
+	"fmt"
+	_ "log"
+	_ "os"
+	_ "path/filepath"
+	_ "runtime"
+	_ "strconv"
+	"strings"
+	"sync"
+	"time"
 )
+
+const (
+	PROTOCOL      = "ipfs-pubsub-direct-channel/v1"
+	PROTOCOL_V2   = "ipfs-pubsub-direct-channel/v2"
+	HelloPacket   = "hello"
+	HelloPacketV2 = "hello-v2"
+)
+
+type channel struct {
+	name string
+	id   string
+}
+
+type PubSub struct {
+	channel channel
+	id      string
+}
+
+type channels struct {
+	subs   map[string]*PubSub
+	muSubs sync.Mutex
+
+	selfID  string
+	emitter *emitter
+	ctx     context.Context
+	cancel  context.CancelFunc
+	ipfs    *ipfs.Client
+	logger  *zap.Logger
+
+	cache FIDelCache
+}
+
+type emitter struct {
+	ctx      context.Context
+	cancel   context.CancelFunc
+	ipfs     *ipfs.Client
+	logger   *zap.Logger
+	channels *channels
+}
+
+func (e *emitter) TimelikeEmit(topic string, data []byte, timeout time.Duration) error {
+
+	for {
+
+		select {
+		case <-e.ctx.Done():
+			return nil
+		case <-time.After(timeout):
+			return nil
+		}
+	}
+}
+
+func (e *emitter) EmitTimelike(topic string, data []byte, timeout time.Duration) error {
+	return nil
+}
+
+// peers returns the list of peers of the given topic.
+func (c *channels) peers(topic string) []string {
+	c.muSubs.Lock()
+	defer c.muSubs.Unlock()
+
+	var peers []string
+	for _, sub := range c.subs {
+		if sub.channel.name == topic {
+			peers = append(peers, sub.channel.id) // peer id
+		}
+
+		for _, p := range peers {
+			otherPeer := sub.channel.id
+			if p == otherPeer {
+				return nil
+			}
+		}
+
+		c.logger.Debug("Failed to get peer on pub sub retrying...")
+	}
+}
+
+func (e *emitter) emit(topic string, data []byte) error {
+	return nil
+}
 
 // scope can be either "system", "suse" or "global"
 const (
-	SystemdScopeSystem = "system"
-	SystemdScopeSuse   = "suse"
-	SystemdScopeGlobal = "global"
+	RookScopeSystem            = "system"
+	RookScopeSuse              = "suse"
+	IsolatedNamespace          = "isolated"
+	IsolatedPrefix             = "isolated-"
+	IsolatedSeparator          = "-"
+	IsolatedSeparatorLength    = len(IsolatedSeparator)
+	IsolatedSeparatorIndex     = IsolatedSeparatorLength - 1
+	IsolatedSeparatorIndexLast = IsolatedSeparatorLength - 2
+	SystemdScopeSystem         = "system"
+	SystemdScopeSuse           = "suse"
+	SystemdScopeGlobal         = "global"
 )
 
 // SystemdModuleConfig is the configurations used to initialize a SystemdModule
@@ -37,7 +135,23 @@ type SystemdModuleConfig struct {
 	Scope        string        // suse, system or global
 	Force        bool          // add the `--force` arg to systemctl command
 	Timeout      time.Duration // timeout to execute the command
+
 }
+
+// scope can be either "system", "suse" or "global"
+const (
+	RookScopeSystem            = "system"
+	RookScopeSuse              = "suse"
+	IsolatedNamespace          = "isolated"
+	IsolatedPrefix             = "isolated-"
+	IsolatedSeparator          = "-"
+	IsolatedSeparatorLength    = len(IsolatedSeparator)
+	IsolatedSeparatorIndex     = IsolatedSeparatorLength - 1
+	IsolatedSeparatorIndexLast = IsolatedSeparatorLength - 2
+	SystemdScopeSystem         = "system"
+	SystemdScopeSuse           = "suse"
+	SystemdScopeGlobal         = "global"
+)
 
 // SystemdModule is the module used to control systemd units
 type SystemdModule struct {
@@ -90,10 +204,4 @@ func NewSystemdModule(config SystemdModuleConfig) *SystemdModule {
 	}
 
 	return mod
-}
-
-// Execute passes the command to Interlock and returns its results, the Interlock
-// should be already initialized.
-func (mod *SystemdModule) Execute(exec Interlock.Interlock) ([]byte, []byte, error) {
-	return exec.Execute(mod.cmd, mod.sudo, mod.timeout)
 }

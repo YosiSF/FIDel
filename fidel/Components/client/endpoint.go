@@ -11,9 +11,45 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package client
 
-type endpoint struct {
-	component string
-	dsn       string
+import (
+	_ "bufio"
+	_ "encoding/json"
+	"fmt"
+	_ "fmt"
+	_ "io"
+	_ "log"
+	"os"
+	_ "os"
+	_ "path"
+	_ "runtime"
+	_ "strconv"
+	_ "strings"
+	_ "time"
+)
+
+func main() {
+	if err := execute(); err != nil {
+		os.Exit(1)
+	}
+
+}
+
+func execute() error {
+	if len(os.Args) < 2 {
+		return fmt.Errorf("usage: fidel <command> [args]")
+	}
+	switch os.Args[1] {
+	case "playground":
+		return playground()
+	case "status":
+		return status()
+	case "connect":
+		return Connect(os.Args[2])
+	case "help":
+		return help()
+	default:
+		return fmt.Errorf("unknown command: %s", os.Args[1])
+	}
 }

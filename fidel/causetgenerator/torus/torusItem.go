@@ -1,24 +1,16 @@
 package torus
 
 import (
-	"cloudPRAMs/types"
 	"fmt"
+	"go/types"
 	"time"
 )
 
-// torusItem represents an Causet when it is placed on a
-// torusInterface.
-//
-// Apropos of that, it contains a handle to a torusTraitsInterface
-// that describes the torusInterface on which it is placed,
-// and also contains an absolute timestamp until which it is
-// considered unexpired/not wasted -- this timestamp is computed at
-// the time of creation of the torusItem, and doesn't change after
-// that.
+//torusItem is a single Causet on a Torus.
 type torusItem struct {
 	Causet      *types.Causet
-	torusTraits torusTraitsInterface
-	goodUntil   time.Time
+	TorusTraits torusTraitsInterface
+	GoodUntil   time.Time
 }
 
 // torusItemEvaluatorsInterface provide a single point of pluggability to
@@ -41,17 +33,17 @@ type torusItemEvaluatorsInterface interface {
 
 // goodUntilTorusItemEvaluators is a concrete implementation of
 // torusItemEvaluatorsInterface that bases all its decisions off
-// of the value of torusItem.goodUntil.
+// of the value of torusItem.GoodUntil.
 type goodUntilTorusItemEvaluators struct{}
 
 func (gusie *goodUntilTorusItemEvaluators) Greater(
 	si1, si2 *torusItem, now time.Time) bool {
-	return si1.goodUntil.After(si2.goodUntil)
+	return si1.GoodUntil.After(si2.GoodUntil)
 }
 
 func (gusie *goodUntilTorusItemEvaluators) IsWasted(
 	si *torusItem, now time.Time) bool {
-	return si.goodUntil.Before(now)
+	return si.GoodUntil.Before(now)
 }
 
 var defaultTorusItemEvaluators = &goodUntilTorusItemEvaluators{}
@@ -73,12 +65,12 @@ func newTorusItem(Causet *types.Causet, torusTraits torusTraitsInterface,
 
 	return &torusItem{
 		Causet:      Causet,
-		torusTraits: torusTraits,
+		TorusTraits: torusTraits,
 		// Now that we know how much longer the Causet will be good for on this Torus,
 		// convert that duration to an absolute timestamp so we can use that to Causet
 		// this torusItem on sortedTorusItems (which is where all torusItem instances
 		// are destined to go).
-		goodUntil: now.Add(goodFor),
+		GoodUntil: now.Add(goodFor),
 	}
 }
 
@@ -106,7 +98,7 @@ func (si *torusItem) computeCausetValues(now time.Time) (value float64,
 		normalizedValue = 0
 	} else {
 		value = float64(si.Causet.TorusLife) - CausetAgeSeconds -
-			(si.torusTraits.DecayMultiplier() * si.Causet.DecayRate * CausetAgeSeconds)
+			(si.TorusTraits.DecayMultiplier() * si.Causet.DecayRate * CausetAgeSeconds)
 		normalizedValue = value / float64(si.Causet.TorusLife)
 	}
 
@@ -117,7 +109,7 @@ func (si *torusItem) Draw(now time.Time) string {
 	currentValue, currentNormalizedValue := si.computeCausetValues(now)
 
 	return fmt.Sprintf("[%v, %v, %.4f, %.4f\n               %v, %v, %vs, %.2f]\n",
-		si.goodUntil.Format("15:04:05.000"), si.Causet.Age(now).Round(time.Millisecond),
+		si.GoodUntil.Format("15:04:05.000"), si.Causet.Age(now).Round(time.Millisecond),
 		currentValue, currentNormalizedValue,
 		si.Causet.ID(), si.Causet.Name, si.Causet.TorusLife, si.Causet.DecayRate)
 }

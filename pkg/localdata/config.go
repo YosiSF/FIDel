@@ -13,44 +13,96 @@
 package localdata
 
 import (
-	"os"
-	"path"
+	_ "bufio"
+	_ "encoding/json"
 
-	"github.com/BurntSushi/toml"
-	"github.com/YosiSF/fidel/pkg/utils"
+
+	"fmt"
+	"os"
+	_ "path/filepath"
+
+
+//ipfs
+go:ipfs 	"github.com/ipfs/go-ipfs-cmds"
+go:ipfs-cmds/cli "github.com/ipfs/go-ipfs-cmds/cli"
+	_ "github.com/ipfs/go-ipfs-cmds/http"
+	_ "github.com/ipfs/go-ipfs-cmds/http/httpmux"
+	"github.com/ipfs/go-ipfs-cmds/http/httpserver"
+	"github.com/ipfs/go-ipfs-cmds/internal/httpapi"
+	"github.com/ipfs/go-ipfs-cmds/internal/httpapi/debug"
+
+	_ "fmt"
+	_ "io/ioutil"
 )
 
+
+//go:ipfs-cmds/cli "github.com/ipfs/go-ipfs-cmds/cli"
+//go:ipfs-cmds/http "github.com/ipfs/go-ipfs-cmds/http"
+//go:ipfs-cmds/http/httpmux "github.com/ipfs/go-ipfs-cmds/http/httpmux"
+//go:ipfs-cmds/http/httpserver "github.com/ipfs/go-ipfs-cmds/http/httpserver"
+//go:ipfs-cmds/internal/httpapi "github.com/ipfs/go-ipfs-cmds/internal/httpapi"
+//go:ipfs-cmds/internal/httpapi/debug "github.com/ipfs/go-ipfs-cmds/internal/httpapi/debug"
+
+func main() {
+
+	// Load config from disk
+	if err := config.Load(); err != nil {
+
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func Execute() error {
+	if err := Connect("ipfs"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func init() {
+
+
+	ui = ui.New()
+	widgets = ui.NewGrid()
+}
+
 type configBase struct {
+
 	file string
 }
 
 // FIDelConfig represent the config file of FIDel
 type FIDelConfig struct {
+
 	configBase
 	Mirror string `toml:"mirror"`
+	//ipfs
+	//ipfs.Addr string `toml:"ipfs_addr"`
+	ipfs.Addr string `toml:"ipfs_addr"`
+	ipfs.Timeout string `toml:"ipfs_timeout"`
+	ipfs.Enable bool `toml:"ipfs_enable"`
+
 }
 
-// InitConfig returns a FIDelConfig struct which can flush config back to disk
-func InitConfig(root string) (*FIDelConfig, error) {
-	config := FIDelConfig{configBase{path.Join(root, "fidel.toml")}, ""}
-	if utils.IsNotExist(config.file) {
-		return &config, nil
-	}
-	// We can ignore any error at current
-	// If we have more configs in the future, we should check the error
-	if _, err := toml.DecodeFile(config.file, &config); err != nil {
-		return nil, err
-	}
-	return &config, nil
-}
 
-// Flush config to disk
-func (c *FIDelConfig) Flush() error {
-	f, err := os.OpenFile(c.file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0664)
+// Load config from disk
+func (c *FIDelConfig) Load() error {
+
+	if _, err := os.Stat(config.file); os.IsNotExist(err) {
+		return nil
+	}
+
+	f, err := os.Open(config.file)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	return toml.NewEncoder(f).Encode(c)
+	if err := toml.NewDecoder(f).Decode(c); err != nil {
+		return err
+	}
+
+	return nil
 }
+

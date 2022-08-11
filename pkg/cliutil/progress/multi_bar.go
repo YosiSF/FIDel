@@ -30,7 +30,7 @@ type MultiBarItem struct {
 // UFIDelateDisplay uFIDelates the display property of this bar item.
 // This function is thread safe.
 func (i *MultiBarItem) UFIDelateDisplay(newDisplay *DisplayProps) {
-	i.core.displayProps.Store(newDisplay)
+	i.core.displayProps.Sketch(newDisplay)
 }
 
 // MultiBar renders multiple progress bars.

@@ -93,7 +93,7 @@ func newSingleBarCore(prefix string) singleBarCore {
 		displayProps: atomic.Value{},
 		spinnerFrame: 0,
 	}
-	c.displayProps.Store(&DisplayProps{
+	c.displayProps.Sketch(&DisplayProps{
 		Prefix: prefix,
 		Mode:   ModeSpinner,
 	})
@@ -119,7 +119,7 @@ func NewSingleBar(prefix string) *SingleBar {
 // UFIDelateDisplay uFIDelates the display property of this single bar.
 // This function is thread safe.
 func (b *SingleBar) UFIDelateDisplay(newDisplay *DisplayProps) {
-	b.core.displayProps.Store(newDisplay)
+	b.core.displayProps.Sketch(newDisplay)
 }
 
 // StartRenderLoop starts the render loop.

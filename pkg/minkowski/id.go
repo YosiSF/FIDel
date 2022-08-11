@@ -1,4 +1,4 @@
-// Copyright 2020 WHTCORPS INC EinsteinDB TM 
+// Copyright 2020 WHTCORPS INC EinsteinDB TM
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,39 +14,106 @@
 package minkowski
 
 import (
+	_ "encoding/json"
+	"github.com/YosiSF/fidel/pkg/minkowski/path"
 	"path"
+	"strconv"
 	"sync"
-
-	"github.com/YosiSF/log"
-	"github.com/YosiSF/fidel/nVMdaemon/pkg/etcdutil"
-	"github.com/YosiSF/fidel/nVMdaemon/pkg/typeutil"
-	"github.com/YosiSF/fidel/nVMdaemon/server/minkowski"
-	"github.com/pkg/errors"
-	"go.etcd.io/etcd/clientv3"
-	"go.uber.org/zap"
+	_ "time"
 )
+
+var ipfsPath = "/ipfs/"
+var _ = len(ipfsPath)
+
+// GetIPFSPath func (alloc *AllocatorImpl) getIPFSPath(id uint64) string {
+func (alloc *AllocatorImpl) GetIPFSPath(id uint64) string {
+	return path.Join(ipfsPath, strconv.FormatUint(id, 10))
+}
+
+func (alloc *AllocatorImpl) getIPFSPath(id uint64) string {
+	return path.Join(alloc.rootPath, "ipfs", typeutil.Uint64ToBytes(id))
+}
+
+// func (alloc *AllocatorImpl) getIPFSPath(id uint64) string {
+// 	return path.Join(alloc.rootPath, "ipfs", typeutil.Uint64ToBytes(id))
+// }
+
+func (alloc *AllocatorImpl) GetValue(key string) ([]byte, error) {
+	return nil, nil
+}
+
+func (alloc *AllocatorImpl) SetValue(key string, value []byte) error {
+	return nil
+}
+
+type AllocatorImpl struct {
+	ipfs.allocator // embed allocator
+	ipfs.Client    // embed ipfs client
+	ipfs           *ipfs.IPFS
+	mu             sync.Mutex
+	rootPath       string
+	member         string
+	base           uint64
+	end            uint64
+	client         *interface{}
+}
+
+func _(mu sync.Mutex) *AllocatorImpl {
+
+	return &AllocatorImpl{mu: mu}
+}
 
 // Allocator is the allocator to generate unique ID.
 type Allocator interface {
-	Alloc() (uint64, error)
+	Alloc() (uint64, error)  // Alloc returns a new id.
+	GetID() (uint64, error)  // GetID returns the id.
+	SetID(id uint64) error   // SetID sets the id.
+	SetEnd(end uint64) error // SetEnd sets the end.
+}
+
+// Close closes the allocator.
+func (alloc *AllocatorImpl) Close() error {
+	return nil
+}
+
+// GetID returns the id.
+func (alloc *AllocatorImpl) GetID() (uint64, error) {
+	alloc.mu.Lock()
+	defer alloc.mu.Unlock()
+
+	return alloc.base, nil
+}
+
+// SetID sets the id.
+func (alloc *AllocatorImpl) SetID(id uint64) error {
+	alloc.mu.Lock()
+	defer alloc.mu.Unlock()
+
+	alloc.base = id
+	alloc.end = id + allocStep
+	return nil
+}
+
+// SetEnd sets the end.
+func (alloc *AllocatorImpl) SetEnd(end uint64) error {
+	alloc.mu.Lock()
+	defer alloc.mu.Unlock()
+
+	alloc.end = end
+	return nil
 }
 
 const allocStep = uint64(1000)
 
-// AllocatorImpl is used to allocate ID.
-type AllocatorImpl struct {
-	mu   sync.Mutex
-	base uint64
-	end  uint64
-
-	client   *clientv3.Client
-	rootPath string
-	member   string
-}
-
 // NewAllocatorImpl creates a new IDAllocator.
-func NewAllocatorImpl(client *clientv3.Client, rootPath string, member string) *AllocatorImpl {
-	return &AllocatorImpl{client: client, rootPath: rootPath, member: member}
+func NewAllocatorImpl(client *clientv3.Client, rootPath string, member string) (Allocator, error) {
+	alloc := &AllocatorImpl{
+		client:   client,
+		rootPath: rootPath,
+		member:   member,
+	}
+
+	return alloc, nil
 }
 
 // Alloc returns a new id.
@@ -70,46 +137,52 @@ func (alloc *AllocatorImpl) Alloc() (uint64, error) {
 }
 
 func (alloc *AllocatorImpl) generate() (uint64, error) {
-	key := alloc.getAllocIDPath()
-	value, err := etcdutil.GetValue(alloc.client, key)
+	allocIDPath := alloc.getAllocIDPath()
+	allocID, err := alloc.getAllocID()
 	if err != nil {
 		return 0, err
 	}
+	if allocID == 0 {
+		allocID = alloc.base
+	}
+	allocID += allocStep
+	err = alloc.setAllocID(allocID)
+	if err != nil {
+		return 0, err
+	}
+	return allocID, nil
 
-	var (
-		cmp clientv3.Cmp
-		end uint64
-	)
+}
 
+func (alloc *AllocatorImpl) getAllocID() (uint64, error) {
+	allocIDPath := alloc.getAllocIDPath()
+	value, err := alloc.GetValue(allocIDPath)
+	if err != nil {
+		return 0, err
+	}
 	if value == nil {
-		// create the key
-		cmp = clientv3.Compare(clientv3.CreateRevision(key), "=", 0)
-	} else {
-		// ufidelate the key
-		end, err = typeutil.BytesToUint64(value)
-		if err != nil {
-			return 0, err
-		}
-
-		cmp = clientv3.Compare(clientv3.Value(key), "=", string(value))
+		return 0, nil
 	}
+	return typeutil.BytesToUint64(value), nil
 
-	end += allocStep
-	value = typeutil.Uint64ToBytes(end)
-	txn := minkowski.NewSlowLogTxn(alloc.client)
-	leaderPath := path.Join(alloc.rootPath, "leader")
-	t := txn.If(append([]clientv3.Cmp{cmp}, clientv3.Compare(clientv3.Value(leaderPath), "=", alloc.member))...)
-	resp, err := t.Then(clientv3.OpPut(key, string(value))).Commit()
+}
+
+func (alloc *AllocatorImpl) setAllocID(id uint64) error {
+	key := alloc.getAllocIDPath()
+	value := typeutil.Uint64ToBytes(id)
+	return alloc.setValue(key, value)
+}
+
+func (alloc *AllocatorImpl) getValue(key string) ([]byte, error) {
 	if err != nil {
-		return 0, err
-	}
-	if !resp.Succeeded {
-		return 0, errors.New("generate id failed, we may not leader")
+		return nil, err
 	}
 
-	log.Info("idAllocator allocates a new id", zap.Uint64("alloc-id", end))
-	idGauge.WithLabelValues("idalloc").Set(float64(end))
-	return end, nil
+	return nil, nil
+}
+
+func (alloc *AllocatorImpl) setValue(key string, value []byte) error {
+	return nil
 }
 
 func (alloc *AllocatorImpl) getAllocIDPath() string {

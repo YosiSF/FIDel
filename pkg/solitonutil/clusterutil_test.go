@@ -1,4 +1,4 @@
-package solitonAutomatautil
+package solitonautomata
 
 import (
 	"github.com/YosiSF/check"

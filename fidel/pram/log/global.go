@@ -102,6 +102,10 @@ func GetGIDString() string {
 
 }
 
+func GetGIDStringWithTime() string {
+	return GetGIDString() + " " + time.Now().String()
+}
+
 // Info logs a message at InfoLevel. The message includes any fields passed
 
 func Info(msg string, fields ...zap.Field) {
@@ -109,57 +113,37 @@ func Info(msg string, fields ...zap.Field) {
 
 }
 
+func L() {
+	_ = "logger"
+
+}
+
+func WithOptions(opts ...zap.Option) *zap.Logger {
+	return L().WithOptions(opts...)
+
+}
+
+func WithLevel(lvl zascaore.Level) *zap.Logger {
+	return L().WithOptions(zap.AddCallerSkip(1)).WithLevel(lvl)
+
+}
+
 // Warn logs a message at WarnLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
-func Warn(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Warn(msg, fields...)
-}
 
 // Error logs a message at ErrorLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
-func Error(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Error(msg, fields...)
-}
 
 // Panic logs a message at PanicLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 //
 // The logger then panics, even if logging at PanicLevel is disabled.
-func Panic(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Panic(msg, fields...)
-}
 
 // Fatal logs a message at FatalLevel. The message includes any fields passed
 // at the log site, as well as any fields accumulated on the logger.
 //
 // The logger then calls os.Exit(1), even if logging at FatalLevel is
 // disabled.
-func Fatal(msg string, fields ...zap.Field) {
-	L().WithOptions(zap.AddCallerSkip(1)).Fatal(msg, fields...)
-}
 
 // With creates a child logger and adds structured context to it.
 // Fields added to the child don't affect the parent, and vice versa.
-func With(fields ...zap.Field) *zap.Logger {
-	return L().WithOptions(zap.AddCallerSkip(1)).With(fields...)
-}
-
-func WithTime(t time.Time) *zap.Logger {
-	return L().WithOptions(zap.AddCallerSkip(1)).WithTime(t)
-
-}
-
-func WithDuration(d time.Duration) *zap.Logger {
-	return L().WithOptions(zap.AddCallerSkip(1)).WithDuration(d)
-
-}
-
-func WithCaller(skip int) *zap.Logger {
-	return L().WithOptions(zap.AddCallerSkip(1)).WithCaller(skip)
-
-}
-
-func WithCallerSkip(skip int) *zap.Logger {
-	return L().WithOptions(zap.AddCallerSkip(1)).WithCallerSkip(skip)
-
-}

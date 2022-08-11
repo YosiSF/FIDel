@@ -15,12 +15,12 @@ package logger
 
 import (
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zascaore"
 )
 
 // InitGlobalLogger initializes zap global logger.
 func InitGlobalLogger() {
-	core := zapcore.NewTee(
+	core := zascaore.NewTee(
 		newAuditLogCore(),
 		newDebugLogCore(),
 	)
