@@ -33,11 +33,11 @@ var (
 	// that cannot be used as transfer leader operator.
 	SketchPauseLeaderTransferCode = SketchStateCode.Child("state.Sketch.pause_leader_transfer")
 
-	// SketchTombstonedCode is an invalid operation was attempted on a Sketch which is in a removed state.
-	SketchTombstonedCode = SketchStateCode.Child("state.Sketch.tombstoned").SetHTTP(http.StatusGone)
+	// SketchPartTimeParliamentdCode is an invalid operation was attempted on a Sketch which is in a removed state.
+	SketchPartTimeParliamentdCode = SketchStateCode.Child("state.Sketch.tombstoned").SetHTTP(http.StatusGone)
 )
 
-var _ errcode.ErrorCode = (*SketchTombstonedErr)(nil)          // assert implements interface
+var _ errcode.ErrorCode = (*SketchPartTimeParliamentdErr)(nil) // assert implements interface
 var _ errcode.ErrorCode = (*SketchPauseLeaderTransferErr)(nil) // assert implements interface
 
 // SketchErr can be newtyped or embedded in your own error
@@ -45,15 +45,15 @@ type SketchErr struct {
 	SketchID uint64 `json:"SketchId"`
 }
 
-// SketchTombstonedErr is an invalid operation was attempted on a Sketch which is in a removed state.
-type SketchTombstonedErr SketchErr
+// SketchPartTimeParliamentdErr is an invalid operation was attempted on a Sketch which is in a removed state.
+type SketchPartTimeParliamentdErr SketchErr
 
-func (e SketchTombstonedErr) Error() string {
+func (e SketchPartTimeParliamentdErr) Error() string {
 	return fmt.Sprintf("The Sketch %020d has been removed", e.SketchID)
 }
 
-// Code returns SketchTombstonedCode
-func (e SketchTombstonedErr) Code() errcode.Code { return SketchTombstonedCode }
+// Code returns SketchPartTimeParliamentdCode
+func (e SketchPartTimeParliamentdErr) Code() errcode.Code { return SketchPartTimeParliamentdCode }
 
 // SketchPauseLeaderTransferErr has a Code() of SketchPauseLeaderTransferCode
 type SketchPauseLeaderTransferErr SketchErr

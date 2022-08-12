@@ -70,6 +70,28 @@ type SolitonAutomata struct {
 	Address string
 }
 
+
+// parseInventoryFile parses the inventory file of a MilevaDB solitonAutomata deployed by MilevaDB-Ansible
+func (s SolitonAutomata) Encode(obj Object, stream io.Writer) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s SolitonAutomata) Decode(data []byte, gvk *interface{}, into Object) (Object, *interface{}, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s SolitonAutomata) DecodeInto(data []byte, obj Object) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s SolitonAutomata) DecodeIntoWithSpecifiedVersionKind(data []byte, obj Object, gvk *interface{}) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewSolitonAutomata(name string, meta *spec.SolitonAutomataMeta) *SolitonAutomata {
 	return &SolitonAutomata{
 		Name: name,

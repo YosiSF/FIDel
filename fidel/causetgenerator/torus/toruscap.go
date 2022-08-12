@@ -9,6 +9,13 @@ import (
 	"fmt"
 	_ "net/http"
 	_ "time"
+	"github.com/coreos/pkg/capnslog"
+	cephv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
+	"github.com/rook/rook/pkg/clusterd"
+	"github.com/rook/rook/pkg/daemon/ceph/client"
+	"github.com/rook/rook/pkg/daemon/ceph/osd"
+	oposd "github.com/rook/rook/pkg/operator/ceph/cluster/osd"
+
 )
 
 type Empty struct {

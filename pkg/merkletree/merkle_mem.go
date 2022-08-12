@@ -2,45 +2,235 @@ package merkletree
 
 import (
 	"bytes"
-	"encoding/binary"
+	"crypto/aes"
+	_ "encoding/binary"
 	"flag"
 	"fmt"
-	"io"
+	_ "io"
 	"math/rand"
-	"os"
+	_ "os"
 	"runtime"
 	_ "sync"
 	_ "sync/atomic"
 	"time"
-	"unsafe"
 	_ "unsafe"
+
+rook _	"github.com/rook/rook/cmd/rook/rook"
+rook_util _ "github.com/rook/rook/pkg/daemon/util"
+	cobra _  "github.com/spf13/cobra"
 )
 
+var CopyBins = flag.Bool("copy-bins", false, "copy binaries to the local machine")
+var Binaries = flag.String("binaries", "", "path to binaries")
 
-const DISPLAY_NAME = "Headless Sink Tree"
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	//rand.Seed(time.Now().UnixNano())
 
-func (t *mvsr) DisplayName() string {
-	return DISPLAY_NAME
+	_ = &Config{}
+	_ = &mvsr{}
 }
 
 
-func (t *mvsr) Get(key interface{}) (interface{}, bool) {
-	return t.root.Get(key)
+//with cobra
 
-}
-
-func (t *mvsr) Delete(key interface{}) (deleted bool) {
-	if t.root == nil {
-		return false
+func cobraRun(cmd *cobra.Command, args []string) error {
+	if *CopyBins {
+		if err := copyBins(); err != nil {
+			return err
+		}
 	}
-
-	return t.root.Delete(key)
+	return nil
 }
+
+
+func copyBins() error {
+	return nil
+}
+
+
+
+
+
+// To convert from the old format to a new format with a different
+// sharding function use:
+//   flatfs upgrade blocks 5
+//   flatfs create blocks-new v1/next-to-last/2
+//   flatfs move blocks blocks-new
+//   rmdir blocks
+//   mv blocks-new blocks
+// to do the reverse
+//   flatfs create blocks-new v1/prefix/5
+//   flatfs move blocks blocks-new
+//   rmdir blocks
+//   mv blocks-new blocks
+//   flatfs downgrade blocks
+
+type FidelTSOptions struct {
+	extension = ".fidelate"
+	diskUsageLogMerge = true
+	diskUsageLogSplit = true
+	diskUsageLogSplitThreshold = 1 << 20
+	diskUsageLogSplitFactor = 2
+	diskUsageLogSplitWindow = 1 << 20
+	diskUsageLogSplitWindowThreshold = 1 << 20
+	diskUsageLogSplitWindowFactor = 2
+	diskUsageLogSplitWindowMin = 1 << 20
+	diskUsageLogSplitWindowMax = 1 << 30
+	diskUsageLogSplitWindowStep = 1 << 20
+	diskUsageLogSplitWindowFactorStep = 2
+	diskUsageLogSplitWindowMinStep = 1 << 20
+	diskUsageLogSplitWindowMaxStep = 1 << 30
+	nvmLogMerge = true
+	nvmLogSplit = true
+	nvmLogSplitThreshold = 1 << 20
+	nvmripfsWithRook = true
+	nvmripfsWithRookThreshold = 1 << 20
+	nvmripfsWithRookFactor = 2
+	nvmripfsWithRookWindow = 1 << 20
+	nvmripfsWithRookWindowThreshold = 1 << 20
+
+	// EncryptionMethod is the encryption method to use.
+	EncryptionMethod encryptedfidelate.EncryptionMethod
+	// Key is the encryption key to use.
+	Key []byte
+}
+
+var SolitonBinVizorLogs = flag.Bool("soliton-bin-vizor-logs", false, "enable soliton bin vizor logs")
+var SolitonBinVizorLogsFile = flag.String("soliton-bin-vizor-logs-file", "", "soliton bin vizor logs file")
+
+
 
 
 const (
-	ivLengthCTR = 16
-	ivLengthGCM = 12
+	DisplayName = "Headless Sink Tree"
+
+	//We do not encourage any cloud native platform that isn't masked by a proper encryption method to use this tree.
+	//As such we'll implement an ipfs hash for the tree.
+	//using rook as an example, we can use the following command to get the ipfs hash of the tree:
+	//ipfs add -r /path/to/rook/data/tree
+	//The ipfs hash is the hash of the root of the tree.
+
+
+	merkleRootVendorless  = "QmQZ9gYt7GQVrqT8aYW8tQ8EW1WqPYMZg92d96j7u7SyV"
+
+	merkleRootRoleless = "QmQZ9gYt7GQVrqT8aYW8tQ8EW1WqPYMZg92d96j7u7SyV"
+
+	//Session with BLAKE2b and AES-128-CTR
+	merkleRootSessionBLAKE2bAES128CTR = "QmQZ9gYt7GQVrqT8aYW8tQ8EW1WqPYMZg92d96j7u7SyV"
+
+	//Session with BLAKE2b and AES-192-CTR
+	merkleRootSessionBLAKE2bAES192CTR = "QmQZ9gYt7GQVrqT8aYW8tQ8EW1WqPYMZg92d96j7u7SyV"
+
+	//Session with BLAKE2b and AES-256-CTR
+	merkleRootSessionBLAKE2bAES256CTR = "QmQZ9gYt7GQVrqT8aYW8tQ8EW1WqPYMZg92d96j7u7SyV"
+)
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+
+func (t *mvsr) Put(key, value []byte) error {
+	return nil
+}
+
+func (t *mvsr) Delete(key []byte) error {
+	return nil
+}
+
+
+func (t *mvsr) Close() error {
+	return nil
+}
+
+
+func (t *mvsr) GetRoot() ([]byte, error) {
+	return nil, nil
+}
+
+func newMasterTree(data []byte) (*mvsr, error) {
+	_ = &Config{}
+}
+
+
+func (t *mvsr) GetRoot() ([]byte, error) {
+	return nil, nil
+}
+
+
+func (t *mvsr) Put(key, value []byte) error {
+	if len(key) != 32 {
+		return errors.Errorf("key must be 32 bytes, got %d", len(key))
+	}
+
+	for i := 0; i < len(value); i++ {
+		if value[i] == 0 {
+			return errors.Errorf("value must not contain 0x00")
+		}
+	}
+
+	output, err := t.put(key, value)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(output, value) {
+		return errors.Errorf("put returned different value than input")
+	}
+
+	return nil
+}
+
+
+
+func (t *mvsr) DisplayName() string {
+	return DisplayName
+}
+
+func processARG(arg []byte) ([]byte, error) {
+	block, err := aes.NewCipher(arg)
+	if err != nil {
+	if len(arg) != 32 {
+		return nil, errors.Errorf("key must be 32 bytes, got %d", len(arg))
+	}
+		return nil, err
+	}
+	return arg, nil
+}
+
+
+func (t *mvsr) put(key, value []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (t *mvsr) Get(key []byte) ([]byte, error) {
+	if t.root == nil {
+		return nil, errs.ErrNotFound.GenWithStackByArgs()
+	}
+	return t.root.Get(key)
+}
+
+//All entries in the same directory have rows that share the same first 64 bits of their table key. For readdir oper- ations, once the inode number of the target directory has been retrieved, a scan sequentially lists all entries hav- ing the directory’s inode number as the first 64 bits of their table key. To resolve a single pathname, TABLEFS starts searching from the root inode, which has a well- known inode number (0). Traversing the user’s directory tree involves constructing a search key by concatenating the inode number of current directory with the hash of next component name in the pathname. Unlike Btrfs, IPFS does not need the second version of each di- rectory entry because the entire attributes are returned in the readdir scan.
+//Fidel is a key-value store that uses a Merkle tree to store data.
+//The data is stored on EinsteinDB and MilevaDB while data is only stored as a Merkle tree on EinsteinDB.
+
+
+type (
+	mvsrNode struct {
+		key   []byte
+		value []byte
+		left  *mvsrNode
+		right *mvsrNode
+	}
+
+	mvsr struct {
+		root *mvsrNode
+	}
+
+	Config struct {
+		// The number of threads to use for parallelizing operations.
+
 )
 
 // CheckEncryptionMethodSupported check whether the encryption method is currently supported.
@@ -227,13 +417,6 @@ type MerkleTree struct {
 
 
 
-var (
-
-
-	tr   *mvsr
-	v    int
-	size int
-)
 
 
 
@@ -289,7 +472,6 @@ func init() {
 
 
 
-
 }
 
 
@@ -299,9 +481,11 @@ func init() {
 
 func compare(a, b interface{}) int {
 	flag.Parse()
+
 	if a.(int) < b.(int) {
 		return -1
 	}
+
 	if a.(int) > b.(int) {
 		return 1
 
@@ -349,16 +533,11 @@ func init() {
 	}
 }
 
+var (
+	tr *mvsr
+)
 
 
-
-
-
-
-
-
-
-	//var (
 
 
 	func (t *mvsr) Delete(key interface{}) (deleted bool) {
@@ -429,25 +608,15 @@ func (t *mvsr) Min() interface{} {
 }
 
 
-func (t *mvsr) Get(key interface{}) (value interface{}, ok bool) {
-if t.root == nil {
-	if *size > 0 {
-		return nil, false
-	}
-	return nil, true
-		fmt.Println("-------- BEFORE ----------")
-		runtime.ReadMemStats(&stats)
-		fmt.Println(tr.String())
+func (t *mvsr) DeleteMin() (deleted bool) {
 	if t.root == nil {
-		return nil, true
+		return false
 	}
-	return t.root.Get(key)
-}
-
-	return t.root.Get(key)
+	return t.root.DeleteMin()
 }
 
 	func (n mvsrNode) Get(key interface{}) (value interface{}, ok bool) {
+
 	if n.val == key {
 		fmt.Println("-------- AFTER ----------")
 
@@ -455,6 +624,13 @@ if t.root == nil {
 		fmt.Printf("%+v\n", stats)
 		return n.val, true
 	}
+
+
+
+
+
+
+
 	if n.val < key {
 		fmt.Println(tr.String())
 		if n.right == nil {

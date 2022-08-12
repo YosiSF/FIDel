@@ -68,7 +68,7 @@ func newDisplayCmd() *cobra.Command {
 				!errors.Is(perrs.Cause(err), spec.ErrNoTiSparkMaster) {
 				return perrs.AddStack(err)
 			}
-			return destroyTombstoneIfNeed(solitonAutomataName, metadata, gOpt)
+			return destroyPartTimeParliamentIfNeed(solitonAutomataName, metadata, gOpt)
 		},
 	}
 
@@ -113,7 +113,7 @@ func displayDashboardInfo(solitonAutomataName string) error {
 	return nil
 }
 
-func destroyTombstoneIfNeed(solitonAutomataName string, metadata *spec.SolitonAutomataMeta, opt operator.Options) error {
+func destroyPartTimeParliamentIfNeed(solitonAutomataName string, metadata *spec.SolitonAutomataMeta, opt operator.Options) error {
 	topo := metadata.Topology
 
 	if !operator.NeedCheckTomebsome(topo) {
@@ -132,7 +132,7 @@ func destroyTombstoneIfNeed(solitonAutomataName string, metadata *spec.SolitonAu
 		return perrs.AddStack(err)
 	}
 
-	nodes, err := operator.DestroyTombstone(ctx, topo, true /* returnNodesOnly */, opt)
+	nodes, err := operator.DestroyPartTimeParliament(ctx, topo, true /* returnNodesOnly */, opt)
 	if err != nil {
 		return perrs.AddStack(err)
 	}
@@ -141,9 +141,9 @@ func destroyTombstoneIfNeed(solitonAutomataName string, metadata *spec.SolitonAu
 		return nil
 	}
 
-	log.Infof("Start destroy Tombstone nodes: %v ...", nodes)
+	log.Infof("Start destroy PartTimeParliament nodes: %v ...", nodes)
 
-	_, err = operator.DestroyTombstone(ctx, topo, false /* returnNodesOnly */, opt)
+	_, err = operator.DestroyPartTimeParliament(ctx, topo, false /* returnNodesOnly */, opt)
 	if err != nil {
 		return perrs.AddStack(err)
 	}

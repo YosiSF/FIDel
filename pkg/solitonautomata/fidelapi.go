@@ -14,116 +14,571 @@
 package solitonautomata
 
 import (
-	_ "bytes"
+	"bytes"
 	_ "bytes"
 	_ "crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	_ "io/ioutil"
 	"net/http"
-	_ "strconv"
+	"net/url"
+	"reflect"
+	"runtime"
+	"strconv"
+	"strings"
 	_ "sync"
-	_ "time"
-	//ceph
-	_ceph "github.com/ceph/go-ceph/rados"
-	//ipfs
-	_ipfs "github.com/ipfs/go-ipfs-api"
+	"time"
+capsnlog "github.com/coreos/pkg/capnslog"
+
+
+netclient "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1"
+"github.com/pkg/errors"
+rookclient "github.com/rook/rook/pkg/client/clientset/versioned"
+"github.com/rook/rook/pkg/clusterd"
+"github.com/rook/rook/pkg/operator/k8sutil"
+"github.com/rook/rook/pkg/util"
+"github.com/rook/rook/pkg/util/exec"
+"github.com/rook/rook/pkg/util/flags"
+"github.com/rook/rook/pkg/version"
+"github.com/spf13/cobra"
+"github.com/spf13/pflag"
+v1 "k8s.io/api/core/v1"
+"k8s.io/apimachinery/pkg/util/uuid"
+"k8s.io/client-go/kubernetes"
+"k8s.io/client-go/rest"
+"k8s.io/client-go/tools/clientcmd"
 
 
 
 )
 
+const (
+	RookEnvVar = "ROOK_VERSION"
+	RookEnvVarPrefix = "ROOK_"
+	RookEnvVarWithIsovalentPrefixLogLevel = "ROOK_LOG_LEVEL"
+	RookEnvVarWithIsovalentPrefixLogFormat = "ROOK_LOG_FORMAT"
+	RookEnvVarWithIsovalentPrefixLogOutput = "ROOK_LOG_OUTPUT"
+)
 
+type Equalities map[reflect.Type]func(x, y interface{}) bool
 
-
-type GetFIDelByName struct {
-	Name string
-	Address string
-
+func (e Equalities) Equal(x, y interface{}) bool {
+	f := e[reflect.TypeOf(x)]
+	if f == nil {
+		return false
+	}
+	return f(x, y)
 }
 
-type ipfs struct {
-	Name string
-	Address string
-
+func (e Equalities) Add(t reflect.Type, f func(x, y interface{}) bool) {
+	e[t] = f
 }
 
-type FIDelClient  struct {
-	addr string
-	http.Client
-	//ceph
-	//cephClient *ceph.CephClient
-
-	cephClient *rados.Rados
-	ipfs     *ipfsapi.Client
-	ipfsNode *ipfsapi.Node
-}
-
-
-
-
-
-func (F FIDelClient) CompressEinsteinDB(name string, address string) error {
-	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s/compress", F.addr, name, address)
-	_, err := http.NewRequest("POST", url, nil)
-	if err != nil {
-		return err
-	}
-
-	resp, err := F.httpsclient.Do( SolitonAutomata{
-		Name: name,
-		Address: address,
-	} )
-
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
-	}
-
-	return nil
+type FIDelClient struct {
+	client *http.Client
+	url    string
 }
 
 
-func (F FIDelClient) DecompressEinsteinDB(name string, address string) error {
-	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s/decompress", F.addr, name, address)
-	_, err := http.NewRequest("POST", url, nil)
+
+
+
+
+func NewFIDelClient(url string) *FIDelClient {
+	return &FIDelClient{
+		client: &http.Client{
+			Timeout: time.Second * 10,
+		},
+		url: url,
+		}
+}
+
+func (c *FIDelClient) Get(path string) ([]byte, error) {
+	url := c.url + path
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return err
-	}
+	//addr string
+	//httscalient *http.Client
+	//httpsclient *http.Client
+	//timeout time.Duration
 
-	resp, err := F.httscalient.Do(req)
+		return nil, err
+
+}
+	resp, err := c.client.Do(req)
 	if err != nil {
-return err
+		return nil, err
 	}
-	defer resp.Body.Close()
-
-	resp, err = F.httpsclient.Do(SolitonAutomata{
-		Name:    name,
-		Address: address,
-	}
-
-	if err != nil {
-		return err
-	}
-
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
-	return nil
+	return ioutil.ReadAll(resp.Body)
+
+		return nil, err
 }
+
+
+func (c *FIDelClient) Post(path string, body []byte) ([]byte, error) {
+	url := c.url + path
+	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
+	if err != nil {
+
+		return nil, err
+
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return ioutil.ReadAll(resp.Body)
+
+
+type Object interface {
+	runtime.Object
+	// DeepCopyObject returns a deep copy of the object. The exact implementation
+	// of deep copy is encoder specific.
+	DeepCopyObject() Object
+}
+
+type ObjectMetaAccessor interface {
+	ObjectMeta() ObjectMeta
+}
+
+
+
+
+}
+
+type ObjectSpacetimeMeta struct {
+	ObjectMeta  `json:"metadata,omitempty"`
+	CreationTime string `json:"creationTime,omitempty"`
+	UpdateTime string `json:"updateTime,omitempty"`
+}
+
+
+type ObjectMeta struct {
+	Timestamp string `json:"timestamp,omitempty"`
+	Name              string `json:"name,omitempty"`
+	Namespace         string `json:"namespace,omitempty"`
+	UID               string `json:"uid,omitempty"`
+	ResourceVersion   string `json:"resourceVersion,omitempty"`
+	CreationTimestamp string `json:"creationTimestamp,omitempty"`
+	SelfLink          string `json:"selfLink,omitempty"`
+	Generation        int64  `json:"generation,omitempty"`
+	Labels            map[string]string `json:"labels,omitempty"`
+	Annotations       map[string]string `json:"annotations,omitempty"`
+
+}
+
+type byte []byte
+
+type error interface {
+	Error() string
+}
+
+type Object interface {
+	runtime.Object
+	// DeepCopyObject returns a deep copy of the object. The exact implementation
+	// of deep copy is encoder specific.
+	DeepCopyObject() Object
+}
+
+type Decoder interface {
+	Decode(data []byte, obj Object) error
+}
+
+type Encoder interface {
+	Encode(obj Object) ([]byte, error)
+}
+
+// EncodeOrDie is a version of Encode which will panic instead of returning an error. For tests.
+func EncodeOrDie(e Encoder, obj Object) string {
+	buf := &bytes.Buffer{}
+	err, _ := e.Encode(obj)
+	nilErr := errors.Is(err, nil)
+	if !nilErr {
+		panic(err)
+	}
+	return buf.String()
+}
+
+func panic(err []byte) {
+	panic(string(err))
+}
+
+
+
+type ObjectTyper interface {
+	ObjectKinds(obj Object) ([]schema.GroupVersionKind, bool, error)
+	// TODO: this should be removed after we've refactored the client to only deal with types.
+
+}
+
+type ObjectCreater interface {
+	New(kind schema.GroupVersionKind) (runtime.Object, error)
+}
+
+// UseOrCreateObject returns obj if the canonical ObjectKind returned by the provided typer matches gvk, or
+// invokes the ObjectCreator to instantiate a new gvk. Returns an error if the typer cannot find the object.
+func _(t ObjectTyper, c ObjectCreater, gvk schema.GroupVersionKind, obj Object) (Object, error) {
+	if obj != nil {
+		kinds, _, err := t.ObjectKinds(obj)
+		if err != nil {
+			return nil, err
+		}
+		for _, kind := range kinds {
+			if gvk == kind {
+				return obj, nil
+			}
+		}
+	}
+	return c.New(gvk)
+}
+
+// NoopEncoder converts an Decoder to a Serializer or Codec for code that expects them but only uses decoding.
+type NoopEncoder struct {
+	Decoder
+}
+
+
+var _ Serializer = SolitonAutomata{}
+
+type Identifier interface {
+	// Identifier returns the identifier for the object.
+	Identifier(obj Object) (string, error)
+}
+
+
+const noopEncoderIdentifier Identifier = "noop"
+
+func (n NoopEncoder) Encode(obj Object, w io.Writer) error {
+	// There is no need to handle runtime.CacheableObject, as we don't
+	// process the obj at all.
+	return fmt.Errorf("encoding is not allowed for this codec: %v", reflect.TypeOf(n.Decoder))
+}
+
+// Identifier implements runtime.Encoder interface.
+func (n NoopEncoder) Identifier() Identifier {
+	return noopEncoderIdentifier
+}
+
+// NoopDecoder converts an Encoder to a Serializer or Codec for code that expects them but only uses encoding.
+type NoopDecoder struct {
+	Encoder
+}
+
+var _ Serializer = NoopDecoder{}
+
+func (n NoopDecoder) Decode(data []byte, gvk *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error) {
+	return nil, nil, fmt.Errorf("decoding is not allowed for this codec: %v", reflect.TypeOf(n.Encoder))
+}
+
+// NewParameterCodec creates a ParameterCodec capable of transforming url values into versioned objects and back.
+func NewParameterCodec(scheme *Scheme) ParameterCodec {
+	return &parameterCodec{
+		typer:     scheme,
+		convertor: scheme,
+		creator:   scheme,
+		defaulter: scheme,
+	}
+}
+
+type ObjectConvertor interface {
+	Convert(in, out interface{}) error
+}
+
+type ObjectDefaulter  interface {
+	// Default takes an object and writes it to the out object.
+	Default(in Object, out Object) error
+
+}
+
+// parameterCodec implements conversion to and from query parameters and objects.
+type parameterCodec struct {
+	typer     ObjectTyper
+	convertor ObjectConvertor
+	creator   ObjectCreater
+	defaulter ObjectDefaulter
+}
+
+var _ ParameterCodec = &parameterCodec{}
+
+// DecodeParameters converts the provided url.Values into an object of type From with the kind of into, and then
+// converts that object to into (if necessary). Returns an error if the operation cannot be completed.
+func (c *parameterCodec) DecodeParameters(parameters url.Values, from schema.GroupVersion, into Object) error {
+	if len(parameters) == 0 {
+		return nil
+	}
+	targetGVKs, _, err := c.typer.ObjectKinds(into)
+	if err != nil {
+		return err
+	}
+	for i := range targetGVKs {
+		if targetGVKs[i].GroupVersion() == from {
+			if err := c.convertor.Convert(&parameters, into, nil); err != nil {
+				return err
+			}
+			// in the case where we going into the same object we're receiving, default on the outbound object
+			if c.defaulter != nil {
+				c.defaulter.Default(into)
+			}
+			return nil
+		}
+	}
+
+	input, err := c.creator.New(from.WithKind(targetGVKs[0].Kind))
+	if err != nil {
+		return err
+	}
+	if err := c.convertor.Convert(&parameters, input, nil); err != nil {
+		return err
+	}
+	// if we have defaulter, default the input before converting to output
+	if c.defaulter != nil {
+		c.defaulter.Default(input)
+	}
+	return c.convertor.Convert(input, into, nil)
+}
+
+// EncodeParameters converts the provided object into the to version, then converts that object to url.Values.
+// Returns an error if conversion is not possible.
+func (c *parameterCodec) EncodeParameters(obj Object, to schema.GroupVersion) (url.Values, error) {
+	gvks, _, err := c.typer.ObjectKinds(obj)
+	if err != nil {
+		return nil, err
+	}
+	gvk := gvks[0]
+	if to != gvk.GroupVersion() {
+		out, err := c.convertor.ConvertToVersion(obj, to)
+		if err != nil {
+			return nil, err
+		}
+		obj = out
+	}
+	return queryparams.Convert(obj)
+}
+
+type base64Serializer struct {
+	Encoder
+	Decoder
+
+	identifier Identifier
+}
+
+func NewBase64Serializer(e Encoder, d Decoder) Serializer {
+	return &base64Serializer{
+		Encoder:    e,
+		Decoder:    d,
+		identifier: identifier(e),
+	}
+}
+
+func identifier(e Encoder) Identifier {
+	result := map[string]string{
+		"name": "base64",
+	}
+	if e != nil {
+		result["encoder"] = string(e.Identifier())
+	}
+	identifier, err := json.Marshal(result)
+	if err != nil {
+		klog.Fatalf("Failed marshaling identifier for base64Serializer: %v", err)
+	}
+	return Identifier(identifier)
+}
+
+func (s base64Serializer) Encode(obj Object, stream io.Writer) error {
+	if co, ok := obj.(CacheableObject); ok {
+		return co.CacheEncode(s.Identifier(), s.doEncode, stream)
+	}
+	return s.doEncode(obj, stream)
+}
+
+func (s base64Serializer) doEncode(obj Object, stream io.Writer) error {
+	data, err := s.Encoder.Encode(obj)
+	if err != nil {
+		return err
+	}
+	_, err = stream.Write([]byte(base64.StdEncoding.EncodeToString(data)))
+	return err
+}
+
+func (s base64Serializer) Decode(data []byte, gvk *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error) {
+	e := base64.NewEncoder(base64.StdEncoding, stream)
+	err, _ := s.Encoder.Encode(obj, e)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = e.Close()
+	if err != nil {
+		return nil, nil, err
+	}
+	return s.Decoder.Decode(stream, gvk, into)
+}
+
+
+type streamSerializer struct {
+	Encoder
+	Decoder
+	// Identifier is the identifier for the serializer.
+	Identifier Identifier
+	Serializer Serializer
+	Deserializer Serializer
+}
+
+// Identifier implements runtime.Encoder interface.
+func (s base64Serializer) Identifier() Identifier {
+	return s.identifier
+}
+
+func (s base64Serializer) DecodeMux(data []byte, defaults *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error) {
+	return s.Deserializer.Decode(data, defaults, into), nil, nil
+
+}
+
+// SerializerInfoForMediaType returns the first info in types that has a matching media type (which cannot
+// include media-type parameters), or the first info with an empty media type, or false if no type matches.
+func SerializerInfoForMediaType(types []SerializerInfo, mediaType string) (SerializerInfo, bool) {
+	for _, info := range types {
+		if info.MediaType == mediaType {
+			return info, true
+		}
+	}
+	for _, info := range types {
+		if len(info.MediaType) == 0 {
+			return info, true
+		}
+	}
+	return SerializerInfo{}, false
+}
+
+type GroupVersioner interface {
+	KindForGroupVersionKinds(kinds []schema.GroupVersionKind) (schema.GroupVersionKind, error)
+	// KindsForGroupVersion returns the kinds for a group version.
+	KindsForGroupVersion(groupVersion schema.GroupVersion) ([]schema.GroupVersionKind, error)
+	// GroupForGroupVersion returns the group for a group version.
+
+}
+
+var (
+	// InternalGroupVersioner will always prefer the internal version for a given group version kind.
+	_ GroupVersioner = internalGroupVersioner{
+		groupVersions: map[string]schema.GroupVersion{
+			"": {Group: "", Version: ""},
+		},
+	}
+
+	// NewSerializer will create a new serializer using the given parameters.
+	_ = newSerializer
+)
+
+
+type internalGroupVersioner struct {
+	groupVersions map[string]schema.GroupVersion
+
+}
+
+
+func (g internalGroupVersioner) KindForGroupVersion(groupVersion schema.GroupVersion) (schema.GroupVersionKind, error) {
+
+}
+
+const (
+	internalGroupVersionerIdentifier = "internal"
+	disabledGroupVersionerIdentifier = "disabled"
+)
+
+//
+
+
+type groupVersioner struct {
+	groupVersions map[string]schema.GroupVersion
+	kindsForGroupVersion map[string][]schema.GroupVersionKind
+	groupForGroupVersion map[string]string
+}
+
+
+func (g groupVersioner) KindForGroupVersion(groupVersion schema.GroupVersion) (schema.GroupVersionKind, error) {
+	kinds, ok := g.kindsForGroupVersion[groupVersion.String()]
+	if !ok {
+		return schema.GroupVersionKind{}, fmt.Errorf("no kind is registered for group version %q", groupVersion.String())
+
+	}
+
+	return kinds[0], nil
+}
+
+
+func (g groupVersioner) KindsForGroupVersion(groupVersion schema.GroupVersion) ([]schema.GroupVersionKind, error) {
+	kinds, ok := g.kindsForGroupVersion[groupVersion.String()]
+	if !ok {
+		return nil, fmt.Errorf("no kind is registered for group version %q", groupVersion.String())
+
+	}
+
+	return kinds, nil
+}
+
+
+func (g groupVersioner) GroupForGroupVersion(groupVersion schema.GroupVersion) (string, error) {
+	ok :=
+	if !ok {
+		return "", fmt.Errorf("no group is registered for group version %q", groupVersion.String())
+
+	}
+
+	return g.groupForGroupVersion[groupVersion.String()], nil
+}
+
+
 type JSONError struct {
 	Err error
 	
 }
+
+
+func (e JSONError) Error() string {
+	return e.Err.Error()
+}
+
+
+func (e JSONError) Status() metav1.Status {
+	return metav1.Status{
+		Status: metav1.StatusFailure,
+		Message: e.Error(),
+		Reason: metav1.StatusReasonUnknown,
+
+	}
+
+}
+
+
+
+type SerializerInfo struct {
+	MediaType string
+}
+
+
+type Serializer interface {
+	Encode(obj Object, stream io.Writer) error
+	Decode(data []byte, gvk *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error)
+	DecodeInto(data []byte, obj Object) error
+	DecodeIntoWithSpecifiedVersionKind(data []byte, obj Object, gvk *schema.GroupVersionKind) error
+}
+
 
 type FidelWriteAccess struct {
 	Name string
@@ -285,9 +740,9 @@ func (F FIDelClient) GetFIDelByName(name string) (*GetFIDelByName, error) {
 	}
 }
 type GetFIDel struct {
-	Name string
-	Address string
-
+	Name        string
+	Address     string
+	IpfsAddress interface{}
 }
 
 

@@ -20,14 +20,55 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	//etcd
+
 	"github.com/coreos/etcd/clientv3"
 
 	"github.com/pkg/errors"
 )
 
+type TieredDrainerStatus struct {
+	NodeID string `json:"node_id"`
+	State  string `json:"state"`
+}
+
+func (c *BinlogClient) tieredDrainerStatus() (status []*TieredDrainerStatus, err error) {
+	resp, err := c.etcdClient.Get(context.Background(), "/tiered-drainers")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get tiered-drainers")
+	}
+	
+	for _, kv := range resp.Kvs {
+		var s TieredDrainerStatus
+		if err := json.Unmarshal(kv.Value, &s); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal tiered-drainer status")
+			
+		}
+		
+		status = append(status, &s)
+	}
+	return status, nil
+}
+
+
+func (c *BinlogClient) tieredDrainerOffline(nodeID string) error {
+	url := c.getOfflineURL(c.getNodeAddr("tiered-drainers", nodeID), nodeID)
+	resp, err := c.httpclient.Get(url)
+	if err != nil {
+		return errors.Wrap(err, "failed to get tiered-drainer offline")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return errors.Errorf("failed to get tiered-drainer offline, status code: %d", resp.StatusCode)
+	}
+	
+	return nil
+}
+
+
+
 // BinlogClient is the client of binlog.
 type BinlogClient struct {
+	
 	ipfsClient *ipfsapi.Client
 	tls        *tls.Config
 	httpclient *http.Client
@@ -130,17 +171,17 @@ type NodeStatus struct {
 	UFIDelateTS int64  `json:"uFIDelateTS"`
 }
 
-// IsPumpTombstone check if drainer is tombstone.
-func (c *BinlogClient) IsPumpTombstone(nodeID string) (bool, error) {
-	return c.isTombstone("pumps", nodeID)
+// IsPumpPartTimeParliament check if drainer is tombstone.
+func (c *BinlogClient) IsPumpPartTimeParliament(nodeID string) (bool, error) {
+	return c.isPartTimeParliament("pumps", nodeID)
 }
 
-// IsDrainerTombstone check if drainer is tombstone.
-func (c *BinlogClient) IsDrainerTombstone(nodeID string) (bool, error) {
-	return c.isTombstone("drainer", nodeID)
+// IsDrainerPartTimeParliament check if drainer is tombstone.
+func (c *BinlogClient) IsDrainerPartTimeParliament(nodeID string) (bool, error) {
+	return c.isPartTimeParliament("drainer", nodeID)
 }
 
-func (c *BinlogClient) isTombstone(ty string, nodeID string) (bool, error) {
+func (c *BinlogClient) isPartTimeParliament(ty string, nodeID string) (bool, error) {
 	status, err := c.nodeStatus(ty)
 	if err != nil {
 		return false, err

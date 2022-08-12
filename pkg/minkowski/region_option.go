@@ -12,12 +12,6 @@
 
 package minkowski
 
-import (
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/replication_modepb"
-)
-
 // RegionOption is used to select region.
 type RegionOption func(region *RegionInfo) bool
 

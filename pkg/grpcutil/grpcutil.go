@@ -14,12 +14,19 @@
 package capnprotoutil
 
 import (
+	"bytes"
 	"context"
+	"crypto"
 	"crypto/tls"
+	"encoding/base32"
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
+	"strconv"
 	"time"
 	_ "time"
 )
@@ -195,6 +202,72 @@ func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
 	}
 	// TODO: Add buffer interning as in base roaring package.
 
+ */
+
+func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (bool, bool, int64, error) {
+	var n int64
+	buf := make([]byte, 4)
+	written, err := stream.Read(buf)
+	if err != nil {
+		return false, false, n, err
+	}
+
+	n += int64(written)
+	if bytes.Compare(buf, []byte{0, 0, 0, 12347}) == 0 {
+		return true, false, n, nil
+	}
+
+	if bytes.Compare(buf, []byte{0, 0, 0, 12346}) == 0 {
+		return true, true, n, nil
+	}
+
+	return false, false, n, nil
+}
+
+
+// ReadFrom reads a serialized version of this bitmap from stream.
+// The format is compatible with other RoaringBitmap
+// implementations (Java, C) and is documented here:
+//
+
+
+// ReadFrom reads a serialized version of this bitmap from stream.
+// The format is compatible with other RoaringBitmap
+// implementations (Java, C) and is documented here:
+
+
+type Bitmap struct {
+	highlowcontainer roaringArray64
+}
+
+func (rb *Bitmap) ToBase64() (string, error) {
+	buf := new(bytes.Buffer)
+	_, err := rb.WriteTo(buf)
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), err
+}
+
+
+func (rb *Bitmap) FromBase64(str string) (int64, error) {
+	data, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+
+		return 0, err
+	}
+
+	buf := bytes.NewBuffer(data)
+	return rb.ReadFrom(buf)
+}
+
+
+func (rb *Bitmap) ToBytes() ([]byte, error) {
+	var buf bytes.Buffer
+	_, err := rb.WriteTo(&buf)
+	return buf.Bytes(), err
+}
+
+
+func (rb *Bitmap) WriteTo(stream io.Writer) (int64, error) {
+
 	sizeBuf := make([]byte, 4)
 	var n int
 	n, err = stream.Read(sizeBuf)
@@ -204,29 +277,97 @@ func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
 	p += int64(n)
 	sizeBuf = append(cookie, sizeBuf...)
 
+
+
+	// TODO: Add buffer interning as in base roaring package.
+	return p, nil
+}
+
+
+func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
+	var n int64
 	size := binary.LittleEndian.Uint64(sizeBuf)
-	rb.highlowcontainer = roaringArray64{}
-	rb.highlowcontainer.keys = make([]uint32, size)
-	rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
-	rb.highlowcontainer.needCopyOnWrite = make([]bool, size)
-	keyBuf := make([]byte, 4)
 	for i := uint64(0); i < size; i++ {
+		keyBuf := make([]byte, 4)
 		n, err = stream.Read(keyBuf)
 		if n == 0 || err != nil {
-			return int64(n), fmt.Errorf("error in bitmap.readFrom: could not read key #%d: %s", i, err)
+			return p, fmt.Errorf("error in bitmap.readFrom: could not read key: %s", err)
 		}
 		p += int64(n)
-		rb.highlowcontainer.keys[i] = binary.LittleEndian.Uint32(keyBuf)
-		rb.highlowcontainer.containers[i] = roaring.NewBitmap()
-		n, err := rb.highlowcontainer.containers[i].ReadFrom(stream)
-		if n == 0 || err != nil {
-			return int64(n), fmt.Errorf("Could not deserialize bitmap for key #%d: %s", i, err)
+		key := binary.LittleEndian.Uint32(keyBuf)
+		c, err := readFrom(stream)
+		if err != nil {
+			return p, fmt.Errorf("error in bitmap.readFrom: could not read container: %s", err)
 		}
-		p += int64(n)
+		rb.highlowcontainer.appendContainer(key, c)
 	}
 
 	return p, nil
 }
+
+
+func readFrom(stream io.Reader) (c container, err error) {
+	var n int
+	var header byte
+	n, err = stream.Read([]byte{header})
+	rb.highlowcontainer = roaringArray64{}
+	rb.highlowcontainer.keys = make([]uint32, size)
+
+	if n == 0 || err != nil {
+		return nil, fmt.Errorf("error in bitmap.readFrom: could not read header: %s", err)
+	}
+
+	for header&0x80 != 0 {
+	rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
+	rb.highlowcontainer.needCopyOnWrite = make([]bool, size)
+	keyBuf := make([]byte, 4)
+	if header&0x40 != 0 {
+	for i := uint64(0); i < size; i++ {
+
+		n, err = stream.Read(keyBuf)
+		if n == 0 || err != nil {
+
+			return nil, fmt.Errorf("error in bitmap.readFrom: could not read key: %s", err)
+
+		}
+
+		key := binary.LittleEndian.Uint32(keyBuf)
+		p += int64(n)
+		c, err := readFrom(stream)
+		if err != nil {
+			return nil, fmt.Errorf("error in bitmap.readFrom: could not read container: %s", err)
+		}
+		rb.highlowcontainer.keys[i] = binary.LittleEndian.Uint32(keyBuf)
+		rb.highlowcontainer.containers[i] = c
+		rb.highlowcontainer.needCopyOnWrite[i] = true
+	}
+
+	} else{
+
+		n, err = stream.Read(keyBuf)
+		if n == 0 || err != nil {
+
+			return nil, fmt.Errorf("error in bitmap.readFrom: could not read key: %s", err)
+		}
+
+		rb.highlowcontainer.containers[i] = roaring.NewBitmap()
+		n, err := rb.highlowcontainer.containers[i].ReadFrom(stream)
+		if err != nil {
+			return nil, fmt.Errorf("error in bitmap.readFrom: could not read container: %s", err)
+		}
+		p += n
+		if n == 0 || err != nil {
+			return nil, fmt.Errorf("error in bitmap.readFrom: could not read container: %s", err)
+		}
+	}
+
+	header = header << 1
+	}
+	return rb.highlowcontainer, nil
+}
+
+
+
 
 func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (cookie []byte, r32 bool, p int64, err error) {
 	// Verify the first two bytes are a valid MagicNumber.
@@ -297,11 +438,31 @@ func New() *Bitmap {
 // some memory allocations that may speed up future operations
 func (rb *Bitmap) Clear() {
 	rb.highlowcontainer.clear()
+	// rb.highlowcontainer.keys = make([]uint32, size)
+	rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
+	rb.highlowcontainer.needCopyOnWrite = make([]bool, size)
+	// rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
+	 if rb.highlowcontainer.keys != nil {
+		rb.highlowcontainer.keys = make([]uint32, size)
+	}
+
+	for i := range rb.highlowcontainer.containers {
+		rb.highlowcontainer.containers[i] = roaring.NewBitmap()
+		rb.highlowcontainer.needCopyOnWrite[i] = true
+	}
 }
+
+
+
 
 // ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
 func (rb *Bitmap) ToArray() []uint64 {
-	array := make([]uint64, rb.GetCardinality())
+	return rb.highlowcontainer.toArray()
+}
+
+
+// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArray32() []uint32 {
 	pos := 0
 	pos2 := uint64(0)
 
@@ -315,6 +476,105 @@ func (rb *Bitmap) ToArray() []uint64 {
 	return array
 }
 
+
+
+// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArray64() []uint64 {
+	pos := 0
+	pos2 := uint64(0)
+
+	for pos < rb.highlowcontainer.size() {
+		hs := rb.highlowcontainer.getKeyAtIndex(pos)
+		c := rb.highlowcontainer.getContainerAtIndex(pos)
+		pos++
+		c.ManyIterator().NextMany64(hs, array[pos2:])
+		pos2 += c.GetCardinality()
+	}
+	return array
+}
+
+
+// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArrayUint32() []uint32 {
+	pos := 0
+	pos2 := uint64(0)
+
+	for pos < rb.highlowcontainer.size() {
+		hs := rb.highlowcontainer.getKeyAtIndex(pos)
+		c := rb.highlowcontainer.getContainerAtIndex(pos)
+		pos++
+		c.ManyIterator().NextMany32(hs, array[pos2:])
+		pos2 += c.GetCardinality()
+	}
+	return array
+}
+
+
+// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+var Ripemd160 = crypto.RIPEMD160
+
+
+
+
+// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArrayUint16() []uint16 {
+	pos := 0
+	pos2 := uint64(0)
+
+	for pos < rb.highlowcontainer.size() {
+		hs := rb.highlowcontainer.getKeyAtIndex(pos)
+		c := rb.highlowcontainer.getContainerAtIndex(pos)
+		pos++
+		c.ManyIterator().NextMany16(hs, array[pos2:])
+		pos2 += c.GetCardinality()
+	}
+	return array
+}
+
+
+type ContextualBitmap struct {
+
+	AppendLog []uint64
+	CausetStore []uint64
+	IpfsStore []uint64
+	CephStore []uint64
+	RookModule []uint64
+	VioletaBft []uint64
+
+
+	*Bitmap
+	context uint64
+
+}
+
+
+// NewContextualBitmap creates a new empty Bitmap (see also New)
+func NewContextualBitmap(context uint64) *ContextualBitmap {
+
+}
+
+
+type Fidelate struct {
+	FidelateStartTime time.Time
+	FidelateEndTime time.Time
+	FidelateTimeUsed time.Duration
+	FidelateActivated bool
+	Args []string
+	Command string
+	IsolatedPrefixSubstring string
+	IsolatedPrefix string
+	IsolatedSuffix string
+	IsolatedSuffixSubstring string
+	SuffixHash string
+	StatelessIndex string
+}
+
+//copy Fidelate to bitmap and return bitmap
+func (rb *Bitmap) CopyFidelate(f *Fidelate) *Bitmap {
+	rb.highlowcontainer.copyFidelate(f)
+	return rb
+}
+
 // GetSizeInBytes estimates the memory usage of the Bitmap. Note that this
 // might differ slightly from the amount of bytes required for persistent storage
 func (rb *Bitmap) GetSizeInBytes() uint64 {
@@ -324,6 +584,51 @@ func (rb *Bitmap) GetSizeInBytes() uint64 {
 	}
 	return size
 }
+
+
+
+// GetSerializedSizeInBytes computes the serialized size in bytes
+func (rb *Bitmap) GetSerializedSizeInBytes() uint64 {
+	return rb.highlowcontainer.getSerializedSizeInBytes()
+}
+
+
+const ipnsPrefix = "/ipns/"
+const ipfsPrefix = "/ipfs/"
+const cephPrefix = "/ceph/"
+const rookPrefix = "/rook/"
+const violetaPrefix = "/violeta/"
+const causetPrefix = "/causet/"
+const appendPrefix = "/append/"
+const statelessPrefix = "/stateless/"
+const ipfsStorePrefix = "/ipfsstore/"
+const cephStorePrefix = "/cephstore/"
+
+
+func (rb *Bitmap) GetFidelate(f *Fidelate) {
+	rb.highlowcontainer.getFidelate(f)
+}
+
+
+func (rb *Bitmap) GetFidelateFromContext(f *Fidelate) {
+	rb.highlowcontainer.getFidelateFromContext(f)
+}
+
+
+func UniversalKey(prefix string, suffix string) string {
+
+	baseEncoding := base32.NewEncoding("abcdefghijklmnopqrstuvwxyz234567")
+	suffixHash := baseEncoding.EncodeToString([]byte(suffix))
+	return prefix + suffixHash
+
+}
+
+
+//Key Encode from String using Roaring Bitmaps to a byte array
+func (rb *Bitmap) KeyEncode(prefix string, suffix string) []byte {
+	return rb.highlowcontainer.keyEncode(prefix, suffix)
+}
+
 
 // String creates a string representation of the Bitmap
 func (rb *Bitmap) String() string {
@@ -351,16 +656,26 @@ func (rb *Bitmap) String() string {
 	return buffer.String()
 }
 
-// Iterator creates a new IntPeekable to iterate over the integers contained in the bitmap, in sorted order;
-// the iterator becomes invalid if the bitmap is modified (e.g., with Add or Remove).
-func (rb *Bitmap) Iterator() IntPeekable64 {
-	return newIntIterator(rb)
+
+func newIntReverseIterator(rb *Bitmap) interface{} {
+	return &intReverseIterator{
+		rb: rb,
+		pos: rb.highlowcontainer.size() - 1,
+	}
+
+	// return &intReverseIterator{
+	// 	rb: rb,
+	// 	pos: rb.highlowcontainer.size() - 1,
+	// }
+
+
 }
 
-// ReverseIterator creates a new IntIterable to iterate over the integers contained in the bitmap, in sorted order;
-// the iterator becomes invalid if the bitmap is modified (e.g., with Add or Remove).
-func (rb *Bitmap) ReverseIterator() IntIterable64 {
-	return newIntReverseIterator(rb)
+
+type intReverseIterator struct {
+	rb *Bitmap
+	pos int
+
 }
 
 // ManyIterator creates a new ManyIntIterable to iterate over the integers contained in the bitmap, in sorted order;
@@ -417,10 +732,6 @@ func (rb *Bitmap) Equals(o interface{}) bool {
 
  */
 
-type Bitmap struct{
-	highlowcontainer *highlowcontainer
-
-}
 
 type BitmapAndCardinality struct {
 	bitmap *Bitmap
@@ -555,11 +866,13 @@ func (rb *Bitmap) ReverseIterator() IntIterable64 {
 	return newIntReverseIterator(rb)
 }
 
-func (rb *Bitmap) ManyIterator() ManyIntIterable64 {
-	return newManyIntIterator(rb)
+
+//func (rb *Bitmap) PeekNext() uint64 {
+
+func (rb *Bitmap) PeekNext() uint64 {
+	return rb.Iterator().PeekNext()
+
 }
-
-
 //func (rb *Bitmap) Clone() *Bitmap {
 func (rb *Bitmap) Clone() *Bitmap {
 	ptr := new(Bitmap)

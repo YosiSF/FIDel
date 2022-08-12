@@ -30,6 +30,11 @@ import (
 	_ "time"
 )
 
+// FIDelConfig is the configuration of fidel
+type FIDelConfig struct {
+	ProfileDir string
+}
+
 // InitConfig initializes a config instance
 func InitConfig(profileDir string) (*FIDelConfig, error) {
 	cfg := &FIDelConfig{}

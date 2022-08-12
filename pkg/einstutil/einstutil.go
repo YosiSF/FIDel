@@ -112,17 +112,48 @@ type EncodedBinary struct {
 
 }
 
-type violetaBftConsensus {
+type violetaBftConsensus struct {
 
 	//VioletaBFT is compiled from rust to a Haskell Glasgow machine
 	//And works as the consensus layer of EinsteinDB MilevaDB, and FIDel
 	// It is a Byzantine Fault Tolerant Consensus algorithm
 
-
+RPCServer string
+	//RPCPort is the port of the RPC server
+	RPCPort uint64
+	//RPCUser is the user of the RPC server
+	RPCUser string
+	//RPCPassword is the password of the RPC server
+	RPCPassword string
+	//RPCVersion is the version of the RPC server
+	RPCVersion string
+	//RPCMaxConnections is the maximum number of connections of the RPC server
+	RPCMaxConnections uint64
 
 
 }
 
+
+
+func (v violetaBftConsensus) String() string {
+	return fmt.Sprintf("%s:%d", v.RPCServer, v.RPCPort)
+}
+
+
+func (v violetaBftConsensus) GetRPCServer() string {
+	return v.RPCServer
+}
+
+
+func (v violetaBftConsensus) GetRPCPort() uint64 {
+	return v.RPCPort
+
+}
+
+
+func (v violetaBftConsensus) GetRPCUser() string {
+	return v.RPCUser
+}
 type KindBuffer uint32 // 0: normal, 1: compressed, 2: compressed and encrypted
 
 const (
@@ -137,6 +168,11 @@ const (
 	//KindSchemaReplicant
 	KindSchemaReplicant = KindBuffer(4)
 	KindRegionReplicant = KindBuffer(5)
+
+	KindSchemaReplicantCompressed = KindBuffer(6)
+	KindRegionReplicantCompressed = KindBuffer(7)
+	KindSchemaReplicantCompressedAndEncrypted = KindBuffer(8)
+
 
 
 )
@@ -165,20 +201,130 @@ func (k KindBuffer) String() string {
 }
 
 
+func (k KindBuffer) MarshalJSON() ([]byte, error) {
+	return json.Marshal(k.String())
+}
 
+
+
+func (k KindBuffer) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+	for k, label := range labelForKind {
+		if label == s {
+			*k = k
+			return nil
+		}
+	}
+	return errors.New("unknown kind")
+}
+
+
+type Kind uint32 // 0: normal, 1: compressed, 2: compressed and encrypted
+
+type isolatedContainer struct {
+	kind Kind
+	data []byte
+	//compressedData []byte
+	compressedData []byte
+	//encryptedData []byte
+	encryptedData []byte
+	//mergeAppendData []byte
+	mergeAppendData []byte
+	//schemaReplicantData []byte
+	schemaReplicantData []byte
+	//regionReplicantData []byte
+	regionReplicantData []byte
+	//schemaReplicantCompressedData []byte
+	schemaReplicantCompressedData []byte
+	//regionReplicantCompressedData []byte
+regionReplicantCompressedData []byte
+//uncompressed suffix data
+uncompressedSuffixData []byte
+
+}
 
 type causetWithIsolatedContainer struct {
-	content []uint32
+	causet *causet.Causet
+	isolatedContainer *isolatedContainer
 
+
+}
+
+
+var _ causet.Causet = (*causetWithIsolatedContainer)(nil)
+
+func (c *causetWithIsolatedContainer) GetKind() Kind {
+
+}
+
+
+func (c *causetWithIsolatedContainer) GetData() []byte {
+	return c.isolatedContainer.data
+}
+
+
+
+
+
+
+type causet struct {
+	content []uint32
 	//isolatedContainer *smat.Bitmap
 	isolatedContainer *BitmapSet
-
 	violetaBftConsensus *violetaBftConsensus
+	kind Kind
+
 
 }
 
 func newCausetWithIsolatedContainer(violetaBftConsensus *violetaBftConsensus) *causetWithIsolatedContainer {
-	return &causetWithIsolatedContainer{violetaBftConsensus: violetaBftConsensus}
+	return &causetWithIsolatedContainer{
+		causet: newCauset(violetaBftConsensus),
+		isolatedContainer: newIsolatedContainer(violetaBftConsensus),
+
+	}
+
+}
+
+
+func newCauset(violetaBftConsensus *violetaBftConsensus) *causet {
+
+	return &causet{
+		content: make([]uint32, 0),
+		isolatedContainer: newIsolatedContainer(violetaBftConsensus),
+		violetaBftConsensus: violetaBftConsensus,
+		kind: KindNormal,
+	}
+
+
+	//return &causet{
+	//	content: make([]uint32, 0),
+	//	isolatedContainer: newIsolatedContainer(violetaBftConsensus),
+	//	violetaBftConsensus: violetaBftConsensus,
+	//	kind: KindNormal,
+	//}
+
+
+
+}
+
+
+func (c *causet) String() string {
+	return fmt.Sprintf("%s", c.content)
+
+}
+
+
+func (c *causet) GetKind() Kind {
+	return c.kind
+}
+
+
+func (c *causet) SetKind(kind Kind) {
+	c.kind = kind
 }
 
 
@@ -198,7 +344,15 @@ type JSONError struct {
 }
 
 func tagJSONError(err error) error {
+	if err == nil {
+		return nil
+	}
 
+	return JSONError{Err: err}
+}
+
+
+func (c *causet) GetIsolatedContainer() *isolatedContainer {
 	switch err.(type) {
 	case *json.SyntaxError:
 		return JSONError{err}

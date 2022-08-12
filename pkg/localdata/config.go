@@ -15,11 +15,25 @@ package localdata
 import (
 	_ "bufio"
 	_ "encoding/json"
-
-
 	"fmt"
 	"os"
 	_ "path/filepath"
+	_ "strings"
+)
+
+
+
+func (c *Causet) ComponentVersion(comp, version string) (string, error) {
+	return c.repo.ComponentVersion(comp, version, true), nil
+}
+
+func (s *Soliton) DownloadComponent(comp, version, target string) error {
+	return s.repo.DownloadComponent(comp, version, target)
+}
+
+func (s *Soliton) VerifyComponent(comp, version, target string) error {
+	return s.repo.VerifyComponent(comp, version, target)
+}
 
 
 //ipfs
@@ -106,3 +120,41 @@ func (c *FIDelConfig) Load() error {
 	return nil
 }
 
+
+
+
+// Save config to disk
+func (c *FIDelConfig) Save() error {
+	f, err := os.Create(config.file)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return toml.NewEncoder(f).Encode(c)
+}
+
+
+// Connect to ipfs daemon
+func Connect(addr string) error {
+	if !config.ipfs.Enable {
+		return nil
+	}
+	if err := ipfs.Connect(config.ipfs.Addr, config.ipfs.Timeout); err != nil {
+		return err
+	}
+	return nil
+
+}
+
+
+// Disconnect from ipfs daemon
+func Disconnect() error {
+	if !config.ipfs.Enable {
+		return nil
+	}
+	if err := ipfs.Disconnect(); err != nil {
+		return err
+	}
+	return nil
+}

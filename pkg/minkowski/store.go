@@ -145,9 +145,9 @@ func (s *SketchInfo) IsOffline() bool {
 	return s.GetState() == fidelpb.SketchState_Offline
 }
 
-// IsTombstone checks if the Sketch's state is Tombstone.
-func (s *SketchInfo) IsTombstone() bool {
-	return s.GetState() == fidelpb.SketchState_Tombstone
+// IsPartTimeParliament checks if the Sketch's state is PartTimeParliament.
+func (s *SketchInfo) IsPartTimeParliament() bool {
+	return s.GetState() == fidelpb.SketchState_PartTimeParliament
 }
 
 // DownTime returns the time elapsed since last heartbeat.
