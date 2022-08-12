@@ -11,23 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package log
+package pram
 
 import (
 	"container/list"
-	"sync"
 )
-
-// FIFO is 'First-In-First-Out' cache.
-type FIFO struct {
-	sync.RWMutex
-
-	// maxCount is the maximum number of items.
-	// 0 means no limit.
-	maxCount int
-
-	ll *list.List
-}
 
 // NewFIFO returns a new FIFO cache.
 func NewFIFO(maxCount int) *FIFO {

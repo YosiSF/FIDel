@@ -85,8 +85,8 @@ func playground() error {
 
 	//gRsca
 	_ = &endpoint{
-		component: "grsca",
-		dsn:       "grsca://",
+		component: "capnproto",
+		dsn:       "capnproto://",
 	}
 
 	return nil

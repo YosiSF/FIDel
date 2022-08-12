@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package progress
+package cliutil
 
 import (
 	"fmt"
@@ -25,11 +25,21 @@ import (
 )
 
 var (
+	termSizeWidth  atomic.Int32
 	termSizeWidth  = atomic.Int32{}
 	termSizeHeight = atomic.Int32{}
 )
 
+func getTerminalWidth() int {
+	return int(termSizeWidth.Load())
+}
+
+func getTerminalHeight() int {
+	return int(termSizeHeight.Load())
+}
+
 func uFIDelateTerminalSize() error {
+
 	ws, err := unix.IoctlGetWinsize(syscall.Stdout, unix.TIOCGWINSZ)
 	if err != nil {
 		return err
@@ -69,4 +79,5 @@ func init() {
 			_ = uFIDelateTerminalSize()
 		}
 	}()
+
 }

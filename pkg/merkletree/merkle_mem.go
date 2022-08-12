@@ -2,19 +2,170 @@ package merkletree
 
 import (
 	"bytes"
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"runtime"
 	_ "sync"
 	_ "sync/atomic"
 	"time"
+	"unsafe"
 	_ "unsafe"
 )
 
 
 const DISPLAY_NAME = "Headless Sink Tree"
+
+func (t *mvsr) DisplayName() string {
+	return DISPLAY_NAME
+}
+
+
+func (t *mvsr) Get(key interface{}) (interface{}, bool) {
+	return t.root.Get(key)
+
+}
+
+func (t *mvsr) Delete(key interface{}) (deleted bool) {
+	if t.root == nil {
+		return false
+	}
+
+	return t.root.Delete(key)
+}
+
+
+const (
+	ivLengthCTR = 16
+	ivLengthGCM = 12
+)
+
+// CheckEncryptionMethodSupported check whether the encryption method is currently supported.
+// This is to handle future extension to encryption methods on kvproto side.
+func CheckEncryptionMethodSupported(method encryptedfidelate.EncryptionMethod) error {
+	switch method {
+
+	case encryptedfidelate.EncryptionMethod_AES128_CTR:
+		return nil
+
+	case encryptedfidelate.EncryptionMethod_AES192_CTR:
+		return nil
+	case encryptedfidelate.EncryptionMethod_AES256_CTR:
+		return nil
+	case encryptedfidelate.EncryptionMethod_AES128_GCM:
+		return nil
+	case encryptedfidelate.EncryptionMethod_AES192_GCM:
+		return nil
+	case encryptedfidelate.EncryptionMethod_AES256_GCM:
+		return nil
+
+	default:
+		name, ok := encryptedfidelate.EncryptionMethod_name[int32(method)]
+		if ok {
+			return errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(name)
+		}
+		return errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(int32(method))
+	}
+}
+
+// KeyLength return the encryption key length for supported encryption methods.
+func KeyLength(method encryptedfidelate.EncryptionMethod) (int, error) {
+	switch method {
+	case encryptedfidelate.EncryptionMethod_AES128_CTR:
+		return 16, nil
+	case encryptedfidelate.EncryptionMethod_AES192_CTR:
+		return 24, nil
+	case encryptedfidelate.EncryptionMethod_AES256_CTR:
+		return 32, nil
+	default:
+		name, ok := encryptedfidelate.EncryptionMethod_name[int32(method)]
+		if ok {
+			return 0, errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(name)
+		}
+		return 0, errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(int32(method))
+	}
+}
+
+// IvCTR represent Causetid bytes for CTR mode.
+type IvCTR []byte
+
+// IvGCM represent Causetid bytes for GCM mode.
+type IvGCM []byte
+
+func newCausetid(ivLength int) ([]byte, error) {
+	iv := make([]byte, ivLength)
+	n, err := io.ReadFull(rand.Reader, iv)
+	if err != nil {
+		return nil, errs.ErrEncryptionGenerateCausetid.Wrap(err).GenWithStackByArgs()
+	}
+	if n != ivLength {
+		return nil, errs.ErrEncryptionGenerateCausetid.GenWithStack(
+			"iv length exepcted %d vs actual %d", ivLength, n)
+	}
+	return iv, nil
+}
+
+// NewIvCTR randomly generate an Causetid for CTR mode.
+func NewIvCTR() (IvCTR, error) {
+	return newCausetid(ivLengthCTR)
+}
+
+// NewIvGCM randomly generate an Causetid for GCM mode.
+func NewIvGCM() (IvGCM, error) {
+	return newCausetid(ivLengthGCM)
+}
+
+// NewDataKey randomly generate a new data key.
+func NewDataKey(
+	method encryptedfidelate.EncryptionMethod,
+	creationTime uint64,
+) (keyID uint64, key *encryptedfidelate.DataKey, err error) {
+	err = CheckEncryptionMethodSupported(method)
+	if err != nil {
+		return
+	}
+	keyIDBufSize := unsafe.Sizeof(uint64(0))
+	keyIDBuf := make([]byte, keyIDBufSize)
+	n, err := io.ReadFull(rand.Reader, keyIDBuf)
+	if err != nil {
+		err = errs.ErrEncryptionNewDataKey.Wrap(err).GenWithStack(
+			"fail to generate data key id")
+		return
+	}
+	if n != int(keyIDBufSize) {
+		err = errs.ErrEncryptionNewDataKey.GenWithStack(
+			"no enough random bytes to generate data key id, bytes %d", n)
+		return
+	}
+	keyID = binary.BigEndian.Uint64(keyIDBuf)
+	keyLength, err := KeyLength(method)
+	if err != nil {
+		return
+	}
+	keyBuf := make([]byte, keyLength)
+	n, err = io.ReadFull(rand.Reader, keyBuf)
+	if err != nil {
+		err = errs.ErrEncryptionNewDataKey.Wrap(err).GenWithStack(
+			"fail to generate data key")
+		return
+	}
+	if n != keyLength {
+		err = errs.ErrEncryptionNewDataKey.GenWithStack(
+			"no enough random bytes to generate data key, bytes %d", n)
+		return
+	}
+	key = &encryptedfidelate.DataKey{
+		Key:          keyBuf,
+		Method:       method,
+		CreationTime: creationTime,
+		WasExposed:   false,
+	}
+	return
+}
+
 
 func (t *mvsr) String() string {
 	if t.root == nil {

@@ -28,6 +28,16 @@ type Soliton struct {
 	repo Repository
 }
 
+//// shutdownTracerProvider adds a shutdown method for tracer providers.
+////
+//// Note that this doesn't directly use the provided TracerProvider interface
+//// to avoid build breaking go-ipfs if new methods are added to it.
+
+
+func (c *Causet) ComponentVersion(comp, version string) (string, error) {
+	return c.repo.ComponentVersion(comp, version, true)
+}
+
 func (s *Soliton) DownloadComponent(comp, version, target string) error {
 	return s.repo.DownloadComponent(comp, version, target)
 }
@@ -84,4 +94,64 @@ func (c *Causet) VerifyComponent(comp, version, target string) error {
 func (c *Causet) ComponentBinEntry(comp, version string) (string, error) {
 
 	return c.repo.ComponentBinEntry(comp, version)
+}
+
+
+type shutDownTracerProvider struct {
+	tp TracerProvider
+
+}
+
+func (s *shutDownTracerProvider) Close() error {
+	return s.tp.Close()
+}
+
+
+func (s *shutDownTracerProvider) GetTracer(name string) (Tracer, error) {
+	return s.tp.GetTracer(name)
+}
+
+
+func (s *shutDownTracerProvider) GetAllTracers() ([]Tracer, error) {
+	return s.tp.GetAllTracers()
+}
+
+
+func (s *shutDownTracerProvider) GetTracerNames() ([]string, error) {
+	return s.tp.GetTracerNames()
+}
+
+
+func (s *shutDownTracerProvider) GetTracerConfig(name string) (interface{}, error) {
+	return s.tp.GetTracerConfig(name)
+}
+
+
+func (s *shutDownTracerProvider) SetTracerConfig(name string, config interface{}) error {
+	return s.tp.SetTracerConfig(name, config)
+}
+
+	if name == "jaeger" {
+		return s.tp.GetTracer(name)
+	}
+
+	for _, t := range s.tp.GetTracers() {
+		if t.Name() == name {
+			return t, nil
+		}
+	}
+
+	while _, err := s.tp.GetTracer(name);
+	b := err != nil{
+		return nil, err
+	}
+
+	//lock
+	return nil, nil
+
+}
+
+
+func (s *shutDownTracerProvider) GetTracers() []Tracer {
+	return s.tp.GetTracers()
 }

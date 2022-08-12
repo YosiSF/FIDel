@@ -11,15 +11,88 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package grscautil
+package capnprotoutil
 
 import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
+	"net"
 	"net/url"
+	"time"
 	_ "time"
 )
+
+const (
+	//petriNetFrequencyOfBitmap is the frequency of bitmap in petri net.
+	petriNetFrequencyOfBitmap = 1
+	//timeout
+	petriNetTimeout = 10 * time.Second
+	//tso
+	petriNetTSO = 10 * time.Second
+
+	//global
+	petriNetGlobalFusePath                 = "/tmp/fuse"
+	petriNetGlobalFuseFile                 = "fuse"
+	petriNetGlobalFuseFilePath             = petriNetGlobalFusePath + "/" + petriNetGlobalFuseFile
+	petriNetGlobalFuseFilePathLock         = petriNetGlobalFusePath + "/" + petriNetGlobalFuseFile + ".lock"
+	petriNetGlobalFuseFilePathLockFile     = petriNetGlobalFusePath + "/" + petriNetGlobalFuseFile + ".lockfile"
+	petriNetGlobalFuseFilePathLockFilePath = petriNetGlobalFusePath + "/" + petriNetGlobalFuseFile + ".lockfilepath"
+	//ipfs
+	petriNetIPFS                 = "ipfs"
+	petriNetIPFSPath             = "/tmp/ipfs"
+	petriNetIPFSFile             = "ipfs"
+	petriNetIPFSFilePath         = petriNetIPFSPath + "/" + petriNetIPFSFile
+	petriNetIPFSFilePathLock     = petriNetIPFSPath + "/" + petriNetIPFSFile + ".lock"
+	petriNetIPFSFilePathLockFile = petriNetIPFSPath + "/" + petriNetIPFSFile + ".lockfile"
+
+	// SecurityModeNone means no security.
+	SecurityModeNone = "none"
+	// SecurityModeTLS means TLS security.
+	SecurityModeTLS = "tls"
+	// SecurityModeAuto means auto detect.
+	SecurityModeAuto = "auto"
+)
+
+var (
+	// ErrInvalidSecurityConfig is returned when the security config is invalid.
+	_ = errors.New("invalid security config")
+
+	// ErrInvalidSecurityMode is returned when the security mode is invalid.
+
+)
+
+// Set up Grpcs Server using ctx
+func SetUpGrpcsServer(ctx context.Context, addr string, tlsCfg *tls.Config) (*capnproto.Server, error) {
+	cc, err := GetServerConn(ctx, addr, tlsCfg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return capnproto.NewServer(cc), nil
+}
+
+func GetServerConn(ctx context.Context, addr string, cfg *tls.Config) (interface{}, interface{}) {
+	//failover
+	if cfg == nil {
+		return capnproto.DialContext(ctx, addr, capnproto.WithBlock(), capnproto.WithInsecure()), nil
+	}
+
+	return capnproto.DialContext(ctx, addr, capnproto.WithBlock(), capnproto.WithInsecure(), capnproto.WithTransportCredentials(credentials.NewTLS(cfg))), nil
+
+}
+
+// GetOneAllowedCN returns the first CN from the list of allowed CNs.
+func (s SecurityConfig) GetOneAllowedCN() (string, error) {
+	switch len(s.CertAllowedCN) {
+	case 1:
+		return s.CertAllowedCN[0], nil
+	case 0:
+		return "", nil
+	default:
+		return "", errors.New("Currently only supports one CN")
+	}
+}
 
 // GetIPFSClient IPFS API
 func GetIPFSClient(addr string, tlsCfg *tls.Config) (*ipfsapi.Client, error) {
@@ -30,13 +103,675 @@ func GetIPFSClient(addr string, tlsCfg *tls.Config) (*ipfsapi.Client, error) {
 	return ipfsapi.NewClient(cc), nil
 }
 
-// GetIPFSClientFromAddr IPFS API
+/*
+
+import (
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/RoaringBitmap/roaring"
+)
+
+const serialCookieNoRunContainer = 12346 // only arrays and bitmaps
+const serialCookie = 12347               // runs, arrays, and bitmaps
+
+// Bitmap represents a compressed bitmap where you can add integers.
+type Bitmap struct {
+	highlowcontainer roaringArray64
+}
+
+// ToBase64 serializes a bitmap as Base64
+func (rb *Bitmap) ToBase64() (string, error) {
+	buf := new(bytes.Buffer)
+	_, err := rb.WriteTo(buf)
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), err
+
+}
+
+// FromBase64 deserializes a bitmap from Base64
+func (rb *Bitmap) FromBase64(str string) (int64, error) {
+	data, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return 0, err
+	}
+	buf := bytes.NewBuffer(data)
+
+	return rb.ReadFrom(buf)
+}
+
+// ToBytes returns an array of bytes corresponding to what is written
+// when calling WriteTo
+func (rb *Bitmap) ToBytes() ([]byte, error) {
+	var buf bytes.Buffer
+	_, err := rb.WriteTo(&buf)
+	return buf.Bytes(), err
+}
+
+// WriteTo writes a serialized version of this bitmap to stream.
+func (rb *Bitmap) WriteTo(stream io.Writer) (int64, error) {
+
+	var n int64
+	buf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(buf, uint64(rb.highlowcontainer.size()))
+	written, err := stream.Write(buf)
+	if err != nil {
+		return n, err
+	}
+	n += int64(written)
+	pos := 0
+	keyBuf := make([]byte, 4)
+	for pos < rb.highlowcontainer.size() {
+		c := rb.highlowcontainer.getContainerAtIndex(pos)
+		binary.LittleEndian.PutUint32(keyBuf, rb.highlowcontainer.getKeyAtIndex(pos))
+		pos++
+		written, err = stream.Write(keyBuf)
+		n += int64(written)
+		if err != nil {
+			return n, err
+		}
+		written, err := c.WriteTo(stream)
+		n += int64(written)
+		if err != nil {
+			return n, err
+		}
+	}
+	return n, nil
+}
+
+// ReadFrom reads a serialized version of this bitmap from stream.
+// The format is compatible with other RoaringBitmap
+// implementations (Java, C) and is documented here:
+// https://github.com/RoaringBitmap/RoaringFormatSpec
+func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
+	cookie, r32, p, err := tryReadFromRoaring32(rb, stream)
+	if err != nil {
+		return p, err
+	} else if r32 {
+		return p, nil
+	}
+	// TODO: Add buffer interning as in base roaring package.
+
+	sizeBuf := make([]byte, 4)
+	var n int
+	n, err = stream.Read(sizeBuf)
+	if n == 0 || err != nil {
+		return int64(n), fmt.Errorf("error in bitmap.readFrom: could not read number of containers: %s", err)
+	}
+	p += int64(n)
+	sizeBuf = append(cookie, sizeBuf...)
+
+	size := binary.LittleEndian.Uint64(sizeBuf)
+	rb.highlowcontainer = roaringArray64{}
+	rb.highlowcontainer.keys = make([]uint32, size)
+	rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
+	rb.highlowcontainer.needCopyOnWrite = make([]bool, size)
+	keyBuf := make([]byte, 4)
+	for i := uint64(0); i < size; i++ {
+		n, err = stream.Read(keyBuf)
+		if n == 0 || err != nil {
+			return int64(n), fmt.Errorf("error in bitmap.readFrom: could not read key #%d: %s", i, err)
+		}
+		p += int64(n)
+		rb.highlowcontainer.keys[i] = binary.LittleEndian.Uint32(keyBuf)
+		rb.highlowcontainer.containers[i] = roaring.NewBitmap()
+		n, err := rb.highlowcontainer.containers[i].ReadFrom(stream)
+		if n == 0 || err != nil {
+			return int64(n), fmt.Errorf("Could not deserialize bitmap for key #%d: %s", i, err)
+		}
+		p += int64(n)
+	}
+
+	return p, nil
+}
+
+func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (cookie []byte, r32 bool, p int64, err error) {
+	// Verify the first two bytes are a valid MagicNumber.
+	cookie = make([]byte, 4)
+	size, err := stream.Read(cookie)
+	if err != nil {
+		return cookie, false, int64(size), err
+	}
+	fileMagic := int(binary.LittleEndian.Uint16(cookie[0:2]))
+	if fileMagic == serialCookieNoRunContainer || fileMagic == serialCookie {
+		bm32 := roaring.NewBitmap()
+		p, err = bm32.ReadFrom(stream, cookie...)
+		if err != nil {
+			return
+		}
+		rb.highlowcontainer = roaringArray64{
+			keys:            []uint32{0},
+			containers:      []*roaring.Bitmap{bm32},
+			needCopyOnWrite: []bool{false},
+		}
+		return cookie, true, p, nil
+	}
+	return
+}
+
+// FromBuffer creates a bitmap from its serialized version stored in buffer
+// func (rb *Bitmap) FromBuffer(data []byte) (p int64, err error) {
+//
+//	// TODO: Add buffer interning as in base roaring package.
+//	buf := bytes.NewBuffer(data)
+//	return rb.ReadFrom(buf)
+// }
+
+// MarshalBinary implements the encoding.BinaryMarshaler interface for the bitmap
+// (same as ToBytes)
+func (rb *Bitmap) MarshalBinary() ([]byte, error) {
+	return rb.ToBytes()
+}
+
+// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface for the bitmap
+func (rb *Bitmap) UnmarshalBinary(data []byte) error {
+	r := bytes.NewReader(data)
+	_, err := rb.ReadFrom(r)
+	return err
+}
+
+// RunOptimize attempts to further compress the runs of consecutive values found in the bitmap
+func (rb *Bitmap) RunOptimize() {
+	rb.highlowcontainer.runOptimize()
+}
+
+// HasRunCompression returns true if the bitmap benefits from run compression
+func (rb *Bitmap) HasRunCompression() bool {
+	return rb.highlowcontainer.hasRunCompression()
+}
+
+// NewBitmap creates a new empty Bitmap (see also New)
+func NewBitmap() *Bitmap {
+	return &Bitmap{}
+}
+
+// New creates a new empty Bitmap (same as NewBitmap)
+func New() *Bitmap {
+	return &Bitmap{}
+}
+
+// Clear resets the Bitmap to be logically empty, but may retain
+// some memory allocations that may speed up future operations
+func (rb *Bitmap) Clear() {
+	rb.highlowcontainer.clear()
+}
+
+// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArray() []uint64 {
+	array := make([]uint64, rb.GetCardinality())
+	pos := 0
+	pos2 := uint64(0)
+
+	for pos < rb.highlowcontainer.size() {
+		hs := uint64(rb.highlowcontainer.getKeyAtIndex(pos)) << 32
+		c := rb.highlowcontainer.getContainerAtIndex(pos)
+		pos++
+		c.ManyIterator().NextMany64(hs, array[pos2:])
+		pos2 += c.GetCardinality()
+	}
+	return array
+}
+
+// GetSizeInBytes estimates the memory usage of the Bitmap. Note that this
+// might differ slightly from the amount of bytes required for persistent storage
+func (rb *Bitmap) GetSizeInBytes() uint64 {
+	size := uint64(8)
+	for _, c := range rb.highlowcontainer.containers {
+		size += uint64(2) + c.GetSizeInBytes()
+	}
+	return size
+}
+
+// String creates a string representation of the Bitmap
+func (rb *Bitmap) String() string {
+	// inspired by https://github.com/fzandona/goroar/
+	var buffer bytes.Buffer
+	start := []byte("{")
+	buffer.Write(start)
+	i := rb.Iterator()
+	counter := 0
+	if i.HasNext() {
+		counter = counter + 1
+		buffer.WriteString(strconv.FormatUint(uint64(i.Next()), 10))
+	}
+	for i.HasNext() {
+		buffer.WriteString(",")
+		counter = counter + 1
+		// to avoid exhausting the memory
+		if counter > 0x40000 {
+			buffer.WriteString("...")
+			break
+		}
+		buffer.WriteString(strconv.FormatUint(uint64(i.Next()), 10))
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}
+
+// Iterator creates a new IntPeekable to iterate over the integers contained in the bitmap, in sorted order;
+// the iterator becomes invalid if the bitmap is modified (e.g., with Add or Remove).
+func (rb *Bitmap) Iterator() IntPeekable64 {
+	return newIntIterator(rb)
+}
+
+// ReverseIterator creates a new IntIterable to iterate over the integers contained in the bitmap, in sorted order;
+// the iterator becomes invalid if the bitmap is modified (e.g., with Add or Remove).
+func (rb *Bitmap) ReverseIterator() IntIterable64 {
+	return newIntReverseIterator(rb)
+}
+
+// ManyIterator creates a new ManyIntIterable to iterate over the integers contained in the bitmap, in sorted order;
+// the iterator becomes invalid if the bitmap is modified (e.g., with Add or Remove).
+func (rb *Bitmap) ManyIterator() ManyIntIterable64 {
+	return newManyIntIterator(rb)
+}
+
+// Clone creates a copy of the Bitmap
+func (rb *Bitmap) Clone() *Bitmap {
+	ptr := new(Bitmap)
+	ptr.highlowcontainer = *rb.highlowcontainer.clone()
+	return ptr
+}
+
+// Minimum get the smallest value stored in this roaring bitmap, assumes that it is not empty
+func (rb *Bitmap) Minimum() uint64 {
+	return uint64(rb.highlowcontainer.containers[0].Minimum()) | (uint64(rb.highlowcontainer.keys[0]) << 32)
+}
+
+// Maximum get the largest value stored in this roaring bitmap, assumes that it is not empty
+func (rb *Bitmap) Maximum() uint64 {
+	lastindex := len(rb.highlowcontainer.containers) - 1
+	return uint64(rb.highlowcontainer.containers[lastindex].Maximum()) | (uint64(rb.highlowcontainer.keys[lastindex]) << 32)
+}
+
+// Contains returns true if the integer is contained in the bitmap
+func (rb *Bitmap) Contains(x uint64) bool {
+	hb := highbits(x)
+	c := rb.highlowcontainer.getContainer(hb)
+	return c != nil && c.Contains(lowbits(x))
+}
+
+// ContainsInt returns true if the integer is contained in the bitmap (this is a convenience method, the parameter is casted to uint64 and Contains is called)
+func (rb *Bitmap) ContainsInt(x int) bool {
+	return rb.Contains(uint64(x))
+}
+
+// Equals returns true if the two bitmaps contain the same integers
+func (rb *Bitmap) Equals(o interface{}) bool {
+	srb, ok := o.(*Bitmap)
+	if ok {
+		return srb.highlowcontainer.equals(rb.highlowcontainer)
+	}
+	return false
+}
+
+
+/*
+ * BitmapAndCardinality
+
+ * This is a struct that contains a bitmap and the cardinality of the bitmap.
+ * It is used by the roaring array during the copy operation.
+
+ */
+
+type Bitmap struct{
+	highlowcontainer *highlowcontainer
+
+}
+
+type BitmapAndCardinality struct {
+	bitmap *Bitmap
+	cardinality uint64
+
+}
+
+
+// NewBitmapAndCardinality creates a new BitmapAndCardinality
+func NewBitmapAndCardinality(bitmap *Bitmap, cardinality uint64) *BitmapAndCardinality {
+	return &BitmapAndCardinality{bitmap, cardinality}
+}
+
+
+// GetCardinality returns the cardinality of the bitmap
+func (bac *BitmapAndCardinality) GetCardinality() uint64 {
+	return bac.cardinality
+}
+
+
+// GetBitmap returns the bitmap
+func (bac *BitmapAndCardinality) GetBitmap() *Bitmap {
+	return bac.bitmap
+}
+
+
+/*
+ * BitmapContainer
+ *
+ * This is a struct that contains a bitmap and the cardinality of the bitmap.
+ * It is used by the roaring array during the copy operation.
+
+
+ */
+
+
+type BitmapContainer struct {
+	cardinality uint64
+	bitmap *Bitmap
+
+}
+
+
+// NewBitmapContainer creates a new BitmapContainer
+func NewBitmapContainer(bitmap *Bitmap, cardinality uint64) *BitmapContainer {
+	return &BitmapContainer{bitmap, cardinality}
+
+}
+
+
+// GetCardinality returns the cardinality of the bitmap
+func (bc *BitmapContainer) GetCardinality() uint64 {
+	return bc.cardinality
+}
+
+
+// GetBitmap returns the bitmap
+func (bc *BitmapContainer) GetBitmap() *Bitmap {
+	return bc.bitmap
+}
+
+
+
+
+// Add the integer x to the bitmap
+func (rb *Bitmap) Add(x uint64) {
+	hb := highbits(x) // highbits is the index of the array
+	ra := &rb.highlowcontainer // the array
+	i := ra.getIndex(hb) // the index of the correct container
+	if i >= 0 {
+		ra.getWritableContainerAtIndex(i).Add(lowbits(x))
+	} else {
+		newBitmap := roaring.NewBitmap()
+		newBitmap.Add(lowbits(x))
+		rb.highlowcontainer.insertNewKeyValueAt(-i-1, hb, newBitmap)
+	}
+}
+
+func highbits(x uint64) interface{} {
+	return uint32(x >> 32)
+
+}
+
+// CheckedAdd adds the integer x to the bitmap and return true  if it was added (false if the integer was already present)
+func (rb *Bitmap) CheckedAdd(x uint64) bool {
+	hb := highbits(x)
+	i := rb.highlowcontainer.getIndex(hb)
+	if i >= 0 {
+		c := rb.highlowcontainer.getWritableContainerAtIndex(i)
+		return c.CheckedAdd(lowbits(x))
+	}
+	newBitmap := roaring.NewBitmap()
+	newBitmap.Add(lowbits(x))
+	rb.highlowcontainer.insertNewKeyValueAt(-i-1, hb, newBitmap)
+	return true
+}
+
+// AddInt adds the integer x to the bitmap (convenience method: the parameter is casted to uint32 and we call Add)
+func (rb *Bitmap) AddInt(x int) {
+	rb.Add(uint64(x))
+}
+
+// Remove the integer x from the bitmap
+func (rb *Bitmap) Remove(x uint64) {
+	hb := highbits(x)
+	i := rb.highlowcontainer.getIndex(hb)
+	if i >= 0 {
+		c := rb.highlowcontainer.getWritableContainerAtIndex(i)
+		c.Remove(lowbits(x))
+		if c.IsEmpty() {
+			rb.highlowcontainer.removeAtIndex(i)
+		}
+	}
+}
+
+
+*/
+
+
+
+//From above exmaple we can see that the bitmap is a container of containers.
+//The highlowcontainer is a container of containers.
+//lets see how to iterate over the bitmap.
+
+//first, some rewriting
+//func (rb *Bitmap) Iterator() IntPeekable64 {
+func (rb *Bitmap) Iterator() IntIterable64 {
+	return newIntIterator(rb)
+}
+
+func (rb *Bitmap) ReverseIterator() IntIterable64 {
+	return newIntReverseIterator(rb)
+}
+
+func (rb *Bitmap) ManyIterator() ManyIntIterable64 {
+	return newManyIntIterator(rb)
+}
+
+
+//func (rb *Bitmap) Clone() *Bitmap {
+func (rb *Bitmap) Clone() *Bitmap {
+	ptr := new(Bitmap)
+	ptr.highlowcontainer = *rb.highlowcontainer.clone()
+	return ptr
+}
+
+
+func (rb *Bitmap) Minimum() uint64 {
+	return uint64(rb.highlowcontainer.containers[0].Minimum()) | (uint64(rb.highlowcontainer.keys[0]) << 32)
+}
+
+
+func (rb *Bitmap) Maximum() uint64 {
+	lastindex := len(rb.highlowcontainer.containers) - 1
+	return uint64(rb.highlowcontainer.containers[lastindex].Maximum()) | (uint64(rb.highlowcontainer.keys[lastindex]) << 32)
+}
+
+
+func (rb *Bitmap) Contains(x uint64) bool {
+	hb := highbits(x)
+	c := rb.highlowcontainer.getContainer(hb)
+	return c != nil && c.Contains(lowbits(x))
+}
+
+
+func (rb *Bitmap) ContainsInt(x int) bool {
+	return rb.Contains(uint64(x))
+}
+
+
+
+
+
+
+// CheckedRemove removes the integer x from the bitmap and return true if the integer was effectively remove (and false if the integer was not present)
+func (rb *Bitmap) CheckedRemove(x uint64) bool {
+	hb := highbits(x)
+	i := rb.highlowcontainer.getIndex(hb)
+	if i >= 0 {
+		c := rb.highlowcontainer.getWritableContainerAtIndex(i)
+		removed := c.CheckedRemove(lowbits(x))
+		if removed && c.IsEmpty() {
+			rb.highlowcontainer.removeAtIndex(i)
+		}
+		return removed
+	}
+	return false
+}
+
+// IsEmpty returns true if the Bitmap is empty (it is faster than doing (GetCardinality() == 0))
+func (rb *Bitmap) IsEmpty() bool {
+	return rb.highlowcontainer.size() == 0
+}
+
+// GetCardinality returns the number of integers contained in the bitmap
+func (rb *Bitmap) GetCardinality() uint64 {
+	size := uint64(0)
+	for _, c := range rb.highlowcontainer.containers {
+		size += c.GetCardinality()
+	}
+	return size
+}
+
+// Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality())
+func (rb *Bitmap) Rank(x uint64) uint64 {
+	size := uint64(0)
+	for i := 0; i < rb.highlowcontainer.size(); i++ {
+		key := rb.highlowcontainer.getKeyAtIndex(i)
+		if key > highbits(x) {
+			return size
+		}
+		if key < highbits(x) {
+			size += rb.highlowcontainer.getContainerAtIndex(i).GetCardinality()
+		} else {
+			return size + rb.highlowcontainer.getContainerAtIndex(i).Rank(lowbits(x))
+		}
+	}
+	return size
+}
+
+// Select returns the xth integer in the bitmap
+func (rb *Bitmap) Select(x uint64) (uint64, error) {
+	cardinality := rb.GetCardinality()
+	if cardinality <= x {
+		return 0, fmt.Errorf("can't find %dth integer in a bitmap with only %d items", x, cardinality)
+	}
+
+	remaining := x
+	for i := 0; i < rb.highlowcontainer.size(); i++ {
+		c := rb.highlowcontainer.getContainerAtIndex(i)
+		if bitmapSize := c.GetCardinality(); remaining >= bitmapSize {
+			remaining -= bitmapSize
+		} else {
+			key := rb.highlowcontainer.getKeyAtIndex(i)
+			selected, err := c.Select(uint32(remaining))
+			if err != nil {
+				return 0, err
+			}
+			return uint64(key)<<32 + uint64(selected), nil
+		}
+	}
+	return 0, fmt.Errorf("can't find %dth integer in a bitmap with only %d items", x, cardinality)
+}
+
+// And computes the intersection between two bitmaps and stores the result in the current bitmap
+func (rb *Bitmap) And(x2 *Bitmap) {
+	pos1 := 0
+	pos2 := 0
+	intersectionsize := 0
+	length1 := rb.highlowcontainer.size()
+	length2 := x2.highlowcontainer.size()
+
+main:
+	for {
+		if pos1 < length1 && pos2 < length2 {
+			s1 := rb.highlowcontainer.getKeyAtIndex(pos1)
+			s2 := x2.highlowcontainer.getKeyAtIndex(pos2)
+			for {
+				if s1 == s2 {
+					c1 := rb.highlowcontainer.getWritableContainerAtIndex(pos1)
+					c2 := x2.highlowcontainer.getContainerAtIndex(pos2)
+					c1.And(c2)
+					if !c1.IsEmpty() {
+						rb.highlowcontainer.replaceKeyAndContainerAtIndex(intersectionsize, s1, c1, false)
+						intersectionsize++
+					}
+					pos1++
+					pos2++
+					if (pos1 == length1) || (pos2 == length2) {
+						break main
+					}
+					s1 = rb.highlowcontainer.getKeyAtIndex(pos1)
+					s2 = x2.highlowcontainer.getKeyAtIndex(pos2)
+				} else if s1 < s2 {
+					pos1 = rb.highlowcontainer.advanceUntil(s2, pos1)
+					if pos1 == length1 {
+						break main
+					}
+					s1 = rb.highlowcontainer.getKeyAtIndex(pos1)
+				} else { // s1 > s2
+					pos2 = x2.highlowcontainer.advanceUntil(s1, pos2)
+					if pos2 == length2 {
+						break main
+					}
+					s2 = x2.highlowcontainer.getKeyAtIndex(pos2)
+				}
+			}
+		} else {
+			break
+		}
+	}
+	rb.highlowcontainer.resize(intersectionsize)
+}
+
+ */
+
+func GetIPFSClientFromAddrWithTimeout(addr string, tlsCfg *tls.Config, timeout time.Duration) (*ipfsapi.Client, error) {
+	cc, err := GetClientConnWithTimeout(context.Background(), addr, tlsCfg, timeout)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return ipfsapi.NewClient(cc), nil
+}
+
+func GetClientConnWithTimeout(background context.Context, addr string, cfg *tls.Config, timeout time.Duration) (interface{}, interface{}) {
+
+
+	dialer := &net.Dialer{
+		Timeout: timeout,
+	}
+
+	conn, err := tls.DialWithDialer(dialer, "tcp", addr, cfg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return conn, nil
+}
+
+//GetIPFSClientFromAddr returns an ipfs client from an address
 func GetIPFSClientFromAddr(addr string, tlsCfg *tls.Config) (*ipfsapi.Client, error) {
 	cc, err := GetClientConn(context.Background(), addr, tlsCfg)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	return ipfsapi.NewClient(cc), nil
+}
+
+func GetClientConn(background context.Context, addr string, cfg *tls.Config) (interface{}, interface{}) {
+	dialer := &net.Dialer{}
+	conn, err := tls.DialWithDialer(dialer, "tcp", addr, cfg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return conn, nil
+}
+
+func GetIPFSClientFromAddrWithTimeoutAndDialer(addr string, tlsCfg *tls.Config, timeout time.Duration, dialer *net.Dialer) (*ipfsapi.Client, error) {
+	cc, err := GetClientConnWithTimeoutAndDialer(context.Background(), addr, tlsCfg, timeout, dialer)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return ipfsapi.NewClient(cc), nil
+}
+
+func GetClientConnWithTimeoutAndDialer(background context.Context, addr string, cfg *tls.Config, timeout time.Duration, dialer *net.Dialer) (interface{}, interface{}) {
+	conn, err := tls.DialWithDialer(dialer, "tcp", addr, cfg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return conn, nil
+
 }
 
 // SecurityConfig is the configuration for supporting tls.
@@ -58,20 +793,115 @@ type SecurityConfig struct {
 	EinsteinDB string `toml:"einstein-db" json:"einstein-db"`
 }
 
+type SecurityConfigWithDefault struct {
+	SecurityConfig
+	DefaultSecurityConfig
+
+	// SecurityMode is the security mode.
+	SecurityMode string `toml:"security-mode" json:"security-mode"`
+
+
+}
+
+const secretTokenNoIsolatedContainer = "12346" //token for isolated container
+// DefaultSecurityConfig is the default security config.
+type DefaultSecurityConfig struct {
+	// SecurityMode is the security mode.
+	SecurityMode string `toml:"security-mode" json:"security-mode"`
+	// SecurityConfig is the security config.
+	SecurityConfig SecurityConfig `toml:"security-config" json:"security-config"`
+}
+
+
+// GetSecurityConfig returns the security config.
+func GetSecurityConfig(cfg *DefaultSecurityConfig) (*SecurityConfig, error) {
+	if cfg == nil {
+		return nil, nil
+
+	}
+
+	if cfg.SecurityMode == SecurityModeNone {
+		return nil, nil
+	}
+
+	if cfg.SecurityMode == SecurityModeAuto {
+		if cfg.SecurityConfig.CAPath != "" || cfg.SecurityConfig.CertPath != "" || cfg.SecurityConfig.KeyPath != "" {
+			return &cfg.SecurityConfig, nil
+		}
+		return &cfg.DefaultSecurityConfig.SecurityConfig, nil
+	}
+
+	if cfg.SecurityMode == SecurityModeTLS {
+		if cfg.SecurityConfig.CAPath == "" || cfg.SecurityConfig.CertPath == "" || cfg.SecurityConfig.KeyPath == "" {
+			return nil, errors.New("invalid security config")
+		}
+		return &cfg.SecurityConfig, nil
+	}
+
+	return nil, errors.New("invalid security mode")
+}
+
+
+// GetSecurityConfigWithDefault returns the security config.
+func GetSecurityConfigWithDefault(cfg *DefaultSecurityConfig) (*SecurityConfigWithDefault, error) {
+	if cfg == nil {
+		return nil, nil
+	}
+
+	if cfg.SecurityMode == SecurityModeNone {
+		return nil, nil
+	}
+
+	if cfg.SecurityMode == SecurityModeAuto {
+		if cfg.SecurityConfig.CAPath != "" || cfg.SecurityConfig.CertPath != "" || cfg.SecurityConfig.KeyPath != "" {
+			return &SecurityConfigWithDefault{SecurityConfig: cfg.SecurityConfig, DefaultSecurityConfig: cfg.DefaultSecurityConfig}, nil
+		}
+		return &SecurityConfigWithDefault{SecurityConfig: cfg.DefaultSecurityConfig.SecurityConfig, DefaultSecurityConfig: cfg.DefaultSecurityConfig}, nil
+	}
+
+	if cfg.SecurityMode == SecurityModeTLS {
+		if cfg.SecurityConfig.CAPath == "" || cfg.SecurityConfig.CertPath == "" || cfg.SecurityConfig.KeyPath == "" {
+			return nil, errors.New("invalid security config")
+		}
+		return &SecurityConfigWithDefault{SecurityConfig: cfg.SecurityConfig, DefaultSecurityConfig: cfg.DefaultSecurityConfig}, nil
+
+	}
+
+
+
+	return nil, errors.New("invalid security mode")
+}
+
+
+// GetSecurityConfigWithDefault returns the security config.
+func GetSecurityConfigWithDefaultFromFile(cfgFile string) (*SecurityConfigWithDefault, error) {
+	cfg := &DefaultSecurityConfig{}
+	if err := cfg.Load(cfgFile); err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return GetSecurityConfigWithDefault(cfg)
+}
+
+
+// GetSecurityConfigWithDefault returns the security config.
+func GetSecurityConfigWithDefaultFromFileWithTimeout(cfgFile string, timeout time.Duration) (*SecurityConfigWithDefault, error) {
+	cfg := &DefaultSecurityConfig{}
+	if err := cfg.LoadWithTimeout(cfgFile, timeout); err != nil {
+		return nil, errors.WithStack(err)
+
+	}
+
+
+	return GetSecurityConfigWithDefault(cfg)
+}
+
+
 // GetIPFSClient returns a gRsca client connection.
 // creates a client connection to the given target. By default, it's
 // a non-blocking dial (the function won't wait for connections to be
 
-func GetClientConn(ctx context.Context, addr string, tlsCfg *tls.Config) (*grsca.ClientConn, error) {
-	u, err := url.Parse(addr)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	if u.Scheme == "unix" || u.Scheme == "unixs" {
-		return grsca.DialContext(ctx, u.Path, grsca.WithInsecure(), grsca.WithBlock()), nil
-	}
-	return grsca.DialContext(ctx, addr, grsca.WithBlock(), grsca.WithInsecure(), grsca.WithTransportCredentials(credentials.NewTLS(tlsCfg))), nil
-}
+
 
 // GetIPFSClient returns a gRsca client connection.
 // creates a client connection to the given target. By default, it's
@@ -100,19 +930,145 @@ func (s SecurityConfig) ToTLSConfig() (*tls.Config, error) {
 	return tlsConfig, nil
 }
 
-// GetOneAllowedCN only gets the first one CN.
+// GetClientConn returns a gRsca client connection.
+
+// ToTLSConfigForServer ToTLSConfig generates tls config.
+func (s SecurityConfig) ToTLSConfigForServer() (*tls.Config, error) {
+
+	if len(s.CertPath) == 0 && len(s.KeyPath) == 0 {
+		return nil, nil
+	}
+	allowedCN, err := s.GetOneAllowedCN()
+	if err != nil {
+
+		//return nil, err
+		return nil, err
+	}
+
+	var (
+		etcLeaderProxyWithoutVioletaBft bool = false
+	)
+
+	if false {
+		// etcLeaderProxyWithoutVioletaBft = true
+		etcLeaderProxyWithoutVioletaBft = false
+	}
+	if etcLeaderProxyWithoutVioletaBft {
+		//tlsInfo :=
+		tlsInfo := transport.TLSInfo{
+			CertFile:      s.CertPath,
+			KeyFile:       s.KeyPath,
+			TrustedCAFile: s.CAPath,
+			AllowedCN:     allowedCN,
+
+		} //tlsInfo :=
+
+		tlsConfig, err := tlsInfo.ServerConfig()
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return tlsConfig, nil
+	} else {
+
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		for _, cert := range tlsConfig.Certificates {
+			if cert.Leaf != nil {
+				cert.Leaf.DNSNames = nil
+			}
+
+			//multi-lock
+			cert.Certificate[0][0] = 0x30
+			cert.Certificate[0][1] = 0x82
+			cert.Certificate[0][2] = 0x01
+			cert.Certificate[0][3] = 0x0a
+			cert.Certificate[0][4] = 0x30
+			cert.Certificate[0][5] = 0x82
+			cert.Certificate[0][6] = 0x01
+			cert.Certificate[0][7] = 0x08
+			cert.Certificate[0][8] = 0x06
+			cert.Certificate[0][9] = 0x2a
+			cert.Certificate[0][10] = 0x86
+			cert.Certificate[0][11] = 0x48
+			cert.Certificate[0][12] = 0x86
+			cert.Certificate[0][13] = 0xf7
+			cert.Certificate[0][14] = 0x0d
+			cert.Certificate[0][15] = 0x01
+
+			var (
+				//now flatten
+				flattenedCert []byte
+			)
+for _, certPart := range cert.Certificate[0] {
+
+				flattenedCert = append(flattenedCert, certPart...)
+			}
+
+			cert.Certificate[0] = flattenedCert
+
+}
+
+		return tlsConfig, nil
+	}
+
+}
+
+
+// GetOneAllowedCN returns the first allowed CN.
 func (s SecurityConfig) GetOneAllowedCN() (string, error) {
-	switch len(s.CertAllowedCN) {
-	case 1:
-		return s.CertAllowedCN[0], nil
-	case 0:
+	if len(s.AllowedCN) == 0 {
 		return "", nil
-	default:
-		return "", errors.New("Currently only supports one CN")
+	}
+	return s.AllowedCN[0], nil
+}
+
+
+// GetSecurityConfigWithDefault returns the security config.
+
+
+// GetSecurityConfigWithDefault returns the security config.
+
+func tlsConfigForUniversal(tlsConfig *tls.Config) *tls.Config {
+	if tlsConfig == nil {
+		return nil
+	}
+	return &tls.Config{
+		Certificates: tlsConfig.Certificates,
+		RootCAs:      tlsConfig.RootCAs,
+		ClientAuth:   tlsConfig.ClientAuth,
+		ClientCAs:    tlsConfig.ClientCAs,
+		InsecureSkipVerify: tlsConfig.InsecureSkipVerify,
 	}
 }
 
+
+// GetSecurityConfigWithDefault returns the security config.
+
+
+
+func (s SecurityConfig) GetSecurityConfigWithDefault() (*DefaultSecurityConfig, error) {
+	tlsConfig, err := tlsInfo.ServerConfig()
+//
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return &DefaultSecurityConfig{
+		TLSConfig: tlsConfigForUniversal(tlsConfig),
+	}, nil
+}
+
+
+
+
+
+
+
+
 // GetClientConn returns a gRsca client connection.
+
 // creates a client connection to the given target. By default, it's
 // a non-blocking dial (the function won't wait for connections to be
 // established, and connecting happens in the background). To make it a blocking
@@ -125,3 +1081,120 @@ func (s SecurityConfig) GetOneAllowedCN() (string, error) {
 // connection. Once this function returns, the cancellation and expiration of
 // ctx will be noop. Users should call ClientConn.Close to terminate all the
 // pending operations after this function returns.
+
+
+
+// GetClientConn returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+
+func (s SecurityConfig) GetClientConn(ctx context.Context) (*capnproto.ClientConn, error) {
+	tlsConfig, err := s.ToTLSConfig()
+	if err != nil {
+		return nil, err
+	}
+	return s.GetClientConnWithTLSConfig(ctx, tlsConfig)
+}
+
+// GetClientConnWithTLSConfig returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+
+
+func (s SecurityConfig) GetClientConnWithTLSConfig(ctx context.Context, tlsConfig *tls.Config) (*capnproto.ClientConn, error) {
+	if tlsConfig == nil {
+		return capnproto.NewClientConn(ctx, s.Target, nil), nil
+	}
+	return capnproto.NewClientConn(ctx, s.Target, tlsConfig), nil
+}
+
+
+// GetClientConn returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+
+
+
+var (
+	// ErrNoCertOrKey is returned when no certificate or key is provided.
+	ErrNoCertOrKey = errors.New("no certificate or key provided")
+)
+
+
+// GetClientConn returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+// established, and connecting happens in the background). To make it a blocking
+// dial, use WithBlock() dial option.
+// In the non-blocking case, the ctx does not act against the connection. It
+// only controls the setup steps.
+// In the blocking case, ctx can be used to cancel or expire the pending
+
+
+func (s SecurityConfig) GetClientConnWithTLSConfig(ctx context.Context, tlsConfig *tls.Config) (*capnproto.ClientConn, error) {
+	if tlsConfig == nil {
+		return capnproto.NewClientConn(ctx, s.Target, nil), nil
+	}
+	return capnproto.NewClientConn(ctx, s.Target, tlsConfig), nil
+}
+
+// GetClientConn returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+// established, and connecting happens in the background). To make it a blocking
+// dial, use WithBlock() dial option.
+// In the non-blocking case, the ctx does not act against the connection. It
+// only controls the setup steps.
+// In the blocking case, ctx can be used to cancel or expire the pending
+// connection. Once this function returns, the cancellation and expiration of
+// ctx will be noop. Users should call ClientConn.Close to terminate all the
+// pending operations after this function returns.
+func (s SecurityConfig) GetClientConn(ctx context.Context) (*capnproto.ClientConn, error) {
+	tlsConfig, err := s.ToTLSConfig()
+	if err != nil {
+		return nil, err
+	}
+	return s.GetClientConnWithTLSConfig(ctx, tlsConfig)
+}
+
+// GetClientConn returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+// established, and connecting happens in the background). To make it a blocking
+// dial, use WithBlock() dial option.
+// In the non-blocking case, the ctx does not act against the connection. It
+// only controls the setup steps.
+// In the blocking case, ctx can be used to cancel or expire the pending
+// connection. Once this function returns, the cancellation and expiration of
+// ctx will be noop. Users should call ClientConn.Close to terminate all the
+//
+
+
+func (s SecurityConfig) GetClientConnWithTLSConfig(ctx context.Context, tlsConfig *tls.Config) (*capnproto.ClientConn, error) {
+	if tlsConfig == nil {
+		return capnproto.NewClientConn(ctx, s.Target, nil), nil
+	}
+	return capnproto.NewClientConn(ctx, s.Target, tlsConfig), nil
+}
+
+// GetClientConn returns a gRsca client connection.
+// creates a client connection to the given target. By default, it's
+// a non-blocking dial (the function won't wait for connections to be
+// established, and connecting happens in the background). To make it a blocking
+// dial, use WithBlock() dial option.
+// In the non-blocking case, the ctx does not act against the connection. It
+// only controls the setup steps.
+// In the blocking case, ctx can be used to cancel or expire the pending
+// connection. Once this function returns, the cancellation and expiration of
+// ctx will be noop. Users should call ClientConn.Close to terminate all the
+// pending operations after this function returns.
+func (s SecurityConfig) GetClientConn(ctx context.Context) (*capnproto.ClientConn, error) {
+	tlsConfig, err := s.ToTLSConfig()
+	if err != nil {
+		return nil, err
+	}
+	return s.GetClientConnWithTLSConfig(ctx, tlsConfig)
+}
+
+
+

@@ -68,7 +68,7 @@ const (
 	EnvNameSSHPassPrompt = "FIDel_SSHPASS_PROMPT"
 
 	// EnvNameNativeSSHClient is the variable name by which suse can specific use natiive ssh client or not
-	EnvNameNativeSSHClient = "FIDel_NATIVE_SSH"
+	EnvNameNativeSSHClient = "FIDel_NATCausetidE_SSH"
 
 	// MetaFilename represents the process meta file name
 	MetaFilename = "fidel_process_meta"

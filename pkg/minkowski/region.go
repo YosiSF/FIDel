@@ -365,7 +365,7 @@ type Empty struct {
 func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_yages_schema_proto_msgTypes[0]
+		mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -378,7 +378,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_yages_schema_proto_msgTypes[0]
+	mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -391,7 +391,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_yages_schema_proto_rawDescGZIP(), []int{0}
+	return file_isolatedSuffixHashMap_schema_proto_rawDescGZIP(), []int{0}
 }
 
 // Content is the payload used in YAGES services.
@@ -406,7 +406,7 @@ type Content struct {
 func (x *Content) Reset() {
 	*x = Content{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_yages_schema_proto_msgTypes[1]
+		mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -419,7 +419,7 @@ func (x *Content) String() string {
 func (*Content) ProtoMessage() {}
 
 func (x *Content) ProtoReflect() protoreflect.Message {
-	mi := &file_yages_schema_proto_msgTypes[1]
+	mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +432,7 @@ func (x *Content) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Content.ProtoReflect.Descriptor instead.
 func (*Content) Descriptor() ([]byte, []int) {
-	return file_yages_schema_proto_rawDescGZIP(), []int{1}
+	return file_isolatedSuffixHashMap_schema_proto_rawDescGZIP(), []int{1}
 }
 
 
@@ -555,23 +555,23 @@ var regionSchemaProtoMap = []byte{
 
 
 
-func file_yages_schema_proto_rawDescGZIP() []byte {
-	file_yages_schema_proto_rawDescOnce.Do(func() {
-		file_yages_schema_proto_rawDescData = protoimpl.X.CompressGZIP(file_yages_schema_proto_rawDescData)
+func file_isolatedSuffixHashMap_schema_proto_rawDescGZIP() []byte {
+	file_isolatedSuffixHashMap_schema_proto_rawDescOnce.Do(func() {
+		file_isolatedSuffixHashMap_schema_proto_rawDescData = protoimpl.X.CompressGZIP(file_isolatedSuffixHashMap_schema_proto_rawDescData)
 	})
-	return file_yages_schema_proto_rawDescData
+	return file_isolatedSuffixHashMap_schema_proto_rawDescData
 }
 
-var file_yages_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_yages_schema_proto_goTypes = []interface{}{
-	(*Empty)(nil),   // 0: yages.Empty
-	(*Content)(nil), // 1: yages.Content
+var file_isolatedSuffixHashMap_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_isolatedSuffixHashMap_schema_proto_goTypes = []interface{}{
+	(*Empty)(nil),   // 0: isolatedSuffixHashMap.Empty
+	(*Content)(nil), // 1: isolatedSuffixHashMap.Content
 }
-var file_yages_schema_proto_depIdxs = []int32{
-	0, // 0: yages.Echo.Ping:input_type -> yages.Empty
-	1, // 1: yages.Echo.Reverse:input_type -> yages.Content
-	1, // 2: yages.Echo.Ping:output_type -> yages.Content
-	1, // 3: yages.Echo.Reverse:output_type -> yages.Content
+var file_isolatedSuffixHashMap_schema_proto_depIdxs = []int32{
+	0, // 0: isolatedSuffixHashMap.Echo.Ping:input_type -> isolatedSuffixHashMap.Empty
+	1, // 1: isolatedSuffixHashMap.Echo.Reverse:input_type -> isolatedSuffixHashMap.Content
+	1, // 2: isolatedSuffixHashMap.Echo.Ping:output_type -> isolatedSuffixHashMap.Content
+	1, // 3: isolatedSuffixHashMap.Echo.Reverse:output_type -> isolatedSuffixHashMap.Content
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -579,13 +579,13 @@ var file_yages_schema_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_yages_schema_proto_init() }
-func file_yages_schema_proto_init() {
-	if File_yages_schema_proto != nil {
+func init() { file_isolatedSuffixHashMap_schema_proto_init() }
+func file_isolatedSuffixHashMap_schema_proto_init() {
+	if File_isolatedSuffixHashMap_schema_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_yages_schema_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_isolatedSuffixHashMap_schema_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
@@ -597,7 +597,7 @@ func file_yages_schema_proto_init() {
 				return nil
 			}
 		}
-		file_yages_schema_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_isolatedSuffixHashMap_schema_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Content); i {
 			case 0:
 				return &v.state
@@ -620,14 +620,14 @@ func file_yages_schema_proto_init() {
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_yages_schema_proto_goTypes,
-		DependencyIndexes: file_yages_schema_proto_depIdxs,
-		MessageInfos:      file_yages_schema_proto_msgTypes,
+		GoTypes:           file_isolatedSuffixHashMap_schema_proto_goTypes,
+		DependencyIndexes: file_isolatedSuffixHashMap_schema_proto_depIdxs,
+		MessageInfos:      file_isolatedSuffixHashMap_schema_proto_msgTypes,
 	}.Build()
-	File_yages_schema_proto = out.File
+	File_isolatedSuffixHashMap_schema_proto = out.File
 	regionSchemaProtoMap = nil
-	file_yages_schema_proto_goTypes = nil
-	file_yages_schema_proto_depIdxs = nil
+	file_isolatedSuffixHashMap_schema_proto_goTypes = nil
+	file_isolatedSuffixHashMap_schema_proto_depIdxs = nil
 }
 
 

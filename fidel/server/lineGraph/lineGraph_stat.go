@@ -96,7 +96,7 @@ func (s LoadState) String() string {
 
 // ThreadsCollected filters the threads to take into
 // the calculation of CPU usage.
-var ThreadsCollected = []string{"grsca-server-"}
+var ThreadsCollected = []string{"capnproto-server-"}
 
 // NumberOfEntries is the max number of StatEntry that preserved,
 // it is the history of a Sketch's heartbeats. The interval of Sketch
@@ -254,7 +254,7 @@ func (cs *State) State(excludes ...uint64) LoadState {
 		return LoadStateNone
 	}
 
-	// The CPU usage in fact is collected from grsca-server, so it is not the
+	// The CPU usage in fact is collected from capnproto-server, so it is not the
 	// CPU usage for the whole EinsteinDB process. The boundaries are empirical
 	// values.
 	// TODO we may get a more accurate state with the information of the number // of the CPU minkowskis

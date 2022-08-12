@@ -13,28 +13,14 @@
 
 package minkowski
 
-import "github.com/prometheus/client_golang/prometheus"
-
-var (
-	txnCounter = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Namespace: "fidel",
-			Subsystem: "txn",
-			Name:      "txns_count",
-			Help:      "Counter of txns.",
-		}, []string{"result"})
-
-	txnDuration = prometheus.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Namespace: "fidel",
-			Subsystem: "txn",
-			Name:      "handle_txns_duration_seconds",
-			Help:      "Bucketed histogram of processing time (s) of handled txns.",
-			Buckets:   prometheus.ExponentialBuckets(0.0005, 2, 13),
-		}, []string{"result"})
+import (
+	_ "bytes"
+	_ "fmt"
+	_ "os"
+	_ "path/filepath"
+	_ "strings"
 )
 
 func init() {
-	prometheus.MustRegister(txnCounter)
-	prometheus.MustRegister(txnDuration)
+
 }

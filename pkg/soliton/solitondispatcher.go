@@ -2,9 +2,84 @@ package soliton
 
 import (
 	"fmt"
-	"github.com/YosiSF/fidel/pkg/soliton/types"
+	"sync"
 	"time"
 )
+
+type misc struct {
+	writeBehindLogLedger WriteBehindLogLedgerInterface
+	shutdownC            chan struct{}
+
+	//causetGenerationPolicyName string
+	causetGenerationPolicyName string
+
+	//causetGenerationPolicyName string
+
+}
+
+// for benchmark
+func (m *misc) benchmark() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-time.After(time.Second):
+				fmt.Println("benchmark")
+			}
+		}
+	}()
+	wg.Wait()
+}
+
+// for benchmark
+func (m *misc) tscac() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-time.After(time.Second):
+				fmt.Println("tscac")
+			}
+		}
+	}()
+	wg.Wait()
+}
+
+// for benchmark
+func (m *misc) tscacLoad() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-time.After(time.Second):
+				fmt.Println("tscac-load")
+			}
+		}
+	}()
+	wg.Wait()
+}
+
+// for benchmark
+func (m *misc) tscacRun() {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-time.After(time.Second):
+				fmt.Println("tscac-run")
+			}
+		}
+	}()
+	wg.Wait()
+}
 
 type SolitonDispatcher struct {
 	writeBehindLogLedger WriteBehindLogLedgerInterface

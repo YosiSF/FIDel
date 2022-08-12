@@ -16,6 +16,7 @@ package interlock
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	_ "encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -24,32 +25,45 @@ import (
 	"strings"
 	"time"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
-	"github.com/docker/docker/client"
-	"github.com/docker/docker/pkg/stdcopy"
-
-
-	"github.com/fidel/gosms"
-	"github.com/fidel/gosms/sms"
-	"github.com/fidel/gosms/sms/modem"
-
-
-	"github.com/fidel/rp-causet/log"
-	"github.com/fidel/rp-causet/pram/local"
 	"github.com/fidel/rp-causet/pram/local/localdata"
 
-	"github.com/fidel/rp-causet/pram/local/localdata"
 	"github.com/fidel/rp-causet/pram/local/localdata/localdata"
-
 )
+
+const (
+	// StatusRunning is the status of a running instance.
+	StatusRunning = "running"
+	// StatusStopped is the status of a stopped instance.
+	StatusStopped = "stopped"
+	// StatusError is the status of an instance in error.
+	StatusError = "error"
+	//interlock is a CoW interlock.
+	interlock = "interlock"
+	// StatusUnknown is the status of an instance with an unknown status.
+	StatusUnknown = "unknown"
+	//gRPC is a gRPC interlock.
+	gRPC = "gRPC"
+	// StatusNotFound is the status of an instance that was not found.
+	StatusNotFound = "not found"
+	//ipfs is a ipfs interlock.
+	ipfs = "ipfs"
+)
+
+type roaringInterplanetaryFlatBuffer struct {
+	roaringInterplanetaryFlatBuffer []byte
+}
+
+func (i *roaringInterplanetaryFlatBuffer) Status() error {
+	return nil
+}
+
+func (i *roaringInterplanetaryFlatBuffer) Connect(target string) error {
+	return nil
+}
 
 type error struct {
 	Message string `json:"message"`
-
 }
-
 
 func Connect(target string) error {
 	var _ = os.Getenv(localdata.EnvNameHome)
@@ -58,7 +72,6 @@ func Connect(target string) error {
 	}
 	return connect(target)
 }
-
 
 func Status() error {
 
@@ -78,20 +91,59 @@ func Status() error {
 	return nil
 }
 
-
 func help() error {
 
-		return nil
+	return nil
 
 }
 
+// BSI is at its simplest is an array of bitmaps that represent an encoded
+// binary value.  The advantage of a BSI is that comparisons can be made
+// across ranges of values whereas a bitmap can only represent the existence
+// of a single value for a given column ID.  Another usage scenario involves
+// storage of high cardinality values.
 
+// BSI is a bitmap index.
+type BSI struct {
+	// The bitmap index is an array of bitmaps.  The bitmaps are
+	// represented as arrays of uint64s.  The number of bitmaps is
+	// equal to the number of columns in the table.
+	bmaps []*bitmap
+	// The number of columns in the table.
+	ncols int
+	// The number of rows in the table.
+	nrows int
+	// The number of rows in the table that are not deleted.
+	nrowsLive int
+}
 
+// NewBSI returns a new bitmap index.
+func NewBSI(ncols int) *BSI {
+	return &BSI{
+		bmaps:     make([]*bitmap, ncols),
+		ncols:     ncols,
+		nrows:     0,
+		nrowsLive: 0,
+	}
+}
 
+// NewBSIFromFile returns a new bitmap index from a file.
+func NewBSIFromFile(path string) (*BSI, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return NewBSIFromBytes(data)
+}
 
-
-
-
+// NewBSIFromBytes returns a new bitmap index from a byte slice.
+func NewBSIFromBytes(data []byte) (*BSI, error) {
+	var bsi BSI
+	if err := json.Unmarshal(data, &bsi); err != nil {
+		return nil, err
+	}
+	return &bsi, nil
+}
 
 func connect(target string) error {
 	var _ = os.Getenv(localdata.EnvNameHome)
@@ -102,7 +154,6 @@ func connect(target string) error {
 
 }
 
-
 func Execute() error {
 	var _ = os.Getenv(localdata.EnvNameHome)
 	if len(os.Args) < 2 {
@@ -111,35 +162,27 @@ func Execute() error {
 	return Execute()
 }
 
-
 func init() {
+	var _ = os.Getenv(localdata.EnvNameHome)
+	if len(os.Args) < 2 {
+		return fmt.Errorf("no target specified")
+	}
+	init := connect(os.Args[1])
+	return init
 
-
-	ui = ui.New()
-	widgets = ui.NewGrid()
 }
 
 type int struct {
 	cache FIDelCache
 }
 
-
-
-
 func (i *int) Status() error {
 	return nil
 }
 
-
 func (i *int) Connect(target string) error {
 	return nil
 }
-
-
-
-
-
-
 
 type FIDelCache interface {
 	Get(key string) (value interface{}, ok bool)
@@ -148,25 +191,16 @@ type FIDelCache interface {
 	Len() int
 	Cap() int
 	Clear()
-
 }
-
-
 
 type LRUFIDelCache struct {
 	capacity int
-
 }
 
 type JSONError struct {
 	Err error
 }
 
-
-//protobuf
-
-e provision and fidel delegatio through merkle trees Sketchd in EinsteinDB. We recommend flatbuffers
-//for the data structure.
 func (l *Local) Get(key string) (value interface{}, ok bool) {
 	//ipfs and rook
 	return nil, false
@@ -174,7 +208,6 @@ func (l *Local) Get(key string) (value interface{}, ok bool) {
 
 func (l *Local) Set(key string, value interface{}) {
 	//ipfs and rook
-
 
 }
 
@@ -205,21 +238,16 @@ func (l *Local) FidelExecute(cmd string, sudo bool, timeout ...time.Duration) (s
 	return
 }
 
-
 // Transfer implements Executer interface.
 func (l *Local) TokenTransfer(src string, dst string, download bool) error {
 	return nil
 }
 
-
-//Create CausetToken
+// Create CausetToken
 func (l *Local) CreateToken(token string) error {
 	//stateless hash function
 	return nil
 }
-
-
-
 
 func (l *Local) TransferJSON(src string, dst string, download bool) error {
 	data, err := ioutil.ReadFile(src)
@@ -234,8 +262,6 @@ func (l *Local) TransferJSON(src string, dst string, download bool) error {
 
 	return nil
 }
-
-
 
 var _ Interlock = &Local{}
 
@@ -277,9 +303,6 @@ func (l *Local) Transfer(src string, dst string, download bool) error {
 	return nil
 }
 
-
-
-
 // serviceAction is an action that should be performed on a given service
 type serviceAction struct {
 	kind    string
@@ -312,4 +335,21 @@ func (action serviceAction) Sync(kubeClient kubernetes.Interface, logger *logrus
 	}
 
 	return nil
+}
+
+func (action serviceAction) String() string {
+	return fmt.Sprintf("%s %s", action.kind, action.service.Name)
+
+}
+
+func (action serviceAction) GetObject() interface{} {
+	return action.service
+}
+
+func (action serviceAction) GetObjectKind() schema.ObjectKind {
+	return action.service
+}
+
+func (action serviceAction) GetObjectKindType() schema.ObjectKind {
+	return action.service
 }

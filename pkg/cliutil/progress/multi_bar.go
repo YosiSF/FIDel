@@ -11,15 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package progress
+package cliutil
 
 import (
 	"bufio"
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/mattn/go-runewidth"
 )
 
 // MultiBarItem controls a bar item inside MultiBar.

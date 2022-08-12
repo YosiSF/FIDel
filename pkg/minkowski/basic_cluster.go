@@ -19,6 +19,28 @@ import (
 	_ "time"
 )
 
+type SketchsInfo struct {
+	Sketchs     map[uint64]*SketchInfo
+	SketchsLock sync.RWMutex
+	SketchsList []*SketchInfo
+}
+
+func (s *SketchsInfo) GetSketchs() []*SketchInfo {
+	s.SketchsLock.RLock()
+	defer s.SketchsLock.RUnlock()
+	return s.SketchsList
+}
+
+func (s *SketchsInfo) GetMetaSketchs() []*fidelpb.Sketch {
+	s.SketchsLock.RLock()
+	defer s.SketchsLock.RUnlock()
+	var Sketchs []*fidelpb.Sketch
+	for _, Sketch := range s.Sketchs {
+		Sketchs = append(Sketchs, Sketch.GetMetaSketch())
+	}
+	return Sketchs
+}
+
 // NewBasicLineGraphWithSketchs NewBasicLineGraph creates a BasicLineGraph.
 
 func NewBasicLineGraphWithSketchs(Sketchs []*SketchInfo) *BasicLineGraph {

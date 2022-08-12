@@ -13,38 +13,125 @@
 package minkowski
 
 import (
+
+
 	"bytes"
 	"math/rand"
 	"time"
 	_ "unsafe"
+
 )
 
-// RegionInfo is a region information.
-type RegionInfo struct {
-	meta         *fidelpb.Region
-	writtenBytes uint64
+
+
+
+
+var (
+	txnCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "fidel",
+			Subsystem: "txn",
+			Name:      "txns_count",
+			Help:      "Counter of txns.",
+		}, []string{"result"})
+	txnDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace: "fidel",
+			Subsystem: "txn",
+			Name:      "handle_txns_duration_seconds",
+			Help:      "Bucketed histogram of processing time (s) of handled txns.",
+			Buckets:   prometheus.ExponentialBuckets(0.0005, 2, 13),
+		}, []string{"result"})
+)
+
+
+func init() {
+	prometheus.MustRegister(txnCounter)
+	prometheus.MustRegister(txnDuration)
 }
 
-type regionItem struct {
-	region *RegionInfo
+
+type FIDelCache interface {
+	Get(key string) (value interface{}, ok bool)
+	Set(key string, value interface{})
+	Del(key string)
+	Len() int
+	Cap() int
+	Clear()
 }
 
-type regionTree struct {
-	tree *btree.BTree
+
+
+type LRUFIDelCache struct {
+	capacity int
 }
 
+
+
+
+
+
+
+
+
+func NewRegionTree(root *RegionNode) *RegionTree {
+	return &RegionTree{
+		root: root,
+
+	}
+}
+
+
+type RegionNode struct {
+	region *Region
+
+	left *RegionNode
+	right *RegionNode
+
+	parent *RegionNode
+
+	isLeaf bool
+}
+
+
+func (rt *RegionTree) GetRoot() *RegionNode {
+	return rt.root
+}
+
+type getOverlaps  func(region *Region) []*Region
+
+func (rt *RegionTree) GetOverlaps(region *Region) []*Region {
+	return rt.getOverlaps(region)
+}
+
+func (rt *RegionTree) getOverlaps(region *Region) []*Region {
+	return nil
+}
+
+
+func (rt *RegionTree) GetOverlapsWithRoot(region *Region) []*Region {
+	return rt.getOverlapsWithRoot(region)
+}
+
+func (rt *RegionTree) GetOverlapsByKeyRange(startKey, endKey []byte) []*Region {
+	return nil
+}
+
+func (rt *RegionTree) GetRootRegion() *Region {
+	return rt.root.region
+}
+
+
+func (rt *RegionTree) GetRegionNodeByKey(key []byte) *RegionNode {
 // Less returns true if the region start key is less than the other.
-func (r *regionItem) Less(other btree.Item) bool {
-	left := r.region.GetStartKey()
-	right := other.(*regionItem).region.GetStartKey()
-	return bytes.Compare(left, right) < 0
+	return rt.getRegionNodeByKey(key)
 }
+
 
 func (r *regionItem) Contains(key []byte) bool {
 	start, end := r.region.GetStartKey(), r.region.GetEndKey()
-	return bytes.Compare(key, start) >= 0 && (len(end) == 0 || bytes.Compare(key, end) < 0)
+	return bytes.Compare(start, key) <= 0 && bytes.Compare(key, end) < 0
 }
-
 
 
 
@@ -57,6 +144,16 @@ const (
 	// minBTreeDegree is the minimum degree of btree.
 	minBTreeDegree = 4
 )
+
+type regionTree struct {
+	root *regionNode
+	degree int
+}
+
+
+func (rt *regionTree) GetRoot() *regionNode {
+	return rt.root
+}
 
 type RegionTree struct {
 	tree *regionTree
@@ -87,13 +184,16 @@ func newRegionTree() *regionTree {
 		tree: btree.New(defaultBTreeDegree),
 	}
 }
-
-func (t *regionTree) length() int {
+//length returns the number of regions in the tree.
+	f2 := func(t *regionTree) length()
+	int {
 	return t.tree.Len()
 }
 
+
 // getOverlaps gets the regions which are overlapped with the specified region range.
-func (t *regionTree) getOverlaps(region *RegionInfo) []*RegionInfo {
+func (t *regionTree) getOverlaps(start, end []byte) []*regionItem {
+
 	item := &regionItem{region: region}
 
 	// note that find() gets the last item that is less or equal than the region.

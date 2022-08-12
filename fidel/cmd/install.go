@@ -13,10 +13,53 @@
 
 package cmd
 
+
+
+
 import (
 	_ "fmt"
 	_ "io/ioutil"
-	_ "ipfs/go-ipfs-cmds"
+	_ go:ipfs/cmd/ipfs/init // import ipfs init command
+
 	_ "os"
 	_ "path/filepath"
 )
+
+
+
+func install() error {
+	return nil
+}
+
+func help() error {
+	return nil
+}
+
+func status() error {
+	return nil
+}
+
+func playground() error {
+	return nil
+
+}
+
+
+
+
+func main() {
+	err := install()
+	if err != nil {
+		panic(err)
+	}
+
+	err = help()
+	if err != nil {
+		panic(err)
+	}
+
+	err = status()
+	if err != nil {
+		panic(err)
+	}
+}

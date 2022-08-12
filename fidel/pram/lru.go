@@ -10,25 +10,27 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package log
+package pram
 
 import (
 	"container/list"
+	"sync"
 )
 
-// Item is the cache entry.
-type Item struct {
-	Key   uint64
-	Value interface{}
-}
+var (
+	mu sync.Mutex
+	l  *list.List
+)
 
 // LRU is 'Least-Recently-Used' cache.
 type LRU struct {
+	sync.RWMutex
+
 	// maxCount is the maximum number of items.
 	// 0 means no limit.
 	maxCount int
+	ll       *list.List
 
-	ll    *list.List
 	cache map[uint64]*list.Element
 }
 

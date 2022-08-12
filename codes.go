@@ -1,12 +1,22 @@
 package
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	_ "net/http/pprof"
+	"os"
+	"runtime"
+	_ "runtime/pprof"
+	_ "sync"
+	_ "time"
+)
 
-	)
+
 
 var (
+	causetGenerationPolicyName string
+
 	// InternalCode is equivalent to HTTP 500 Internal Server Error.
 	InternalCode = NewCode("internal").SetHTTP(http.StatusInternalServerError)
 
@@ -43,6 +53,69 @@ var (
 	// ForbiddenCode indicates the user is not authorized.
 	// This is mapped to HTTP 403.
 	ForbiddenCode = AuthCode.Child("auth.forbidden").SetHTTP(http.StatusForbidden)
-
-
 )
+
+
+
+func (m *misc) getCausetGenerationPolicyName() string {
+	return causetGenerationPolicyName
+}
+
+
+
+func executeTpcc(action string) {
+	if pprofAddr != "" {
+		go func() {
+			err := http.ListenAndServe(pprofAddr, http.DefaultServeMux)
+			if err != nil {
+				fmt.Printf("failed to ListenAndServe: %s\n", err.Error())
+			}
+		}()
+	}
+	if action == "bench" {
+		m := new(misc)
+		m.benchmark()
+	}
+
+	if action == "tpcc" {
+		m := new(misc)
+		m.tpcc()
+	}
+
+	if action == "tpcc-load" {
+		m := new(misc)
+		m.tpccLoad()
+	}
+
+	if action == "tpcc-run" {
+		m := new(misc)
+		m.tpccRun()
+	}
+
+	if action == "tpcc-clean" {
+		m := new(misc)
+		m.tpccClean()
+	}
+
+	if action == "tpcc-clean-load" {
+		m := new(misc)
+		m.tpccCleanLoad()
+	}
+
+	if action == "tpcc-clean-load-run" {
+		m := new(misc)
+		m.tpccCleanLoadRun()
+	}
+}
+
+
+func (m *misc) benchmark() {
+	fmt.Println("benchmark")
+
+}
+
+
+func (m *misc) tpcc() {
+	fmt.Println("tpcc")
+
+}

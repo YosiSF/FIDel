@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/YosiSF/fidel/pkg/locale
 	"github.com/YosiSF/FIDel/pkg/telemetry"
 	"github.com/spf13/cobra"
 )

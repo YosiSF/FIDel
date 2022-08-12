@@ -11,12 +11,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package log
+package pram
 
-import "sync"
+import (
+	"context"
+	"sync"
+	_ "time"
+)
+
+// HTTP headers.
+const (
+	RedirectorHeader    = "PD-Redirector"
+	AllowFollowerHandle = "PD-Allow-follower-handle"
+)
+
+const (
+	errRedirectFailed      = "redirect failed"
+	errRedirectToNotLeader = "redirect to not leader"
+)
+
+type runtimeServiceValidator struct {
+	s     *server.Server
+	group server.ServiceGroup
+}
+
+type threadSafeFIDelCache struct {
+	cache FIDelCache
+	lock  sync.RWMutex
+}
 
 // FIDelCache is an interface for cache system
 type FIDelCache interface {
+
 	// Put puts an item into cache.
 	Put(key uint64, value interface{})
 	// Get retrives an item from cache.
@@ -31,28 +57,81 @@ type FIDelCache interface {
 	Len() int
 }
 
-// Type is cache's type such as LRUFIDelCache and etc.
-type Type int
+type Item struct {
+	Key   uint64
+	Value interface{}
+}
+
+type FIDelCacheItem struct {
+	Key   uint64
+	Value interface{}
+}
+
+type Event interface{}
+
+// EmitterInterface Root interface for events dispatch
+type EmitterInterface interface {
+	// Deprecated: Emit Sends an event to the subscribed listeners
+	Emit(context.Context, Event)
+
+	// Deprecated: GlobalChannel returns a glocal channel that receives emitted events
+	GlobalChannel(ctx context.Context) <-chan Event
+
+	// Deprecated: Subscribe Returns a channel that receives emitted events
+	Subscribe(ctx context.Context) <-chan Event
+
+	// Deprecated: UnsubscribeAll close all listeners channels
+	UnsubscribeAll()
+}
+
+// Deprecated: use event bus directly
+// EventEmitter Registers listeners and dispatches events to them
+type EventEmitter struct {
+	listeners map[string][]chan Event
+	lock      sync.RWMutex
+
+	bus        event.Bus
+	muEmitters sync.Mutex
+
+	cglobal <-chan Event
+
+	emitter event.Emitter
+	cancels []context.CancelFunc
+
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	wg sync.WaitGroup
+
+	closed bool
+
+	cache FIDelCache
+
+	capacity int
+
+	evictedHandler func(key uint64, value interface{})
+}
 
 const (
+
+	// Evicted is the event type for when an item is evicted from the cache.
+	// The event will be sent on the global channel.
+	Evicted Event = "evicted"
 	// LRUFIDelCache is for LRU cache
 	LRUFIDelCache Type = 1
 	// TwoQueueFIDelCache is for 2Q cache
 	TwoQueueFIDelCache Type = 2
+	// FIFO is for FIFO cache
+	//
+	// Deprecated: use FIFOFIDelCache instead
+	FIFO Type = 3
+	// FIFOFIDelCache is for FIFO cache
 )
-
-var (
-	// DefaultFIDelCacheType set default cache type for NewDefaultFIDelCache function
-	DefaultFIDelCacheType = LRUFIDelCache
-)
-
-type threadSafeFIDelCache struct {
-	cache FIDelCache
-	lock  sync.RWMutex
-}
 
 func newThreadSafeFIDelCache(cache FIDelCache) FIDelCache {
+
 	return &threadSafeFIDelCache{
+
 		cache: cache,
 	}
 }
@@ -101,19 +180,63 @@ func (c *threadSafeFIDelCache) Len() int {
 	return c.cache.Len()
 }
 
-// NewFIDelCache create FIDelCache instance by FIDelCacheType
-func NewFIDelCache(size int, cacheType Type) FIDelCache {
-	switch cacheType {
-	case LRUFIDelCache:
-		return newThreadSafeFIDelCache(newLRU(size))
-	case TwoQueueFIDelCache:
-		return newThreadSafeFIDelCache(newTwoQueue(size))
-	default:
-		panic("Unknown cache type")
-	}
+func (c *threadSafeFIDelCache) String() string {
+	return c.cache.String()
+
+}
+
+func (c *threadSafeFIDelCache) Stats() map[string]interface{} {
+	return c.cache.Stats()
+}
+
+func (c *threadSafeFIDelCache) Clear() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.Clear()
+}
+
+func (c *threadSafeFIDelCache) Close() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.Close()
+}
+
+func (c *threadSafeFIDelCache) SetCapacity(capacity int) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.SetCapacity(capacity)
+}
+
+func (c *threadSafeFIDelCache) SetEvictedHandler(handler func(key uint64, value interface{})) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.SetEvictedHandler(handler)
+}
+
+func (c *threadSafeFIDelCache) SetExpiredHandler(handler func(key uint64, value interface{})) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.SetExpiredHandler(handler)
+}
+
+func (c *threadSafeFIDelCache) SetExpired(key uint64, value interface{}) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.SetExpired(key, value)
+}
+
+func (c *threadSafeFIDelCache) SetEvicted(key uint64, value interface{}) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.cache.SetEvicted(key, value)
+
 }
 
 // NewDefaultFIDelCache create FIDelCache instance by default cache type
 func NewDefaultFIDelCache(size int) FIDelCache {
 	return NewFIDelCache(size, DefaultFIDelCacheType)
 }
+
+///#![feature(const_fn)]
+//#![feature(const_fn_transmute)]
+//#![feature(const_fn_transmute_pure)]

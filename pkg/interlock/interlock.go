@@ -28,12 +28,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/YosiSF/errors"
 	"github.com/YosiSF/fidel/pkg/environment"
 	"github.com/YosiSF/fidel/pkg/localdata"
 	"github.com/YosiSF/fidel/pkg/repository/v0manifest"
 	"github.com/YosiSF/fidel/pkg/telemetry"
+	"github.com/fatih/color"
 	"golang.org/x/mod/semver"
 )
 

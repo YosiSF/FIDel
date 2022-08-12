@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package progress
+package cliutil
 
 import (
 	"bufio"
@@ -20,7 +20,6 @@ import (
 	"os"
 
 	"github.com/fatih/color"
-	"github.com/mattn/go-runewidth"
 	"go.uber.org/atomic"
 )
 
