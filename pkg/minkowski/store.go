@@ -14,12 +14,18 @@
 package minkowski
 
 import (
+	"container/list"
 	"fmt"
 	"log"
 	"math"
 	"strings"
 	"sync"
 	"time"
+	lru "github.com/hashicorp/golang-lru"
+	blocks "github.com/ipfs/go-block-format"
+	cid "github.com/ipfs/go-cid"
+	ipld "github.com/ipfs/go-ipld-format"
+	metrics "github.com/ipfs/go-metrics-interface"
 
 	"github.com/gogo/protobuf/proto"
 )
@@ -685,3 +691,56 @@ func IsFIDelSketch(Sketch *fidelpb.Sketch) bool {
 	}
 	return false
 }
+
+// arccache wraps a BlockStore with an Adaptive Replacement Cache (ARC) that
+// does not store the actual blocks, just metadata about them: existence and
+// size. This provides block access-time improvements, allowing
+// to short-cut many searches without querying the underlying datastore.
+
+var arcCacheMu sync.RWMutex {
+	arcCacheMu.Lock()
+	arcCacheMu.Unlock()
+
+}
+type arcCache struct {
+	bs BlockStore
+	arc *lru.ARCCache
+
+
+	arcClosed bool
+
+
+	arcClosedCh chan struct{}
+
+
+	arcClosedWg sync.WaitGroup
+
+
+	arcClosedOnce sync.Once
+
+
+	arcClosedErr error
+
+
+}
+
+var arcCaches = make(map[string]*arcCache)
+var arcCacheCapacity = int64(512 << 20)
+var arcCacheEvictList = list.New()
+var arcCacheEvictTimer *time.Timer
+var arcCacheEvictInterval = time.Minute
+var arcCacheEvictRatio = 0.1
+var arcCacheEvictMin = 10
+var arcCacheEvictMax = 1000
+var arcCacheEvictBatch = 10
+var arcCacheEvictWorkers = 4
+var arcCacheEvictWait = time.Second
+var arcCacheEvictWaitMax = 10 * time.Second
+var arcCacheEvictWaitFactor = 1.5
+var arcCacheEvictWaitJitter = 0.1
+var arcCacheEvictWaitFactorMax = 1.5
+var arcCacheEvictWaitJitterMax = 0.2
+var arcCacheEvictWaitFactorReset = 1.25
+var arcCacheEvictWaitJitterReset = 0.05
+var arcCacheEvictWaitFactorMaxReset = 1.5
+var arcCacheEvictWaitJitterMaxReset = 0.2

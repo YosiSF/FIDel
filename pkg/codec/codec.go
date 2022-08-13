@@ -15,17 +15,57 @@ package codec
 
 import (
 	"bytes"
+	"encoding/binary"
 	_ "encoding/binary"
 	_ "encoding/hex"
 	"errors"
 	_ "fmt"
+	"github.com/YosiSF/MilevaDB"
+	"github.com/YosiSF/MilevaDB/types"
+	"github.com/YosiSF/MilevaDB/types/parser"
 	"sync"
+
+	"github.com/ipfs/go-ipfs-api/options"
+	files "github.com/ipfs/go-ipfs-files"
+
 )
+
+//DagDecode
+func DagDecode(key []byte) (k KeyType, m Key, err error) {
+	k, m, err = DecodeBytes(key)
+	if err != nil {
+		return
+	}
+	if !bytes.HasPrefix(m, tablePrefix) {
+		return
+	}
+	m = m[len(tablePrefix):]
+	_, m, err = DecodeInt(m)
+	return
+}
+
+// DecodeBytes decodes bytes to key and the key type.
+func DagDecodeBytes(key []byte) (k KeyType, m Key, err error) {
+	if len(key) < 1 {
+		return 0, nil, errors.New("invalid key")
+	}
+	k = KeyType(key[0])
+	m = key[1:]
+	return
+}
+// DagPutSettings is a set of DagPut options.
+type DagPutSettings struct {
+	// If true, the key is not written to the DAG.
+	NoWrite bool
+
+	// If true, the key is not written to the DAG.
+}
 
 //https://github.com/RoaringBitmap/roaring/commit/a326fd5a73b9e776a73731796fa06a517db222c3
 //
 
 type roaringBitmap struct {
+
 	sync.RWMutex
 	bitmap *roaring.Bitmap
 
@@ -395,9 +435,20 @@ func EncodeBytes(k KeyType, m Key) []byte {
 }
 
 
+
+
+
 // EncodeInt encodes key and key type to bytes.
 func EncodeInt(k KeyType, m int64) []byte {
 	return EncodeIntDesc(k, m)
 
 }
 
+
+// EncodeIntDesc encodes int64 to bytes.
+func EncodeIntDesc(m int64) []byte {
+	var buf [8]byte
+	binary.BigEndian.PutUint64(buf[:], uint64(m))
+	return buf[:]
+
+}

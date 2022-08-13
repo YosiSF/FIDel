@@ -1,4 +1,4 @@
-package solitonautomata
+package solitonutil
 
 import (
 	"path/filepath"

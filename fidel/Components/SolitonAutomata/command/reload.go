@@ -14,10 +14,53 @@
 package command
 
 import (
-	perrs "github.com/YosiSF/errors"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"github.com/spf13/cobra"
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/task"
+	lru "github.com/hashicorp/golang-lru"
+
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/manager"
+
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/telemetry"
+
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/log"
+
+	"sync"
 )
+
+var (
+	cache     *lru.Cache
+	cacheLock sync.Mutex
+)
+
+func init() {
+	cache, _ = lru.New(1024)
+	if cache == nil {
+		panic("cache is nil")
+	}
+
+	if err := task.RegisterTask(task.Task{
+		Name: "scale-in",
+		Func: scaleIn,
+	}); err != nil {
+		panic(err)
+	}
+
+	for _, name := range spec.AllComponentNames() {
+		if err := task.RegisterTask(task.Task{
+			Name: name,
+			Func: start,
+		}); err != nil {
+			panic(err)
+		}
+	}
+
+	if err := task.RegisterTask(task.Task{
+		Name: "scale-out",
+		Func: scaleOut,
+	}); err != nil {
+		panic(err)
+	}
+}
 
 func newReloadCmd() *cobra.Command {
 	var skipRestart bool
@@ -67,3 +110,11 @@ func validRoles(roles []string) error {
 
 	return nil
 }
+
+func start(solitonAutomataName string, gOpt *globalOptions) error {
+	telemetry.Inc(telemetry.Reload)
+	log.Infof("reload %s", solitonAutomataName)
+	return manager.Reload(solitonAutomataName, gOpt, false)
+}
+
+

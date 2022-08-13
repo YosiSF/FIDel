@@ -2,16 +2,49 @@ package cmd
 
 import (
 	"fmt"
-
-	"github.com/YosiSF/FIDel/pkg/telemetry"
-	"github.com/spf13/cobra"
+	lru "github.com/hashicorp/golang-lru"
+	"sync"
 )
 
+type CacheHave bool
+
+type Cache struct {
+	cache *lru.Cache
+
+	cacheHave CacheHave
+
+	cacheHaveLock sync.Mutex
+
+	cacheLock sync.Mutex
+}
+
+type lock struct {
+	lock sync.Mutex
+
+	have bool
+
+	haveLock sync.Mutex
+
+	haveCache CacheHave
+}
+
+func (c *Cache) Get(key string) (interface{}, bool) {
+	c.cacheLock.Lock()
+	defer c.cacheLock.Unlock()
+
+	if c.cache == nil {
+		return nil, false
+	}
+	return c.cache.Get(key), false
+}
 func newTelemetryCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "telemetry",
 		Short: "Controls things about telemetry",
 	}
+
+	cmd.AddCommand(newTelemetryEnableCmd())
+	cmd.AddCommand(newTelemetryDisableCmd())
 
 	cmd.AddCommand(&cobra.Command{
 		Use:   "reset",
@@ -32,6 +65,8 @@ func newTelemetryCmd() *cobra.Command {
 			fmt.Printf("Reset uuid as: %s success\n", teleMeta.UUID)
 			return nil
 		},
+
+		//
 	})
 
 	cmd.AddCommand(&cobra.Command{
@@ -93,4 +128,50 @@ func newTelemetryCmd() *cobra.Command {
 	})
 
 	return cmd
+}
+
+func newTelemetryEnableCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "enable",
+		Short: "Enable telemetry of fidel",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			env := environment.GlobalEnv()
+			teleMeta, fname, err := telemetry.GetMeta(env)
+			if err != nil {
+				return err
+			}
+
+			teleMeta.Status = telemetry.EnableStatus
+			err = teleMeta.SaveTo(fname)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("Enable telemetry success\n")
+			return nil
+		},
+	}
+}
+
+func newTelemetryDisableCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "disable",
+		Short: "Disable telemetry of fidel",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			env := environment.GlobalEnv()
+			teleMeta, fname, err := telemetry.GetMeta(env)
+			if err != nil {
+				return err
+			}
+
+			teleMeta.Status = telemetry.DisableStatus
+			err = teleMeta.SaveTo(fname)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("Disable telemetry success\n")
+			return nil
+		},
+	}
 }

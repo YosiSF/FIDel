@@ -15,10 +15,39 @@ package command
 
 import (
 	operator "github.com/YosiSF/fidel/pkg/solitonAutomata/operation"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/task"
-	"github.com/spf13/cobra"
 )
+
+const (
+	mockScaleIn = "mock-scale-in"
+
+	scaleIn = "scale-in"
+
+	scaleInSuccess = "scale-in-success"
+
+	scaleInFailed = "scale-in-failed"
+
+	scaleInFailedReason = "scale-in-failed-reason"
+
+	scaleInFailedNodes = "scale-in-failed-nodes"
+
+	scaleInFailedNodesReason = "scale-in-failed-nodes-reason"
+
+	scaleInFailedNodesReasonDetail = "scale-in-failed-nodes-reason-detail"
+
+	scaleInFailedNodesReasonDetailCode = "scale-in-failed-nodes-reason-detail-code"
+
+	scaleInFailedNodesReasonDetailMessage = "scale-in-failed-nodes-reason-detail-message"
+)
+
+type scaleInCmd struct {
+	*cobra.Command
+	*gOptions
+}
+
+func (c *scaleInCmd) Run(b *task.Builder) error {
+	return nil
+}
 
 func newScaleInCmd() *cobra.Command {
 	cmd := &cobra.Command{

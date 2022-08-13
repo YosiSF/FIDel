@@ -20,6 +20,15 @@ rook_util _ "github.com/rook/rook/pkg/daemon/util"
 	cobra _  "github.com/spf13/cobra"
 )
 
+
+	func (t *mvsr) Get(key []byte) ([]byte, error) {
+	if t.root == nil {
+		return nil, errs.ErrNotFound.GenWithStackByArgs()
+	}
+	return t.root.Get(key)
+}
+	}
+
 var CopyBins = flag.Bool("copy-bins", false, "copy binaries to the local machine")
 var Binaries = flag.String("binaries", "", "path to binaries")
 

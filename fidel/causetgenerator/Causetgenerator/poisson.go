@@ -3,8 +3,8 @@ package Causetgenerator
 import (
 	"math/rand"
 	"time"
-	"github.com/coreos/pkg/capnslog"
-	cephv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
+
+	cephv1 _ "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
 	"github.com/rook/rook/pkg/clusterd"
 	"github.com/rook/rook/pkg/daemon/ceph/client"
 	"github.com/rook/rook/pkg/daemon/ceph/osd"
@@ -20,6 +20,79 @@ import (
 
 
 )
+
+
+func (cg *CausetGenerator) Generate() {
+	cg.GenerateCauset()
+}
+
+
+func (cg *CausetGenerator) GenerateCauset() {
+		cg.causetGenerationPolicy.Retrieve()
+		cg.causetGenerationPolicy.NumCausetsInNextSecond()
+	}
+
+func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
+		if cg.causetGenerationPolicyDistributionParams == nil {
+			return []float64{0.0, 1.0}
+		}
+		return cg.causetGenerationPolicyDistributionParams
+	}
+}
+
+
+func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
+		if cg.causetGenerationPolicyDistributionParams == nil {
+			return []float64{0.0, 1.0}
+		}
+		return cg.causetGenerationPolicyDistributionParams
+	}
+
+
+func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
+		return cg.causetGenerationPolicyDistributionParams
+	}
+
+
+/*
+// PublishWithDetails is used for fine grained control over record publishing
+func (s *Shell) PublishWithDetails(contentHash, key string, lifetime, ttl time.Duration, resolve bool) (*PublishResponse, error) {
+	var pubResp PublishResponse
+	req := s.Request("name/publish", contentHash).Option("resolve", resolve)
+	if key != "" {
+		req.Option("key", key)
+	}
+	if lifetime != 0 {
+		req.Option("lifetime", lifetime)
+	}
+	if ttl.Seconds() > 0 {
+		req.Option("ttl", ttl)
+	}
+	err := req.Exec(context.Background(), &pubResp)
+	if err != nil {
+		return nil, err
+	}
+	return &pubResp, nil
+}
+*/
+
+
+//Publish is used for fine grained control over record publishing
+
+func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
+		return cg.causetGenerationPolicyDistributionParams
+	}
+
+
+type PublicKey struct {
+	Key string `json:"key"`
+}
+
+type PrivateKey struct {
+	Key string `json:"key"`
+}
+
+
 
 /*
 erpret this.
@@ -94,6 +167,8 @@ erpret this.
 0/ 5 test
 0/ 5 cephfs_mirror
 0/ 5 cephsqlite*/
+
+
 
 func (sgp *PoissonGenerationPolicy) NumCausetsInNextSecond() int {
 	return int(rand.ExpFloat64() * sgp.rate)
@@ -295,19 +370,40 @@ func (cg *CausetGenerator) GetCausetGenerationPolicyName() string {
 		}}
 	}
 	}
-
-
-
-
 			return cg.causetGenerationPolicyDistribution
 		}
 
-			return "exponential"
+// GetCausetGenerationPolicyDistributionParamsString now we need to convert the distribution parameters to a string
+		// we will use the distribution name to determine how to convert the parameters
+		// if the distribution is exponential, we will use the lambda
+		// if the distribution is uniform, we will use the min and max
+		func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParamsString() string {
+			if cg.causetGenerationPolicyDistributionParamsString == "" {
+				return "0.0 1.0"
+			}
+			return cg.causetGenerationPolicyDistributionParamsString
 		}
-	}
 
-	func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
-		return cg.causetGenerationPolicyDistributionParams
-	}
+		func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParamsStringWithCommas() string {
+			if cg.causetGenerationPolicyDistributionParamsStringWithCommas == "" {
+				return "0.0, 1.0"
+			}
+			return cg.causetGenerationPolicyDistributionParamsStringWithCommas
+		}
+
+		func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParamsStringWithSpaces() string {
+			if cg.causetGenerationPolicyDistributionParamsStringWithSpaces == "" {
+				return "0.0 1.0"
+			}
+			return cg.causetGenerationPolicyDistributionParamsStringWithSpaces
+		}
+
+		func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParamsStringWithSpacesAndCommas() string {
+			if cg.causetGenerationPolicyDistributionParamsStringWithSpacesAndCommas == "" {
+				return "0.0, 1.0"
+			}
+			return cg.causetGenerationPolicyDistributionParamsStringWithSpacesAndCommas
+		}
+
 
 

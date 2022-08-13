@@ -16,11 +16,53 @@ package minkowski
 import (
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
 	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/Sketchlimit"
+	"github.com/YosiSF/kvproto/pkg/fidelpb"
+	"github.com/gogo/protobuf/proto"
 )
+
+// queryCache checks if the CID is in the cache. If so, it returns:
+//
+//  * exists (bool): whether the CID is known to exist or not.
+//  * size (int): the size if cached, or -1 if not cached.
+//  * ok (bool): whether present in the cache.
+//
+// When ok is false, the answer in inconclusive and the caller must ignore the
+// other two return values. Querying the underying store is necessary.
+//
+// When ok is true, exists carries the correct answer, and size carries the
+// size, if known, or -1 if not.
+
+func (s *Sketch) queryCache(cid CID) (exists bool, size int, ok bool) {
+	s.cacheMu.RLock()
+	defer s.cacheMu.RUnlock()
+	if size, ok := s.cache[cid]; ok {
+		return true, size, true
+	}
+	return false, -1, false
+}
+
+func (s *Sketch) setCache(cid CID, size int) {
+	s.cacheMu.Lock()
+	defer s.cacheMu.Unlock()
+	s.cache[cid] = size
+}
+
+func (s *Sketch) deleteCache(cid CID) {
+	s.cacheMu.Lock()
+	defer s.cacheMu.Unlock()
+	delete(s.cache, cid)
+}
+
+func (s *Sketch) getLeaderSize() int64 {
+
+	return s.leaderCount
+
+}
+
+func (s *Sketch) getRegionSize() int64 {
+	return s.regionCount
+}
 
 // SketchCreateOption is used to create Sketch.
 type SketchCreateOption func(region *SketchInfo)

@@ -14,6 +14,13 @@
 package einstutil
 
 import (
+	"github.com/filecoin-project/bacalhau/pkg/executor"
+	"github.com/filecoin-project/bacalhau/pkg/job"
+	"github.com/filecoin-project/bacalhau/pkg/storage"
+	"github.com/filecoin-project/bacalhau/pkg/system"
+	"github.com/filecoin-project/bacalhau/pkg/verifier"
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,6 +34,34 @@ import (
 	"github.com/bits-and-blooms/bitset"
 "github.com/mschoch/smat"
 )
+
+
+
+var jobspec *executor.JobSpec
+var filename string
+var jobfConcurrency int
+var jobfInputUrls []string
+var jobfInputVolumes []string
+var jobfOutputVolumes []string
+var jobfWorkingDir string
+var jobTags []string
+var jobTagsMap map[string]struct{}
+
+
+
+func (c *causet) GetData() []byte {
+	return c.content
+}
+
+
+func (c *causet) SetData(data []byte) {
+	c.content = data
+}
+
+func (c *causet) GetData() []byte {
+	return c.content
+}
+
 
 
 const (
@@ -111,6 +146,8 @@ type EncodedBinary struct {
 
 
 }
+
+
 
 type violetaBftConsensus struct {
 

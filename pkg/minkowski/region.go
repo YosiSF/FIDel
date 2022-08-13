@@ -1847,3 +1847,292 @@ func (h HexRegionsMeta) String() string {
 	}
 	return strings.TrimSpace(b.String())
 }
+
+
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfo(peers []*fidelpb.Peer) []*fidelpb.Peer {
+
+	// Here we use a trick to convert []*fidelpb.Peer to []*fidelpb.Peer
+	// without copying.
+	var p []*fidelpb.Peer
+
+
+	for _, peer := range peers {
+
+
+		p = append(p, peer)
+	}
+	return p
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr2(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr3(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr4(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr5(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr6(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr7(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr8(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// HexRegionPeersInfo converts region peers info to hex format. Used for formating
+// region in logs.
+func HexRegionPeersInfoStr9(peers []*fidelpb.Peer) string {
+	var b strings.Builder
+	for _, peer := range HexRegionPeersInfo(peers) {
+		b.WriteString(proto.CompactTextString(peer))
+	}
+	return strings.TrimSpace(b.String())
+}
+
+// bloomCached returns a Blockstore that caches Has requests using a Bloom
+// filter. bloomSize is size of bloom filter in bytes. hashCount specifies the
+// number of hashing functions in the bloom filter (usually known as k).
+
+func bloomCached(bs Blockstore, bloomSize, hashCount int) (*bloomcache.Blockstore, error) {
+	bloom, err := bloom.New(uint(bloomSize), uint(hashCount))
+	if err != nil {
+		return nil, err
+	}
+	bc := bloomcache.New(bs, bloom)
+
+	bc.HasLocal = func(ctx context.Context, c cid.Cid) (bool, error) {
+		return bc.Blockstore().Has(c)
+	}
+	return bc, nil
+}
+
+/*
+func (b *bloomcache) PutMany(ctx context.Context, bs []blocks.Block) error {
+	// bloom cache gives only conclusive resulty if key is not contained
+	// to reduce number of puts we need conclusive information if block is contained
+	// this means that PutMany can't be improved with bloom cache so we just
+	// just do a passthrough.
+ */
+
+
+func (b *bloomcache) PutMany(ctx context.Context, bs []blocks.Block) error {
+	return b.Blockstore().PutMany(ctx, bs)
+}
+
+func (b *bloomcache) Put(ctx context.Context, b blocks.Block) error {
+	return b.Put(ctx, b)
+}
+
+func (b *bloomcache) PutWithCache(ctx context.Context, b blocks.Block) error {
+	return b.PutWithCache(ctx, b)
+}
+
+func (b *bloomcache) Get(ctx context.Context, c cid.Cid) (blocks.Block, error) {
+	return b.Blockstore().Get(ctx, c)
+}
+
+func (b *bloomcache) GetSize(ctx context.Context, c cid.Cid) (int, error) {
+	return b.Blockstore().GetSize(ctx, c)
+}
+
+func (b *bloomcache) GetSizeWithCache(ctx context.Context, c cid.Cid) (int, error) {
+	return b.Blockstore().GetSizeWithCache(ctx, c)
+}
+
+func (b *bloomcache) GetMany(ctx context.Context, keys []cid.Cid) <-chan blocks.Block {
+	return b.Blockstore().GetMany(ctx, keys)
+}
+
+func (b *bloomcache) GetManyWithCache(ctx context.Context, keys []cid.Cid) <-chan blocks.Block {
+	return b.Blockstore().GetManyWithCache(ctx, keys)
+}
+
+func (b *bloomcache) Has(ctx context.Context, c cid.Cid) (bool, error) {
+	return b.Blockstore().Has(ctx, c)
+}
+
+func (b *bloomcache) HasWithCache(ctx context.Context, c cid.Cid) (bool, error) {
+	return b.Blockstore().HasWithCache(ctx, c)
+}
+
+func (b *bloomcache) Delete(ctx context.Context, c cid.Cid) error {
+	return b.Blockstore().Delete(ctx, c)
+}
+
+
+func (b *bloomcache) DeleteWithCache(ctx context.Context, c cid.Cid) error {
+	return b.Blockstore().DeleteWithCache(ctx, c)
+}
+
+func (b *bloomcache) AllKeysChan(ctx context.Context) (<-chan cid.Cid, error) {
+	return b.Blockstore().AllKeysChan(ctx)
+}
+
+func (b *bloomcache) AllKeysChanWithCache(ctx context.Context) (<-chan cid.Cid, error) {
+	return b.Blockstore().AllKeysChanWithCache(ctx)
+}
+
+func (b *bloomcache) AllKeys(ctx context.Context) ([]cid.Cid, error) {
+	return b.Blockstore().AllKeys(ctx)
+}
+
+func (b *bloomcache) AllKeysWithCache(ctx context.Context) ([]cid.Cid, error) {
+	return b.Blockstore().AllKeysWithCache(ctx)
+}
+
+func (b *bloomcache) Batch() (blocks.Batch, error) {
+	return b.Blockstore().Batch()
+}
+
+func (b *bloomcache) BatchWithCache() (blocks.Batch, error) {
+	return b.Blockstore().BatchWithCache()
+}
+
+func (b *bloomcache) DiskUsage() (uint64, error) {
+	return b.Blockstore().DiskUsage()
+}
+
+func (b *bloomcache) DiskUsageWithCache() (uint64, error) {
+	return b.Blockstore().DiskUsageWithCache()
+}
+
+func (b *bloomcache) Cache() (lru.Cache, error) {
+	return b.Blockstore().Cache()
+}
+
+func (b *bloomcache) CacheWithCache() (lru.Cache, error) {
+	return b.Blockstore().CacheWithCache()
+}
+
+func (b *bloomcache) Logger(prefix string) log.Logger {
+	return b.Blockstore().Logger(prefix)
+}
+
+func (b *bloomcache) LoggerWithCache(prefix string) log.Logger {
+	return b.Blockstore().LoggerWithCache(prefix)
+}
+
+// NewBloomCached returns a Blockstore that caches Has requests using a Bloom
+// filter. bloomSize is size of bloom filter in bytes. hashCount specifies the
+// number of hashing functions in the bloom filter (usually known as k).
+func NewBloomCached(bs Blockstore, bloomSize, hashCount int) (Blockstore, error) {
+	bc, err := bloomCached(bs, bloomSize, hashCount)
+	if err != nil {
+		return nil, err
+	}
+	return bc, nil
+}
+
+// NewBlockstore returns a new Blockstore using the given datastore as the
+// underlying datastore.
+func NewBlockstore(d ds.Batching) (*Blockstore, error) {
+	var bc Blockstore
+	var err error
+	if strings.HasSuffix(d.String(), "bloom") {
+		bc, err = NewBloomCached(ds.NewMapDatastore(), DefaultBloomFilterSize, DefaultBloomFilterHashCount)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		bc = Blockstore{
+			datastore: d,
+		}
+	}
+	bc.index = &BlockIndex{
+		store: bc,
+	}
+	bc.index.Initialize()
+	return &bc, nil
+}
+
+type (
+	// Blockstore is a combination of datastore and block fetcher.
+	Blockstore struct {
+		datastore ds.Batching
+		index     *BlockIndex
+	}
+)
+
+type BlockIndex struct {
+	store *Blockstore
+
+	// block cache
+	blockCache *lru.Cache
+
+	// region cache
+	regionCache *lru.Cache
+
+	// region index cache
+	regionIndexCache *lru.Cache
+
+	// region index cache
+
+}

@@ -14,8 +14,38 @@
 package command
 
 import (
-	"github.com/spf13/cobra"
+	"context"
+	lru "github.com/hashicorp/golang-lru"
+	"sync"
 )
+
+type bloomcache struct {
+	*bloomcache
+
+	cache *lru.Cache
+
+	cacheHave CacheHave
+
+	cacheHaveLock sync.Mutex
+
+	cacheLock sync.Mutex
+}
+
+func (b *bloomcache) PutMany(ctx context.Context, bs []blocks.Block) error {
+	// bloom cache gives only conclusive resulty if key is not contained
+	// to reduce number of puts we need conclusive information if block is contained
+	// this means that PutMany can't be improved with bloom cache so we just
+	// just do a passthrough.
+	return b.putMany(ctx, bs)
+}
+
+func (b *bloomcache) GetMany(ctx context.Context, keys []string) ([]blocks.Block, error) {
+	// bloom cache gives only conclusive resulty if key is not contained
+	// to reduce number of puts we need conclusive information if block is contained
+	// this means that PutMany can't be improved with bloom cache so we just
+	// just do a passthrough.
+	return b.getMany(ctx, keys)
+}
 
 func newEditConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
