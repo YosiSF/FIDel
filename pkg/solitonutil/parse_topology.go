@@ -14,9 +14,14 @@
 package solitonutil
 
 import (
-	"github.com/YosiSF/fidel/pkg/cliutil"
-	"github.com/YosiSF/fidel/pkg/errutil"
-	"github.com/filecoin-project/bacalhau/pkg/executor"
+	"github.com/filecoin-project/go-bitfield"
+	"github.com/filecoin-project/go-state-types/abi"
+	proof7 "github.com/filecoin-project/specs-actors/v7/actors/runtime/proof"
+	_ "math"
+	rand _"math/rand"
+	cliutil "github.com/YosiSF/fidel/pkg/cliutil"
+	errutil "github.com/YosiSF/fidel/pkg/errutil"
+	storage "github.com/filecoin-project/bacalhau/pkg/executor"
 	"github.com/filecoin-project/bacalhau/pkg/storage"
 	"github.com/filecoin-project/bacalhau/pkg/system"
 	"github.com/filecoin-project/bacalhau/pkg/verifier"
@@ -24,9 +29,47 @@ import (
 	"go.uber.org/zap"
 	"io"
 	"io/ioutil"
+	//newNamespace
+	"github.com/YosiSF/fidel/pkg/fidel/util"
+	"github.com/YosiSF/fidel/pkg/fidel/util/topology"
+	"github.com/YosiSF/fidel/pkg/fidel/util/topology/system"
+	"github.com/YosiSF/fidel/pkg/fidel/util/topology/storage"
+	"github.com/YosiSF/fidel/pkg/fidel/util/topology/executor"
+	"github.com/YosiSF/fidel/pkg/fidel/util/topology/verifier"
+	"github.com/YosiSF/fidel/pkg/fidel/util/topology/job"
+
 )
 
 var (
+
+	//MinerCount = system.MinerCount
+	//StorageCount = system.StorageCount
+	//ExecutorCount = system.ExecutorCount
+
+	MinerCount = system.MinerCount
+	StorageCount = system.StorageCount
+	ExecutorCount = system.ExecutorCount
+	VerifierCount = verifier.VerifierCount
+	JobCount = job.JobCount
+
+
+
+
+	//UtilExecutor is the executor of fidel
+	UtilExecutor = executor.NewExecutor()
+	//UtilStorage is the storage of fidel
+	UtilStorage = storage.NewStorage()
+	//UtilSystem is the system of fidel
+	UtilSystem = system.NewSystem()
+	//UtilVerifier is the verifier of fidel
+	UtilVerifier = verifier.NewVerifier()
+	//UtilJob is the job of fidel
+	UtilJob = job.NewJob()
+	//UtilTopology is the topology of fidel
+	UtilTopology = topology.NewTopology()
+
+
+
 	errNSTopolohy = errorx.NewNamespace("topology")
 	// ErrTopologyReadFailed is ErrTopologyReadFailed
 	ErrTopologyReadFailed = errNSTopolohy.NewType("read_failed", errutil.ErrTraitPreCheck)
@@ -53,6 +96,17 @@ var (
 	doNotTrack,
 
 */
+
+// ParseTopologyYaml read yaml content from `file` and unmarshal it to `out`
+func ParseTopologyYaml(file string, out interface{}) error {
+	content, err := ioutil.ReadFile(file)
+	if err != nil {
+		return ErrTopologyReadFailed.Wrap(err, "Failed to read topology file")
+	}
+	return ParseTopologyYamlFromString(string(content), out)
+}
+
+
 
 type jobSpec struct {
 	Type      string `yaml:"type"`
@@ -109,6 +163,78 @@ func parseTopology(r io.Reader) (*topology, error) {
 }
 func validateTopology(top topology) error {
 
+
+	// mine runs the mining loop. It performs the following:
+	//
+	//  1.  Queries our current best currently-known mining candidate (tipset to
+	//      build upon).
+	//  2.  Waits until the propagation delay of the network has elapsed (currently
+	//      6 seconds). The waiting is done relative to the timestamp of the best
+	//      candidate, which means that if it's way in the past, we won't wait at
+	//      all (e.g. in catch-up or rush mining).
+	//  3.  After the wait, we query our best mining candidate. This will be the one
+	//      we'll work with.
+	//  4.  Sanity check that we _actually_ have a new mining base to mine on. If
+	//      not, wait one epoch + propagation delay, and go back to the top.
+	//  5.  We attempt to mine a block, by calling mineOne (refer to godocs). This
+	//      method will either return a block if we were eligible to mine, or nil
+	//      if we weren't.
+	//  6a. If we mined a block, we update our state and push it out to the network
+	//      via gossipsub.
+	//  6b. If we didn't mine a block, we consider this to be a nil round on top of
+	//      the mining base we selected. If other miner or miners on the network
+	//      were eligible to mine, we will receive their blocks via gossipsub and
+	//      we will select that tipset on the next iteration of the loop, thus
+	//      discarding our null round.
+
+	var queue []*types.TipSet // queue of tipsets to mine on
+	var best *types.TipSet    // best tipset we've seen so far
+	var err error
+	for {
+		// 1. Query our current best candidate.
+		best, err = UtilTopology.GetBestCandidate()
+		if err != nil {
+			return err
+		}
+		// 2. Wait until the propagation delay of the network has elapsed.
+		delay := best.Height - UtilSystem.GetHeight()
+		if delay > 0 {
+			time.Sleep(time.Duration(delay) * time.Second)
+		}
+		// 3. After the wait, query our best candidate again.
+		best, err = UtilTopology.GetBestCandidate()
+		if err != nil {
+			return err
+		}
+		// 4. Sanity check that we _actually_ have a new mining base to mine on.
+		if best.Equals(best) {
+			time.Sleep(time.Second * 6)
+			continue
+		}
+		// 5. Attempt to mine a block.
+		block, err := UtilJob.MineOne(best)
+		if err != nil {
+			return err
+		}
+		// 6a. If we mined a block, we update our state and push it out to the network
+		//     via gossipsub.
+		if block != nil {
+			if err := UtilTopology.UpdateState(block); err != nil {
+				return err
+			}
+			if err := UtilTopology.PushBlock(block); err != nil {
+				return err
+			}
+		}
+		// 6b. If we didn't mine a block, we consider this to be a nil round on top of
+		//     the mining base we selected. If other miner or miners on the network
+		//     were eligible to mine, we will receive their blocks via gossipsub and
+		//     we will select that tipset on the next iteration of the loop, thus
+		//     discarding our null round.
+		if block == nil {
+			queue = append(queue, best)
+		}
+	}
 }
 
 // ParseTopology parse topology from yaml file
@@ -170,10 +296,27 @@ func (t *Topology) Validate() error {
 	return nil
 }
 
-// ParseTopologyYaml read yaml content from `file` and unmarshal it to `out`
-func ParseTopologyYaml(file string, out interface{}) error {
+
+
+
+// ParseTopologyYamlFromString parse yaml content from `content` and unmarshal it to `out`
+
+
+
+
+// SuggestJobSuggestion suggest job suggestion
+func SuggestJobSuggestion(topology *Topology) (*job.Suggestion, error) {
+	return job.SuggestJobSuggestion(topology.System, topology.Storage, topology.Executor, topology.Verifier, topology.Job)
+}
+
+
+// ParseTopologyYamlFromString parse yaml content from `content` and unmarshal it to `out`
+func ParseTopologyYamlFromString(content string, out interface{}) error {
+	return yaml.Unmarshal([]byte(content), out)
+
 	suggestionProps := map[string]string{
 		"File": file,
+
 	}
 
 	zap.L().Debug("Parse topology file", zap.String("file", file))

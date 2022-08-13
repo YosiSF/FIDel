@@ -44,6 +44,9 @@ func DagDecode(key []byte) (k KeyType, m Key, err error) {
 	return
 }
 
+
+
+
 // DecodeBytes decodes bytes to key and the key type.
 func DagDecodeBytes(key []byte) (k KeyType, m Key, err error) {
 	if len(key) < 1 {
