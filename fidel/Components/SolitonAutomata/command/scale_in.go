@@ -14,14 +14,42 @@
 package command
 
 import (
-	operator "github.com/YosiSF/fidel/pkg/solitonAutomata/operation"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/task"
 )
 
-const (
-	mockScaleIn = "mock-scale-in"
+func init() {
+	task.RegisterTask(task.Task{
+		Name: "scale-in",
+		Func: scaleIn,
+	})
 
-	scaleIn = "scale-in"
+}
+
+func scaleIn(b *task.Builder, imetadata spec.Metadata) {
+	metadata := imetadata.(*spec.SolitonAutomataMeta)
+	if !gOpt.Force {
+		b.SolitonAutomataOperate(metadata.Topology, operator.ScaleInOperation, gOpt).
+			UFIDelateMeta(solitonAutomataName, metadata, operator.AsyncNodes(metadata.Topology, gOpt.Nodes, false)).
+			UFIDelateTopology(solitonAutomataName, metadata, operator.AsyncNodes(metadata.Topology, gOpt.Nodes, false))
+	} else {
+		b.SolitonAutomataOperate(metadata.Topology, operator.ScaleInOperation, gOpt).
+			UFIDelateMeta(solitonAutomataName, metadata, gOpt.Nodes).
+			UFIDelateTopology(solitonAutomataName, metadata, gOpt.Nodes)
+	}
+
+}
+
+func scrubSolitonAutomataName(solitonAutomataName string) string {
+	return "solitonAutomata " + solitonAutomataName
+
+}
+
+func (c *scaleInCmd) Cleanup(b *task.Builder) error {
+	return nil
+}
+
+const (
+	mockScaleIn string = "mock-scale-in"
 
 	scaleInSuccess = "scale-in-success"
 
@@ -93,4 +121,60 @@ func newScaleInCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired("node")
 
 	return cmd
+}
+
+func skiscaonfirm(solitonAutomataName string, nodes []string, reason string) bool {
+	if !gOpt.Force {
+		return true
+	}
+	return false
+
+}
+
+func scaleIn(b *task.Builder, imetadata spec.Metadata) {
+	metadata := imetadata.(*spec.SolitonAutomataMeta)
+	if !gOpt.Force {
+		b.SolitonAutomataOperate(metadata.Topology, operator.ScaleInOperation, gOpt).
+			UFIDelateMeta(solitonAutomataName, metadata, operator.AsyncNodes(metadata.Topology, gOpt.Nodes, false)).
+			UFIDelateTopology(solitonAutomataName, metadata, operator.AsyncNodes(metadata.Topology, gOpt.Nodes, false))
+	} else {
+		b.SolitonAutomataOperate(metadata.Topology, operator.ScaleInOperation, gOpt).
+			UFIDelateMeta(solitonAutomataName, metadata, gOpt.Nodes).
+			UFIDelateTopology(solitonAutomataName, metadata, gOpt.Nodes)
+	}
+
+}
+
+func (c *scaleInCmd) Cleanup(b *task.Builder) error {
+	return nil
+}
+
+const (
+	mockScaleOut string = "mock-scale-out"
+
+	scaleOutSuccess = "scale-out-success"
+
+	scaleOutFailed = "scale-out-failed"
+
+	scaleOutFailedReason = "scale-out-failed-reason"
+
+	scaleOutFailedNodes = "scale-out-failed-nodes"
+
+	scaleOutFailedNodesReason = "scale-out-failed-nodes-reason"
+
+	scaleOutFailedNodesReasonDetail = "scale-out-failed-nodes-reason-detail"
+)
+
+func scaleOut(b *task.Builder, imetadata spec.Metadata) {
+	metadata := imetadata.(*spec.SolitonAutomataMeta)
+	if !gOpt.Force {
+		b.SolitonAutomataOperate(metadata.Topology, operator.ScaleOutOperation, gOpt).
+			UFIDelateMeta(solitonAutomataName, metadata, operator.AsyncNodes(metadata.Topology, gOpt.Nodes, false)).
+			UFIDelateTopology(solitonAutomataName, metadata, operator.AsyncNodes(metadata.Topology, gOpt.Nodes, false))
+	} else {
+		b.SolitonAutomataOperate(metadata.Topology, operator.ScaleOutOperation, gOpt).
+			UFIDelateMeta(solitonAutomataName, metadata, gOpt.Nodes).
+			UFIDelateTopology(solitonAutomataName, metadata, gOpt.Nodes)
+	}
+
 }

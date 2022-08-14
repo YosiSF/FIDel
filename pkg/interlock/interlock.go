@@ -15,6 +15,19 @@ package interlock
 
 
 import (
+	_ `math/big`
+
+	"github.com/ipfs/go-cid"
+	ds "github.com/ipfs/go-datastore"
+	cbor "github.com/ipfs/go-ipld-cbor"
+
+	"github.com/filecoin-project/go-address"
+	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/go-state-types/big"
+	"github.com/filecoin-project/go-state-types/crypto"
+	"github.com/filecoin-project/go-state-types/network"
+	"github.com/filecoin-project/test-vectors/schema"
+
 	"context"
 	"encoding/json"
 	"fmt"
@@ -39,7 +52,64 @@ import (
 
 
 
-func launchComponent(ctx context.Context, component, version, binPath string, tag string, args []string, env *environment.Environment) (*localdata.ProcessInfo, error) {
+type DriverOpts struct {
+	// DisableVMFlush, when true, avoids calling VM.Flush(), forces a causet to be executed in the same VM.
+	DisableVMFlush bool
+
+	// DisableTelemetry, when true, disables telemetry.
+	DisableTelemetry bool
+
+	// DisableRepository, when true, disables repository.
+	DisableRepository bool
+}
+
+
+type Driver struct {
+	ctx context.Context
+	selector schema.Selector
+	vmFlush bool
+	disableTelemetry bool
+	disableRepository bool
+
+}
+
+
+func (d *Driver) Run(ctx context.Context, component, version, binPath string, tag string, args []string, env *environment.Environment) error {
+	if d.disableRepository {
+		if err := d.runCommand(ctx, component, version, binPath, tag, args, env); err != nil {
+			for _, err := range errors.FindAll(err) {
+				fmt.Println(err)
+			}
+		}
+	}
+	if err := d.selector.Select(ctx, component, version, binPath, tag); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Driver) runCommand(ctx context.Context, component string, version string, path string, tag string, args []string, env *interface{}) interface{} {
+
+	if d.disableRepository {
+		return nil
+	}
+	if err := d.selector.Select(ctx, component, version, path, tag); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+
+
+
+func NewDriver(ctx context.Context, selector schema.Selector, opts DriverOpts) *Driver {
+	return &Driver{ctx: ctx, selector: selector, vmFlush: !opts.DisableVMFlush}
+}
+
+
+
+func 	launchComponent(ctx context.Context, component, version, binPath string, tag string, args []string, env *environment.Environment) (*localdata.ProcessInfo, error) {
 
 	var _ = os.Getenv(localdata.EnvNameHome)
 	if len(os.Args) < 2 {
@@ -149,6 +219,75 @@ func base62Tag() string {
 	return string(b)
 }
 
+
+
+// RunComponent start a component and wait it
+func RunComponent(env *environment.Environment, tag, spec, binPath string, args []string) error {
+
+	component, version := environment.ParseCompVersion(spec)
+	if !env.IsSupportedComponent(component) {
+		return fmt.Errorf("component `%s` does not support `%s/%s` (see `fidel list`)", component, runtime.GOOS, runtime.GOARCH)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Clean data if current instance is a temporary
+	clean := tag == "" && os.Getenv(localdata.EnvNameInstanceDataDir) == ""
+
+	p, err := launchComponent(ctx, component, version, binPath, tag, args, env)
+	// If the process has been launched, we must save the process info to meta directory
+	if err == nil || (p != nil && p.Pid != 0) {
+		defer cleanDataDir(clean, p.Dir)
+		metaFile := filepath.Join(p.Dir, localdata.MetaFilename)
+		file, err := os.OpenFile(metaFile, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+		if err == nil {
+			defer file.Close()
+			encoder := json.NewEncoder(file)
+			encoder.SetIndent("", "    ")
+			_ = encoder.Encode(p)
+		}
+	}
+	if err != nil {
+		fmt.Printf("Failed to start component `%s`\n", component)
+		return err
+	}
+
+	if err != nil {
+		fmt.Printf("Failed to start component `%s`\n", component)
+		return err
+	}
+
+	ch := make(chan error)
+	var sig syscall.Signal
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT
+}
+
+
+
+func launchComponent(ctx context.Context, component, version, binPath string, tag string, args []string, env *environment.Environment) (*localdata.Process, error) {
+	if tag == "" {
+		tag = base62Tag()
+	}
+
+	if binPath == "" {
+		binPath = filepath.Join(env.BinDir, component)
+
+	}
+
+	if version == "" {
+		version = "latest"
+
+	}
+
+
+	if env == nil {
+		env = environment.NewEnvironment()
+
+	}
+}
+
 // PrepareCommand will download necessary component and returns a *exec.Cmd
 func PrepareCommand(
 	ctx context.Context,
@@ -180,32 +319,114 @@ func PrepareCommand(
 				component, latestV.String(), selectVer.String()))
 		}
 	}
+	return PrepareCommandFromPath(ctx, binPath, tag, wd, args, env)
+}
 
-	// playground && solitonAutomata version must greater than v1.0.0
-	if (component == "playground" || component == "solitonAutomata") && semver.Compare(selectVer.String(), "v1.0.0") < 0 {
-		return nil, errors.Errorf("incompatible component version, please use `fidel uFIDelate %s` to upgrade to the latest version", component)
+
+// PrepareCommandFromPath will prepare a command from a binary path
+func PrepareCommandFromPath(ctx context.Context, binPath, tag, wd string, args []string, env *environment.Environment) (*exec.Cmd, error) {
+	if tag == "" {
+		tag = base62Tag()
 	}
-
-	profile := env.Profile()
-	installPath, err := profile.ComponentInstalledPath(component, selectVer)
-	if err != nil {
+	if wd == "" {
+		wd = filepath.Join(env.DataDir, tag)
+	}
+	if err := os.MkdirAll(wd, 0755); err != nil {
 		return nil, err
 	}
+	return exec.CommandContext(ctx, binPath, args...), nil
 
-	if binPath != "" {
-		p, err := filepath.Abs(binPath)
-		if err != nil {
-			return nil, errors.Trace(err)
-		}
-		binPath = p
-	} else {
-		binPath, err = env.BinaryPath(component, selectVer)
-		if err != nil {
-			return nil, err
+
+}
+
+
+
+func (p *Process) String() string {
+	return fmt.Sprintf("%s:%d", p.Exec, p.Pid)
+}
+
+
+func (p *Process) Kill() error {
+	if p.Pid == 0 {
+		return nil
+	}
+	return syscall.Kill(p.Pid, syscall.SIGTERM)
+}
+
+
+
+func (p *Process) Wait() error {
+	if p.Pid == 0 {
+		return nil
+	}
+	return p.Cmd.Wait()
+}
+
+
+func (p *Process) WaitTimeout(timeout time.Duration) error {
+	if p.Pid == 0 {
+	// playground && solitonAutomata version must greater than v1.0.0
+	if (component == "playground" || component == "solitonAutomata") && semver.Compare(selectVer.String(), "v1.0.0") < 0 {
+		return nil
+	}
+		return nil
+	}
+	return p.Cmd.WaitTimeout(timeout)
+}
+
+
+func (p *Process) WaitContext(ctx context.Context) error {
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
+	}
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
 		}
 	}
+	if p.Pid == 0 {
+		return nil
+	}
+	return p.Cmd.WaitContext(ctx)
+}
 
 
+func (p *Process) WaitContextTimeout(ctx context.Context, timeout time.Duration) error {
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
+	}
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
+		}
+	}
+	if p.Pid == 0 {
+		return nil
+	}
+	return p.Cmd.WaitContextTimeout(ctx, timeout)
+}
+
+
+func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.Duration) error {
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
+	}
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
+		}
+	}
+	if p.Pid == 0 {
+		return nil
+	}
+	return p.Cmd.WaitContextTimeoutInterrupt(ctx, timeout)
+}
+
+
+func (p *Process) WaitContextInterrupt(ctx context.Context) error {
 	if tag == "" {
 		tag = base62Tag()
 
@@ -226,40 +447,88 @@ func PrepareCommand(
 		}
 	}
 
-
 	if wd == "" {
-		wd, err = os.Getwd()
-		if err != nil {
-			return nil, errors.Trace(err)
+		wd = filepath.Join(env.DataDir, tag)
+
+	}
+
+	if err := os.MkdirAll(wd, 0755); err != nil {
+		return err
+	}
+
+	return p.Cmd.WaitContextInterrupt(ctx)
+}
+
+
+
+func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.Duration) error {
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
+	}
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
 		}
 	}
-
-	if component == "playground" {
-		wd = filepath.Join(wd, "playground")
-
+	if p.Pid == 0 {
+		return nil
 	}
+	return p.Cmd.WaitContextTimeoutInterrupt(ctx, timeout)
+}
 
-	if component == "solitonAutomata" {
-		wd = filepath.Join(wd, "solitonAutomata")
 
+func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.Duration) error {
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
 	}
-
-
-	if component == "milevadb" {
-		wd = filepath.Join(wd, "milevadb")
-
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
+		}
 	}
-
-	if component == "einsteindb" {
-		wd = filepath.Join(wd, "einsteindb")
-
+	if p.Pid == 0 {
+		return nil
 	}
+	return p.Cmd.WaitContextTimeoutInterrupt(ctx, timeout)
+}
 
-	if component == "playground" {
-		wd = filepath.Join(wd, "playground")
 
+func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.Duration) error {
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
 	}
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
+		}
+	}
+	if p.Pid == 0 {
+		return nil
+	}
+	return p.Cmd.WaitContextTimeoutInterrupt(ctx, timeout)
+}
 
+
+
+
+func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.Duration) error {
+
+	profile := env.Profile()
+	if profile != nil {
+		profile.Start(p.String())
+	}
+	defer func() {
+		if profile != nil {
+			profile.Stop(p.String())
+		}
+	}
+	if p.Pid == 0 {
+		return nil
+	}
+	return p.Cmd.WaitContextTimeoutInterrupt(ctx, timeout)
 
 	instanceDir := wd
 	if instanceDir == "" {
@@ -284,7 +553,7 @@ func PrepareCommand(
 
 	}
 
-	teleMeta, _, err := telemetry.GetMeta(env)
+	telMeta, _, err := telemetry.GetMeta(env)
 	if err != nil {
 		return nil, err
 	}
@@ -295,57 +564,37 @@ func PrepareCommand(
 		fmt.Sprintf("%s=%s", localdata.EnvNameInstanceDataDir, instanceDir),
 		fmt.Sprintf("%s=%s", localdata.EnvNameComponentDataDir, sd),
 		fmt.Sprintf("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
-		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryStatus, teleMeta.Status),
-		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryUUID, teleMeta.UUID),
+		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryStatus, telMeta.Status),
+		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryUUID, telMeta.UUID),
 		fmt.Sprintf("%s=%s", localdata.EnvTag, tag),
-	}
 
+	}
+	if component == "playground" {
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "playground"))
+	}
+if component == "solitonAutomata" {
+	envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
 	// init the command
 	c := exec.CommandContext(ctx, binPath, args...)
 	c.Env = append(
-		envs,
-		os.Environ()...,
+		os.Environ() // Add the environment variables)
 	)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	c.Dir = wd
-
 	return c, nil
 }
 
 
-func runCommand(c *exec.Cmd) error {
-	if err := c.Start(); err != nil {
+	if component == "milevadb" {
 
-		return err
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "milevadb"))
 	}
+	if component == "einsteindb" {
 
-
-
-
-
-
-
-
-
-	if err := c.Wait(); err != nil {
-	p := &localdata.Process{
-		//Component:   component,
-		//CreatedTime: time.Now().Format(time.RFC3339),
-		//Exec:        c.Args[0],
-		//Args:        args,
-		//Dir:         c.Dir,
-		//Env:         c.Env,
-		//Cmd:         c,
-
-
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "einsteindb"))
 	}
-
-	fmt.Printf("Starting component `%s`: %s\n", component, strings.Join(append([]string{p.Exec}, p.Args...), " "))
-	err = p.Cmd.Start()
-	if p.Cmd.Process != nil {
-		p.Pid = p.Cmd.Process.Pid
+	if component == "playground" {
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "playground"))
 	}
-	return p, err
-}
+	if component == "solitonAutomata" {
+
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
+	}

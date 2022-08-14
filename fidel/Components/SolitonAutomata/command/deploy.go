@@ -17,6 +17,11 @@ import (
 	"context"
 	_ "io/ioutil"
 	_ "path"
+zap _	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 
 	fil _"github.com/filecoin-project/go-state-types/abi"
 	cbor "github.com/filecoin-project/go-state-types/cbor"
@@ -35,6 +40,19 @@ import (
 	fidelutils "github.com/YosiSF/fidel/pkg/utils"
 	cobra "github.com/spf13/cobra"
 )
+
+type deployCmd struct {
+	cobra.Command
+}
+
+func (c *deployCmd) Run(cmd *cobra.Command, args []string) {
+	if err := c.RunE(cmd, args); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+
 
 
 // filecoin task
@@ -300,6 +318,36 @@ func _(builder *task.Builder, topo spec.Topology) {
 	}
 }
 
+//Deploy Client as a TSO oracle whihc is FIDel compatible
+func DeployClient(ctx context.Context, opt *deployOptions, topo spec.Topology) error {
+	// check if the solitonAutomata is already deployed
+	if err := checkSolitonAutomataDeployed(ctx, opt, topo); err != nil {
+		return err
+	}
+	// deploy solitonAutomata
+	return deploySolitonAutomata(ctx, opt, topo)
+}
+
+
+func deploySolitonAutomata(ctx context.Context, opt *deployOptions, topo spec.Topology) error {
+	// deploy solitonAutomata
+	return deploySolitonAutomata(ctx, opt, topo)
+}
+
+type Client struct {
+	builtin.StateActor
+	builtin.VerifiedRegistryActor
+
+}
+
+
+func (c *Client) OnStart(ctx context.Context) error {
+	return nil
+}
+
+func (c *Client) OnStop(ctx context.Context) error {
+	return nil
+}
 
 
 

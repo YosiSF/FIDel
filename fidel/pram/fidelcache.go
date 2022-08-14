@@ -16,18 +16,119 @@ package pram
 import (
 	"context"
 	"sync"
+	"time"
 	_ "time"
 )
 
+// CacheOpts wraps options for CachedBlockStore().
+// Next to each option is it aproximate memory usage per unit
+type CacheOpts struct {
+	// Cache type.
+	CacheType string
+	// Cache capacity.
+	Capacity int
+	// Cache eviction handler.
+	EvictedHandler func(key uint64, value interface{})
+	// Cache expired handler.
+	ExpiredHandler func(key uint64, value interface{})
+	// Cache expired duration.
+	ExpiredDuration time.Duration
+	// Cache eviction duration.
+	EvictedDuration time.Duration
+	// Future Poisson distribution parameter.
+	Poisson float64
+	// Future Exponential distribution parameter.
+	Exponential float64
+	// Future Normal distribution parameter.
+	Normal float64
+	// Future Uniform distribution parameter.
+	Uniform float64
+	// Future Zipf distribution parameter.
+	Zipf float64
+	//cache-miss handler
+	CacheMissHandler func(key uint64)
+	//cache-hit handler
+	CacheHitHandler func(key uint64)
+}
+
+func NewFIDelCache(capacity int, cacheType string) FIDelCache {
+	switch cacheType {
+	case "lru":
+		return NewLRUCache(capacity)
+	case "twoqueue":
+		return NewTwoQueueCache(capacity)
+	case "lru-twoqueue":
+		return NewLRUTwoQueueCache(capacity)
+	case "lru-twoqueue-poisson":
+		return NewLRUTwoQueuePoissonCache(capacity)
+	case "lru-twoqueue-exponential":
+		return NewLRUTwoQueueExponentialCache(capacity)
+	case "lru-twoqueue-normal":
+		return NewLRUTwoQueueNormalCache(capacity)
+	case "lru-twoqueue-uniform":
+		return NewLRUTwoQueueUniformCache(capacity)
+	case "lru-twoqueue-zipf":
+		return NewLRUTwoQueueZipfCache(capacity)
+	case "lru-twoqueue-poisson-zipf":
+		return NewLRUTwoQueuePoissonZipfCache(capacity)
+	case "lru-twoqueue-exponential-zipf":
+		return NewLRUTwoQueueExponentialZipfCache(capacity)
+	case "lru-twoqueue-normal-zipf":
+		return NewLRUTwoQueueNormalZipfCache(capacity)
+	case "lru-twoqueue-uniform-zipf":
+		return NewLRUTwoQueueUniformZipfCache(capacity)
+	default:
+		return NewLRUCache(capacity)
+	}
+}
+
+func NewFIDelCacheWithOpts(capacity int, opts *CacheOpts) FIDelCache {
+	switch opts.CacheType {
+	case "lru":
+		return NewLRUCacheWithOpts(capacity, opts)
+	case "twoqueue":
+		return NewTwoQueueCacheWithOpts(capacity, opts)
+	case "lru-twoqueue":
+		return NewLRUTwoQueueCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-poisson":
+		return NewLRUTwoQueuePoissonCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-exponential":
+		return NewLRUTwoQueueExponentialCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-normal":
+		return NewLRUTwoQueueNormalCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-uniform":
+		return NewLRUTwoQueueUniformCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-zipf":
+		return NewLRUTwoQueueZipfCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-poisson-zipf":
+		return NewLRUTwoQueuePoissonZipfCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-exponential-zipf":
+		return NewLRUTwoQueueExponentialZipfCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-normal-zipf":
+		return NewLRUTwoQueueNormalZipfCacheWithOpts(capacity, opts)
+	case "lru-twoqueue-uniform-zipf":
+		return NewLRUTwoQueueUniformZipfCacheWithOpts(capacity, opts)
+	default:
+		return NewLRUCacheWithOpts(capacity, opts)
+	}
+}
+
 // HTTP headers.
 const (
-	RedirectorHeader    = "PD-Redirector"
-	AllowFollowerHandle = "PD-Allow-follower-handle"
+	HeaderCacheControl      = "Cache-Control"
+	HeaderPragma            = "Pragma"
+	HeaderExpires           = "Expires"
+	HeaderLastModified      = "Last-Modified"
+	HeaderIfModifiedSince   = "If-Modified-Since"
+	HeaderIfUnmodifiedSince = "If-Unmodified-Since"
 )
 
 const (
 	errRedirectFailed      = "redirect failed"
 	errRedirectToNotLeader = "redirect to not leader"
+	errRedirectToLeader    = "redirect to leader"
+	errRedirectToError     = "redirect to error"
+	errRedirectToUnknown   = "redirect to unknown"
 )
 
 type runtimeServiceValidator struct {
@@ -42,19 +143,16 @@ type threadSafeFIDelCache struct {
 
 // FIDelCache is an interface for cache system
 type FIDelCache interface {
+	Get(key uint64) (value interface{}, err error)
+	Put(key uint64, value interface{}) (err error)
+}
 
-	// Put puts an item into cache.
-	Put(key uint64, value interface{})
-	// Get retrives an item from cache.
-	Get(key uint64) (interface{}, bool)
-	// Peek reads an item from cache. The action is no considered 'Use'.
-	Peek(key uint64) (interface{}, bool)
-	// Remove eliminates an item from cache.
-	Remove(key uint64)
-	// Elems return all items in cache.
-	Elems() []*Item
-	// Len returns current cache size
-	Len() int
+// NewLRUCache creates a new LRUCache with given capacity.
+func NewLRUCache(capacity int) FIDelCache {
+
+	return &threadSafeFIDelCache{
+		cache: NewLRUCacheWithOpts(capacity, &CacheOpts{}),
+	}
 }
 
 type Item struct {
@@ -130,10 +228,33 @@ const (
 
 func newThreadSafeFIDelCache(cache FIDelCache) FIDelCache {
 
-	return &threadSafeFIDelCache{
+	//return &threadSafeFIDelCache{cache: cache}
+	return cache
+}
 
-		cache: cache,
+func newEventEmitter(cache FIDelCache, capacity int, evictedHandler func(key uint64, value interface{})) *EventEmitter {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &EventEmitter{
+		listeners:      make(map[string][]chan Event),
+		bus:            event.NewBus(),
+		cache:          cache,
+		capacity:       capacity,
+		evictedHandler: evictedHandler,
+		ctx:            ctx,
+		cancel:         cancel,
 	}
+
+}
+
+func (e *EventEmitter) emit(event Event) {
+	e.bus.Emit(event)
+}
+
+func (e *EventEmitter) emitEvicted(key uint64, value interface{}) {
+	e.emit(Evicted{Key: key, Value: value})
+}
+func NewLRUCacheWithOpts(capacity int, opts *Options) FIDelCache {
+	return newThreadSafeFIDelCache(NewLRUCache(capacity, opts))
 }
 
 // Put puts an item into cache.
@@ -156,7 +277,7 @@ func (c *threadSafeFIDelCache) Get(key uint64) (interface{}, bool) {
 func (c *threadSafeFIDelCache) Peek(key uint64) (interface{}, bool) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.cache.Peek(key)
+	return c.cache.Peek(key), false
 }
 
 // Remove eliminates an item from cache.
@@ -240,3 +361,22 @@ func NewDefaultFIDelCache(size int) FIDelCache {
 ///#![feature(const_fn)]
 //#![feature(const_fn_transmute)]
 //#![feature(const_fn_transmute_pure)]
+
+func NewFIDelCache(size int, cacheType Type) FIDelCache {
+	switch cacheType {
+	case LRUFIDelCache:
+		return newLRUFIDelCache(size)
+	case TwoQueueFIDelCache:
+		return newTwoQueueFIDelCache(size)
+	case FIFOFIDelCache:
+		return newFIFOFIDelCache(size)
+	default:
+		return newLRUFIDelCache(size)
+	}
+}
+
+func newLRUFIDelCache(size int) *LRUFIDelCache {
+	return &LRUFIDelCache{
+		cache: NewLRUCache(size, nil),
+	}
+}

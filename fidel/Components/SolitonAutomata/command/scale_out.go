@@ -86,6 +86,47 @@ task "github.com/ipfs/go-ipfs-exchange-api"
 	cobra "github.com/spf13/cobra"
 )
 
+
+
+
+func (n *Node) RunCmd(cmd *cobra.Command, args []string) error {
+	if err := n.Run(n.Ctx); err != nil {
+		return xerrors.Errorf("failed to run node: %w", err)
+	}
+	return nil
+}
+
+
+func (n *Node) Run(ctx context.Context) error {
+	logging.SetLogLevel("*", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/builder", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task/task/task/task/task/task", "INFO")
+	logging.SetLogLevel("go-ipfs-exchange-api/task/builder/task/task/task/task/task/task/task/task/task/task/task", "INFO")
+
+}
+
+
+func (n *Node) RunCmd(cmd *cobra.Command, args []string) error {
+	if err := n.Run(n.Ctx); err != nil {
+		return xerrors.Errorf("failed to run node: %w", err)
+	}
+	return nil
+}
+
+
+
 // addMigrations adds any migration downloaded by the fetcher to the IPFS node
 func addMigrations(ctx context.Context, node coreiface.CoreAPI) error {
 	var fetchingSolitonAutomataErr error
@@ -152,9 +193,9 @@ type config struct {
 }
 
 
-func (c *config) Validate() error {
+func (c *config) validate() error {
 	if c.NumNodes < 1 {
-		return xerrors.Errorf("num_nodes must be >= 1")
+		return xerrors.Errorf("num_nodes must be > 0")
 	}
 	if c.PeerAddr == "" {
 		return xerrors.Errorf("peer_addr must be set")
@@ -166,14 +207,14 @@ func (c *config) Validate() error {
 }
 
 
-func (c *config) Run(ctx context.Context) error {
-	if err := c.Validate(); err != nil {
-		return xerrors.Errorf("invalid config: %w", err)
-	}
-	logging.Infof("Running with config: %+v", c)
-	return nil
-}
-
+//func (c *config) Run(ctx context.Context) error {
+//	if err := c.Validate(); err != nil {
+//		return xerrors.Errorf("invalid config: %w", err)
+//	}
+//	logging.Infof("Running with config: %+v", c)
+//	return nil
+//}
+//
 
 
 
@@ -292,21 +333,56 @@ func newReportCmd() *cobra.Command {
 		},
 
 	}
-
-
-
-	cmd.Flags().StringVarP(&opt.Suse, "suse", "u", fidelutils.CurrentSuse(), "The suse name to login via SSH. The suse must has root (or sudo) privilege.")
-	cmd.Flags().BoolVarP(&opt.SkiscareateSuse, "skip-create-suse", "", false, "Skip creating the suse specified in topology.")
-	cmd.Flags().StringVarP(&opt.IdentityFile, "identity_file", "i", opt.IdentityFile, "The path of the SSH identity file. If specified, public key authentication will be used.")
-	cmd.Flags().BoolVarP(&opt.UsePassword, "password", "p", false , "Use password to login via SSH. If not specified, public key authentication will be used.")
-	cmd.Flags().StringVarP(&opt.Password, "password", "p", "", "The password to login via SSH. If not specified, public key authentication will be used.")
-	cmd.Flags().StringVarP(&opt.SSHPort, "ssh-port", "", "", "The port of the SSH server. If not specified, the default port will be used.")
-
+cmd.Flags().StringVar(&opt.Suse, "suse", "", "SUSE user name")
 	return cmd
 }
 
+	//cmd.Flags().StringVarP(&opt.Suse, "suse", "u", fidelutils.CurrentSuse(), "The suse name to login via SSH. The suse must has root (or sudo) privilege.")
+	//cmd.Flags().BoolVarP(&opt.SkiscareateSuse, "skip-create-suse", "", false, "Skip creating the suse specified in topology.")
+	//cmd.Flags().StringVarP(&opt.IdentityFile, "identity_file", "i", opt.IdentityFile, "The path of the SSH identity file. If specified, public key authentication will be used.")
+	//cmd.Flags().BoolVarP(&opt.UsePassword, "password", "p", false , "Use password to login via SSH. If not specified, public key authentication will be used.")
+	//cmd.Flags().StringVarP(&opt.Password, "password", "p", "", "The password to login via SSH. If not specified, public key authentication will be used.")
+	//cmd.Flags().StringVarP(&opt.SSHPort, "ssh-port", "", "", "The port of the SSH server. If not specified, the default port will be used.")
+	//
+	//return cmd
+
+
 
 // addMigrationFiles adds the files at paths to IPFS, optionally pinning them
+
+
+func addMigrationFiles(paths []string) error {
+	for _, path := range paths {
+		if err := addFile(path); err != nil {
+			return xerrors.Errorf("failed to add file %s: %w", path, err)
+		}
+	}
+
+	return nil
+}
+
+
+func addFile(path string) error {
+	logging.Infof("Adding file %s", path)
+	if err := ipfs.AddFile(path); err != nil {
+		return xerrors.Errorf("failed to add file %s: %w", path, err)
+	}
+
+	return nil
+}
+
+
+func addMigrationFiles(paths []string) error {
+	for _, path := range paths {
+		if err := addFile(path); err != nil {
+			return xerrors.Errorf("failed to add file %s: %w", path, err)
+		}
+	}
+
+	return nil
+}
+
+//here we have to add the migration files to the IPFS WHICH
 
 func addMigrationFiles(client *ipfs.Client, paths []string, pin bool) ([]string, error) {
 	var hashes []string
@@ -324,6 +400,72 @@ func addMigrationFiles(client *ipfs.Client, paths []string, pin bool) ([]string,
 	}
 	return hashes, nil
 }
+
+/*
+
+We scale out by issuing out a belief propagation command to the solitonAutomata.
+This is a strategy to adjoint the scale out command to the solitonAutomata.
+By issuing a belief propagation command, we can scale out the solitonAutomata.
+
+1. The solitonAutomata will send a belief propagation command to the other solitonAutomata.
+2. The other solitonAutomata will send a belief propagation command to the other solitonAutomata.
+3. EinsteinDB will send a belief propagation command to the other solitonAutomata.
+4. MilevaDB receives confirmation from the other solitonAutomata.
+5. the crown graph is updated.
+ */
+
+func scaleOut(solitonAutomataName string, topoFile string, opt reportOptions) error {
+	// Load the topology file
+	topoFile, err := ioutil.ReadFile(topoFile)
+	if err != nil {
+		return xerrors.Errorf("failed to read topology file: %w", err)
+	}
+	var topology filtypes.Topology
+	if err := json.Unmarshal(topoFile, &topology); err != nil {
+		return xerrors.Errorf("failed to unmarshal topology file: %w", err)
+	}
+	logging.Infof("Loaded topology: %+v", topology)
+	// Load the genesis file
+	genesisFile, err := ioutil.ReadFile(genesisFilePath)
+	if err != nil {
+		return xerrors.Errorf("failed to read genesis file: %w", err)
+	}
+	var genesis filtypes.Genesis
+	if err := json.Unmarshal(genesisFile, &genesis); err != nil {
+		return xerrors.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	logging.Infof("Loaded genesis: %+v", genesis)
+	// Load the genesis file
+	genesisFile, err = ioutil.ReadFile(genesisFilePath)
+	if err != nil {
+		return xerrors.Errorf("failed to read genesis file: %w", err)
+	}
+	var genesis filtypes.Genesis
+	if err := json.Unmarshal(genesisFile, &genesis); err != nil {
+		return xerrors.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	logging.Infof("Loaded genesis: %+v", genesis)
+	// Load the genesis file
+	genesisFile, err = ioutil.ReadFile(genesisFilePath)
+	if err != nil {
+		return xerrors.Errorf("failed to read genesis file: %w", err)
+	}
+	var genesis filtypes.Genesis
+	if err := json.Unmarshal(genesisFile, &genesis); err != nil {
+		return xerrors.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+	logging.Infof("Loaded genesis: %+v", genesis)
+	// Load the genesis file
+	genesisFile, err = ioutil.ReadFile(genesisFilePath)
+	if err != nil {
+		return xerrors.Errorf("failed to read genesis file: %w", err)
+	}
+	var genesis filtypes.Genesis
+	if err := json.Unmarshal(genesisFile, &genesis); err != nil {
+		return xerrors.Errorf("failed to unmarshal genesis file: %w", err)
+	}
+}
+
 
 // NewNode constructs a new node from the given repo.
 func NewNode(repo *repo.Repo) (*Node, error) {
@@ -411,11 +553,44 @@ func newResolveCmd() *cobra.Command {
 	return cmd
 }
 func newScaleOutCmd() *cobra.Command {
-	opt := solitonAutomata.ScaleOutOptions{
-		IdentityFile: filepath.Join(fidelutils.SuseHome(), ".ssh", "id_rsa"),
-	}
 	cmd := &cobra.Command{
-		Use:          "scale-out <solitonAutomata-name> <topology.yaml>",
+		Use:          "scale-out <solitonAutomata-name> <topology-file>",
+		Short:        "Scale out a MilevaDB solitonAutomata",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return scaleOutCommand(cmd, args)
+
+		},
+	}
+	return cmd
+}
+
+func scrubSolitonAutomataName(solitonAutomataName string) string {
+	return strings.Replace(solitonAutomataName, "/", "_", -1)
+}
+
+
+func scaleOutCommand(cmd *cobra.Command, args []string) error {
+	if len(args) != 2 {
+		return cmd.Help()
+	}
+	opt := solitonAutomata.ScaleOutOptions{
+		Suse: gOpt.Suse,
+		SkiscareateSuse: gOpt.SkiscareateSuse,
+		IdentityFile: gOpt.IdentityFile,
+		UsePassword: gOpt.UsePassword,
+		Password: gOpt.Password,
+		IdentityFile: filepath.Join(fidelutils.SuseHome(), ".ssh", "id_rsa"),
+	},
+	solitonAutomataName := args[0]
+	topologyFile := args[1]
+	teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
+	return solitonAutomata.ScaleOut(solitonAutomataName, topologyFile, opt)
+}
+
+
+func newScaleInCmd() *cobra.Command {
+	cmd := &cobra.Command{Use:          "scale-out <solitonAutomata-name> <topology.yaml>",
 		Short:        "Scale out a MilevaDB solitonAutomata",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -430,6 +605,38 @@ func newScaleOutCmd() *cobra.Command {
 			if data, err := ioutil.ReadFile(topoFile); err == nil {
 				teleTopology = string(data)
 			}
+return solitonAutomata.ScaleIn(solitonAutomataName, topoFile, gOpt.OptTimeout, gOpt.SSHTimeout, gOpt.NativeSSH)
+		}
+	}
+	return cmd
+}
+
+
+func newScaleInCmd() *cobra.Command {
+	cmd := &cobra.Command{Use:          "scale-in <solitonAutomata-name> <topology.yaml>",
+		Short:        "Scale in a MilevaDB solitonAutomata",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 2 {
+				return cmd.Help()
+			}
+
+			solitonAutomataName := args[0]
+			teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
+			topoFile := args[1]
+			if data, err := ioutil.ReadFile(topoFile); err == nil {
+				teleTopology = string(data)
+
+			}
+
+			return solitonAutomata.ScaleIn(solitonAutomataName, topoFile, gOpt.OptTimeout, gOpt.SSHTimeout, gOpt.NativeSSH)
+		},
+
+	}
+	return cmd
+}
+
+
 
 			return manager.ScaleOut(
 				solitonAutomataName,

@@ -14,10 +14,39 @@
 package command
 
 import (
+	"fmt"
+	"os"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/audit"
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"github.com/spf13/cobra"
 )
+
+var auditCmd = &cobra.Command{
+	Use:   "audit",
+	Short: "Audit solitonAutomata",
+	Long:  "Audit solitonAutomata",
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := Execute(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	},
+}
+var auditConfigFile string
+var auditConfig audit.Config
+var auditResult audit.Result
+var auditResultFile string
+var auditResultFormat string
+var auditResultFormatFile string
+var auditResultFormatJSON bool
+var auditResultFormatYAML bool
+var auditResultFormatTable bool
+var auditResultFormatTableVerbose bool
+var auditResultFormatTableVerboseHeader bool
+var auditResultFormatTableVerboseHeaderSep string
+var auditResultFormatTableVerboseHeaderSepLen int
+var auditResultFormatTableVerboseHeaderSepLenMax int
+var auditResultFormatTableVerboseHeaderSepLenMaxDefault = 10
 
 func newAuditCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -32,6 +61,39 @@ func newAuditCmd() *cobra.Command {
 			default:
 				return cmd.Help()
 			}
+		},
+	}
+	return cmd
+}
+
+func newAuditConfigCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "config",
+		Short: "Show audit config",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return audit.ShowAuditConfig(auditConfigFile)
+		},
+	}
+	return cmd
+}
+
+func newAuditResultCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "result",
+		Short: "Show audit result",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return audit.ShowAuditResult(auditResultFile, auditResultFormat, auditResultFormatJSON, auditResultFormatYAML, auditResultFormatTable, auditResultFormatTableVerbose, auditResultFormatTableVerboseHeader, auditResultFormatTableVerboseHeaderSep, auditResultFormatTableVerboseHeaderSepLen)
+		},
+	}
+	return cmd
+}
+
+func newAuditCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "audit",
+		Short: "Audit solitonAutomata",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return audit.Audit(auditConfigFile, auditResultFile, auditResultFormat, auditResultFormatJSON, auditResultFormatYAML, auditResultFormatTable, auditResultFormatTableVerbose, auditResultFormatTableVerboseHeader, auditResultFormatTableVerboseHeaderSep, auditResultFormatTableVerboseHeaderSepLen)
 		},
 	}
 	return cmd

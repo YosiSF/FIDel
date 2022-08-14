@@ -19,15 +19,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-
 	"go.uber.org/atomic"
 	"golang.org/x/sys/unix"
 )
 
 var (
 	termSizeWidth  atomic.Int32
-	termSizeWidth  = atomic.Int32{}
-	termSizeHeight = atomic.Int32{}
+	termSizeHeight atomic.Int32
 )
 
 func getTerminalWidth() int {

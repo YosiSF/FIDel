@@ -17,21 +17,106 @@ import (
 	"context"
 	lru "github.com/hashicorp/golang-lru"
 	"sync"
+	`path`
 )
 
-type bloomcache struct {
-	*bloomcache
+// The key type is unexported to prevent collisions
+type key int
 
-	cache *lru.Cache
-
-	cacheHave CacheHave
-
-	cacheHaveLock sync.Mutex
-
-	cacheLock sync.Mutex
+func withConfig(fn func(config *config.Config) error) error {
+	return fn(manager.Config())
 }
 
-func (b *bloomcache) PutMany(ctx context.Context, bs []blocks.Block) error {
+func scrubSolitonAutomataName(solitonAutomataName string) string {
+	return path.Base(solitonAutomataName)
+}
+
+func newGetConfigCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get-config <solitonAutomata-name>",
+		Short: "Get MilevaDB solitonAutomata config",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return cmd.Help()
+			}
+
+			solitonAutomataName := args[0]
+			teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
+
+			return withConfig(func(config *config.Config) error {
+				return config.Print()
+			})
+		},
+	}
+
+	return cmd
+
+}
+
+func newSetConfigCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-config <solitonAutomata-name>",
+		Short: "Set MilevaDB solitonAutomata config",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return cmd.Help()
+			}
+
+			solitonAutomataName := args[0]
+			teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
+
+			return manager.SetConfig(solitonAutomataName, skiscaonfirm)
+		},
+	}
+
+	return cmd
+}
+
+type causetCache struct {
+	mu sync.Mutex
+	m  map[string]*lru.Cache
+}
+
+type bloomCausetBoxing struct {
+	cache         *lru.Cache
+	cacheHave     *lru.Cache
+	cacheHaveLock sync.Mutex
+
+	mu sync.Mutex
+	m  map[string]*lru.Cache
+}
+
+const (
+	keyConfig key = iota
+	keyCauset
+	keyBloomCauset
+)
+
+func newCausetCache() *causetCache {
+	return &causetCache{
+		m: make(map[string]*lru.Cache),
+	}
+
+}
+
+func newBloomCausetBoxing(cache *lru.Cache) *bloomCausetBoxing {
+	return &bloomCausetBoxing{
+		cache:     cache,
+		cacheHave: lru.New(1024),
+	}
+}
+
+func newCauset(cache *lru.Cache) *causet {
+	return &causet{
+		cache: cache,
+	}
+}
+
+func (c *causet) Get(ctx context.Context, key string) (interface{}, interface{}) {
+	return nil, nil
+}
+
+func (b *bloomCausetBoxing) PutMany(ctx context.Context, bs []blocks.Block) error {
 	// bloom cache gives only conclusive resulty if key is not contained
 	// to reduce number of puts we need conclusive information if block is contained
 	// this means that PutMany can't be improved with bloom cache so we just
@@ -39,12 +124,56 @@ func (b *bloomcache) PutMany(ctx context.Context, bs []blocks.Block) error {
 	return b.putMany(ctx, bs)
 }
 
-func (b *bloomcache) GetMany(ctx context.Context, keys []string) ([]blocks.Block, error) {
+func (b *bloomCausetBoxing) GetMany(ctx context.Context, keys []string) ([]blocks.Block, error) {
 	// bloom cache gives only conclusive resulty if key is not contained
 	// to reduce number of puts we need conclusive information if block is contained
 	// this means that PutMany can't be improved with bloom cache so we just
 	// just do a passthrough.
 	return b.getMany(ctx, keys)
+}
+
+func (b *bloomCausetBoxing) getMany(ctx context.Context, keys []string) ([]interface{}, interface{}) {
+	b.cacheHaveLock.Lock()
+	defer b.cacheHaveLock.Unlock()
+
+	for _, key := range keys {
+		if b.cacheHave.Have(key) {
+			return nil, nil
+		}
+	}
+	return nil, nil
+
+	// return b.cache.GetMany(keys)
+}
+
+func (b *bloomCausetBoxing) putMany(ctx context.Context, bs []blocks.Block) error {
+	b.cacheHaveLock.Lock()
+	defer b.cacheHaveLock.Unlock()
+
+	for _, b := range bs {
+		b.Key()
+		b.Value()
+	}
+	return nil
+}
+
+func (b *bloomCausetBoxing) Get(ctx context.Context, key string) (interface{}, interface{}) {
+	b.cacheHaveLock.Lock()
+	defer b.cacheHaveLock.Unlock()
+
+	if b.cacheHave.Have(key) {
+		return nil, nil
+	}
+	return nil, nil
+	// return b.cache.Get(key)
+}
+
+func (b *bloomCausetBoxing) Put(ctx context.Context, key string, value interface{}) error {
+	b.cacheHaveLock.Lock()
+	defer b.cacheHaveLock.Unlock()
+
+	b.cacheHave.Set(key, true)
+	return nil
 }
 
 func newEditConfigCmd() *cobra.Command {

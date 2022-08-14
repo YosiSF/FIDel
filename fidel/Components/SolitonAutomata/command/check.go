@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	perrs "github.com/YosiSF/errors"
+	perrs _ "github.com/YosiSF/errors"
 	"github.com/YosiSF/fidel/pkg/cliutil"
 	"github.com/YosiSF/fidel/pkg/logger/log"
 	"github.com/YosiSF/fidel/pkg/meta"
@@ -32,16 +32,113 @@ import (
 	"github.com/fatih/color"
 	"github.com/joomcode/errorx"
 	"github.com/spf13/cobra"
+	"github.com/aws/eks-anywhere/pkg/networking/cilium"
+	"github.com/aws/eks-anywhere/pkg/networking/cilium/mocks"
+"github.com/aws/eks-anywhere/pkg/semver"
 )
 
+type templater interface {
+	Template(string, interface{}) (string, error)
+
+}
+
+func handleCheckResults(ctx *task.Context, host string, opt *checkOptions, t *task.Builder) ([][]string, error) {
+	resLines := [][]string{}
+	for _, r := range ctx.Results {
+		if r.Err != nil {
+			log.Errorf("%s: %s: %s", host, r.Name, r.Err)
+		}
+		resLines = append(resLines, []string{host, r.Name, r.Status, r.Err.Error()})
+	}
+	return resLines, nil
+}
+
+
+func (s *checkOptions) Run(ctx *task.Context, t *task.Builder) error {
+	if err := s.validate(); err != nil {
+		return err
+	}
+	if s.fixOnly {
+		return s.fix(ctx, t)
+	}
+	return s.check(ctx, t)
+}
+
+func (s *checkOptions) check(ctx *task.Context, t *task.Builder) error {
+	if err := checkSolitonAutomata(ctx, s.host, s, t); err != nil {
+		return err
+	}
+	if err := checkSolitonAutomataExist(ctx, s.host, s, t); err != nil {
+		return err
+	}
+	return nil
+}
+
 type checkOptions struct {
+
+
+
 	suse                 string // susename to login to the SSH server
 	identityFile         string // path to the private key file
 	usePassword          bool   // use password instead of identity file for ssh connection
 	opr                  *operator.CheckOptions
 	applyFix             bool // try to apply fixes of failed checks
 	existSolitonAutomata bool // check an exist solitonAutomata
+
 }
+
+
+func newCheckOptions() *checkOptions {
+	return &checkOptions{
+		opr:                  operator.NewCheckOptions(),
+		applyFix:             false,
+		existSolitonAutomata: false,
+	}
+
+
+}
+
+
+
+func fixFailedChecks(ctx *task.Context, host string, r *task.CheckResult, t *task.Builder) (string, error) {
+	if r.Err == nil {
+		return "", nil
+	}
+	if !r.IsWarning() {
+		return "", nil
+	}
+	if r.Name != "CheckSolitonAutomata" {
+		return "", nil
+	}
+	if !r.Err.Has(task.ErrSolitonAutomataNotExist) {
+		return "", nil
+	}
+	if !opt.applyFix {
+		return "", nil
+	}
+	log.Infof("%s: try to apply fix to %s", host, r.Name)
+	if err := t.CreateSolitonAutomata(ctx, host); err != nil {
+		return "", err
+	}
+	return "Auto fixing success", nil
+}
+
+
+func checkSolitonAutomata(ctx *task.Context, host string, opt *checkOptions, t *task.Builder) error {
+	if err := t.CheckSolitonAutomata(ctx, host); err != nil {
+		return err
+	}
+	return nil
+}
+
+
+func checkSolitonAutomataExist(ctx *task.Context, host string, opt *checkOptions, t *task.Builder) error {
+	if err := t.CheckSolitonAutomataExist(ctx, host); err != nil {
+		return err
+	}
+	return nil
+}
+
 
 func newCheckCmd() *cobra.Command {
 	opt := checkOptions{
@@ -295,7 +392,100 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 	}
 
 	var checkResultTable [][]string
-	// FIXME: add fix result to output
+	for _, inst := range topo.GetInstances() {
+		checkResultTable = append(checkResultTable, []string{inst.GetHost(), "OK"})
+	}
+
+	for _, inst := range topo.GetInstances() {
+		for _, t := range ctx.GetTasks(inst.GetHost()) {
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+		}
+
+		for _, t := range ctx.GetTasks(inst.GetHost()) {
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+		}
+
+		for _, t := range ctx.GetTasks(inst.GetHost()) {
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+		}
+
+		for _, t := range ctx.GetTasks(inst.GetHost()) {
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+		}
+	}
+
+	for _, inst := range topo.GetInstances() {
+		for _, t := range ctx.GetTasks(inst.GetHost()) {
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+		}
+	}
+
+	for _, inst := range topo.GetInstances() {
+		for _, t := range ctx.GetTasks(inst.GetHost()) {
+			if t.GetStatus() != task.StatusSuccess {
+				checkResultTable[inst.GetIndex()][1] = "FAIL"
+			}
+		}
+	}
+	return nil
+}
+
+type globalOptions struct {
+	SSHTimeout int
+	NativeSSH  bool
+
+}
+
+
+type options struct {
+	suse bool
+	opr  bool
+
+}
+
+type SystemCheck struct {
+	// We need to pass the topology to the system checker.
+	//To do this we collapse the topology into a single struct.
+	//By doing these the byte maps are not needed.
+	//But the bit slices are needed.
+	topology *topology.Topology
+
+	// We need to pass the options to the system checker.
+	//To do this we collapse the options into a single struct.
+	//By doing these the byte maps are not needed.
+	//But the bit slices are needed.
+
+	task.Options
+
+
+	gOpt *globalOptions
+}
+
+
+func (s *SystemCheck) Run(opt *options) error {
+	return nil
+}
+
+func (s *SystemCheck) RunGlobal(gOpt *globalOptions) error {
+	return nil
+}
+
+func (s *SystemCheck) GetName() string {
+	return "system-check"
 	checkResultTable = [][]string{
 		// Header
 		{"Node", "Check", "Result", "Message"},
@@ -423,4 +613,56 @@ func fixFailedChecks(ctx *task.Context, host string, res *operator.CheckResult, 
 		msg = fmt.Sprintf("%s, auto fixing not supported", res)
 	}
 	return msg, nil
+}
+
+
+func (s *checkOptions) validate() error {
+	if s.applyFix && s.fixOnly {
+		return perrs.New("--fix-only and --apply-fix are mutually exclusive")
+	}
+	return nil
+
+	if s.applyFix && s.fixOnly {
+		return perrs.New("--fix-only and --apply-fix are mutually exclusive")
+	}
+	return nil
+}
+
+
+func (s *checkOptions) parse(args []string) error {
+	flags := flag.NewFlagSet("check", flag.ContinueOnError)
+	flags.SetOutput(ioutil.Discard)
+	flags.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s check [OPTIONS]\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Check system configuration.\n\n")
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		flags.PrintDefaults()
+	}
+	flags.BoolVar(&s.fixOnly, "fix-only", false, "only fix failed checks")
+	flags.BoolVar(&s.applyFix, "apply-fix", false, "apply changes to fix failed checks")
+	flags.BoolVar(&s.nativeSSH, "native-ssh", false, "use native ssh client")
+	flags.StringVar(&s.sshUser, "ssh-user", "", "ssh user")
+	flags.StringVar(&s.sshKey, "ssh-key", "", "ssh key")
+	flags.StringVar(&s.sshKeyPassphrase, "ssh-key-passphrase", "", "ssh key passphrase")
+	flags.StringVar(&s.sshTimeout, "ssh-timeout", "", "ssh timeout")
+	flags.StringVar(&s.identityFile, "identity-file", "", "ssh identity file")
+	flags.StringVar(&s.identityFilePassphrase, "identity-file-passphrase", "", "ssh identity file passphrase")
+	flags.StringVar(&s.hosts, "hosts", "", "hosts to check")
+	flags.StringVar(&s.configFile, "config-file", "", "config file")
+	flags.StringVar(&s.configFile, "c", "", "config file")
+	flags.StringVar(&s.configFile, "config", "", "config file")
+	flags.StringVar(&s.configFile, "cfg", "", "config file")
+	flags.StringVar(&s.configFile, "configuration", "", "config file")
+	flags.StringVar(&s.configFile, "configuration-file", "", "config file")
+
+
+	if err := flags.Parse(args); err != nil {
+		return err
+	}
+
+	if s.configFile != "" {
+		s.configFile = absPath(s.configFile)
+	}
+
+	return nil
 }

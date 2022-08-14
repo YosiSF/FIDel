@@ -14,7 +14,9 @@
 package einstutil
 
 import (
-	"github.com/filecoin-project/bacalhau/pkg/executor"
+	//int
+	_ `math/rand`
+	executor _ "github.com/filecoin-project/bacalhau/pkg/executor"
 	"github.com/filecoin-project/bacalhau/pkg/job"
 	"github.com/filecoin-project/bacalhau/pkg/storage"
 	"github.com/filecoin-project/bacalhau/pkg/system"
@@ -23,7 +25,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"encoding/json"
 	"errors"
-	"fmt"
 	go:zap "github.com/uber/zap
 	"io"
 	"io/ioutil"
@@ -32,9 +33,189 @@ import (
 	_ "strings"
 	_ "time"
 	"github.com/bits-and-blooms/bitset"
-"github.com/mschoch/smat"
+"encoding/binary"
+"io"
 )
 
+
+
+func (v violetaBftConsensus) GetRPCServer() string {
+	return v.RPCServer
+}
+
+
+func (v violetaBftConsensus) GetRPCPort() uint64 {
+	return v.RPCPort
+}
+
+type violetaBftConsensus struct {
+	RPCServer string `json:"rpcServer"`
+	RPCPort   uint64 `json:"rpcPort"`
+	RPCUser   string `json:"rpcUser"`
+	//ipfs-rpc
+	IPFSRPCServer string `json:"ipfsRpcServer"`
+	IPFSRPCPort   uint64 `json:"ipfsRpcPort"`
+	IPFSRPCUser   string `json:"ipfsRpcUser"`
+	//ipfs-daemon
+	IPFSDaemonServer string `json:"ipfsDaemonServer"`
+	IPFSDaemonPort   uint64 `json:"ipfsDaemonPort"`
+	IPFSDaemonUser   string `json:"ipfsDaemonUser"`
+	//ipfs-gateway
+	IPFSGatewayServer string `json:"ipfsGatewayServer"`
+	IPFSGatewayPort   uint64 `json:"ipfsGatewayPort"`
+	IPFSGatewayUser   string `json:"ipfsGatewayUser"`
+	//ipfs-webui
+	IPFSWebUIServer string `json:"ipfsWebUIServer"`
+	IPFSWebUIPort   uint64 `json:"ipfsWebUIPort"`
+
+}
+
+
+
+func (v violetaBftConsensus) GetIPFSRPCServer() string {
+	return v.IPFSRPCServer
+}
+
+func (v violetaBftConsensus) GetIPFSRPCPort() uint64 {
+	return v.IPFSRPCPort
+}
+
+
+func (v violetaBftConsensus) GetIPFSRPCUser() string {
+	return v.IPFSRPCUser
+}
+
+func (v violetaBftConsensus) GetIPFSRPCServer() string {
+	return v.IPFSRPCServer
+}
+
+
+
+
+func (c *causet) GetData() []byte {
+	return c.content
+}
+
+
+func (c *causet) SetData(data []byte) {
+	c.content = data
+}
+
+
+// ByteInput typed interface around io.Reader or raw bytes
+type ByteInput interface {
+	Next(n int) ([]byte, error)
+	ReadUInt32() (uint32, error)
+	ReadUInt16() (uint16, error)
+	GetReadBytes() int64
+	SkipBytes(n int) error
+}
+
+
+type ByteBuffer struct {
+	buf []byte
+	off int
+
+}
+
+
+func _() error {
+	return nil
+}
+
+
+
+func (c *causet) GetData() []byte {
+	return c.content
+
+}
+
+
+func (c *causet) SetData(data []byte) {
+	c.content = data
+
+}
+
+//
+//// NewByteInputFromReader creates reader wrapper
+//func NewByteInputFromReader(reader io.Reader) ByteInput {
+//	return &ByteInputAdapter{
+//		r:         reader,
+//		readBytes: 0,
+//	}
+//}
+
+// NewByteInput creates raw bytes wrapper
+func NewByteInput(buf []byte) ByteInput {
+	return &ByteBuffer{
+		buf: buf,
+		off: 0,
+	}
+}
+
+// ByteBuffer raw bytes wrapper
+type ByteBuffer struct {
+	buf []byte
+	off int
+}
+
+// Next returns a slice containing the next n bytes from the reader
+// If there are fewer bytes than the given n, io.ErrUnexpectedEOF will be returned
+func (b *ByteBuffer) Next(n int) ([]byte, error) {
+	m := len(b.buf) - b.off
+
+	if n > m {
+		return nil, io.ErrUnexpectedEOF
+	}
+
+	data := b.buf[b.off : b.off+n]
+	b.off += n
+
+	return data, nil
+}
+
+// ReadUInt32 reads uint32 with LittleEndian order
+func (b *ByteBuffer) ReadUInt32() (uint32, error) {
+	if len(b.buf)-b.off < 4 {
+		return 0, io.ErrUnexpectedEOF
+	}
+
+	v := binary.LittleEndian.Uint32(b.buf[b.off:])
+	b.off += 4
+
+	return v, nil
+}
+
+// ReadUInt16 reads uint16 with LittleEndian order
+func (b *ByteBuffer) ReadUInt16() (uint16, error) {
+	if len(b.buf)-b.off < 2 {
+		return 0, io.ErrUnexpectedEOF
+	}
+
+	v := binary.LittleEndian.Uint16(b.buf[b.off:])
+	b.off += 2
+
+	return v, nil
+}
+
+
+// GetReadBytes returns the number of bytes read from the reader
+func (b *ByteBuffer) GetReadBytes() int64 {
+	return int64(b.off)
+}
+
+// SkipBytes skips exactly n bytes
+func (b *ByteBuffer) SkipBytes(n int) error {
+	m := len(b.buf) - b.off
+
+	if n > m {
+		return io.ErrUnexpectedEOF
+	}
+
+	b.off += n
+
+	return nil
+}
 
 
 var jobspec *executor.JobSpec
@@ -133,42 +314,19 @@ func _() error {
 }
 
 
-type EncodedBinary struct {
 
+
+
+type EncodedBinary struct {
 	Encoding string `json:"encoding"`
 	Data     string `json:"data"`
 	MaxValue uint64 `json:"max_value"`
 	MinValue uint64 `json:"min_value"`
 	runHoffmann bool `json:"run_hoffmann"`
 
-
-	//runHoffmann bool `json:"run_hoffmann"`
-
-
 }
 
 
-
-type violetaBftConsensus struct {
-
-	//VioletaBFT is compiled from rust to a Haskell Glasgow machine
-	//And works as the consensus layer of EinsteinDB MilevaDB, and FIDel
-	// It is a Byzantine Fault Tolerant Consensus algorithm
-
-RPCServer string
-	//RPCPort is the port of the RPC server
-	RPCPort uint64
-	//RPCUser is the user of the RPC server
-	RPCUser string
-	//RPCPassword is the password of the RPC server
-	RPCPassword string
-	//RPCVersion is the version of the RPC server
-	RPCVersion string
-	//RPCMaxConnections is the maximum number of connections of the RPC server
-	RPCMaxConnections uint64
-
-
-}
 
 
 
@@ -258,6 +416,70 @@ func (k KindBuffer) UnmarshalJSON(b []byte) error {
 	return errors.New("unknown kind")
 }
 
+/*
+
+type bitmapContainer struct {
+	cardinality int
+	bitmap      []uint64
+}
+
+func (bc bitmapContainer) String() string {
+	var s string
+	for it := bc.getShortIterator(); it.hasNext(); {
+		s += fmt.Sprintf("%v, ", it.next())
+	}
+	return s
+}
+
+func newBitmapContainer() *bitmapContainer {
+	p := new(bitmapContainer)
+	size := (1 << 16) / 64
+	p.bitmap = make([]uint64, size, size)
+	return p
+}
+
+func newBitmapContainerwithRange(firstOfRun, lastOfRun int) *bitmapContainer {
+	bc := newBitmapContainer()
+	bc.cardinality = lastOfRun - firstOfRun + 1
+	if bc.cardinality == maxCapacity {
+		fill(bc.bitmap, uint64(0xffffffffffffffff))
+	} else {
+		firstWord := firstOfRun / 64
+		lastWord := lastOfRun / 64
+		zeroPrefixLength := uint64(firstOfRun & 63)
+		zeroSuffixLength := uint64(63 - (lastOfRun & 63))
+
+		fillRange(bc.bitmap, firstWord, lastWord+1, uint64(0xffffffffffffffff))
+		bc.bitmap[firstWord] ^= ((uint64(1) << zeroPrefixLength) - 1)
+		blockOfOnes := (uint64(1) << zeroSuffixLength) - 1
+		maskOnLeft := blockOfOnes << (uint64(64) - zeroSuffixLength)
+		bc.bitmap[lastWord] ^= maskOnLeft
+	}
+	return bc
+}
+ */
+
+type bitmapContainer struct {
+	cardinality int
+	bitmap      []uint64
+	//bitmap      *smat.Bitmap
+}
+
+
+
+
+func (bc bitmapContainer) String() string {
+	var s string
+	for it := bc.getShortIterator(); it.hasNext(); {
+		s += fmt.Sprintf("%v, ", it.next())
+	}
+	return s
+}
+
+func (bc bitmapContainer) getShortIterator() interface{} {
+	return bc.bitmap.Iterator()
+}
+
 
 type Kind uint32 // 0: normal, 1: compressed, 2: compressed and encrypted
 
@@ -284,7 +506,7 @@ uncompressedSuffixData []byte
 }
 
 type causetWithIsolatedContainer struct {
-	causet *causet.Causet
+causet
 	isolatedContainer *isolatedContainer
 
 
@@ -294,6 +516,8 @@ type causetWithIsolatedContainer struct {
 var _ causet.Causet = (*causetWithIsolatedContainer)(nil)
 
 func (c *causetWithIsolatedContainer) GetKind() Kind {
+	return c.isolatedContainer.kind
+
 
 }
 
@@ -304,6 +528,9 @@ func (c *causetWithIsolatedContainer) GetData() []byte {
 
 
 
+func (c *causetWithIsolatedContainer) GetCompressedData() []byte {
+	return c.isolatedContainer.compressedData
+}
 
 
 
@@ -313,6 +540,13 @@ type causet struct {
 	isolatedContainer *BitmapSet
 	violetaBftConsensus *violetaBftConsensus
 	kind Kind
+	data []byte
+	//compressedData []byte
+	compressedData []byte
+	//encryptedData []byte
+	encryptedData []byte
+	//mergeAppendData []byte
+	mergeAppendData []byte
 
 
 }
@@ -506,3 +740,17 @@ func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data interf
 	ErrorResp(rd, w, errCode)
 	return err
 }
+
+
+
+
+func (c *causet) GetContent() []uint32 {
+	return c.content
+}
+
+
+func (c *causet) SetContent(content []uint32) {
+	c.content = content
+
+}
+

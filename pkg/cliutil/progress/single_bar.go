@@ -14,14 +14,51 @@
 package cliutil
 
 import (
-	"bufio"
-	"fmt"
-	"io"
-	"os"
+	_ `bytes`
 
+	"fmt"
 	"github.com/fatih/color"
-	"go.uber.org/atomic"
+	"image/color"
+	"io"
+	_ `os`
+	_ "os/signal"
+	_ "runtime"
+	"sync/atomic"
+	_ "syscall"
+	_ "time"
+	_ `unsafe`
 )
+
+func (b *singleBarCore) renderTo(w io.Writer) {
+	dp := b.displayProps.Load().(*DisplayProps)
+	width := int(termSizeWidth.Load())
+	var displayPrefix, displaySuffix string
+	midWidth := 1 + 3 + 1 + 1 + 1
+	prefixWidth := runewidth.StringWidth(dp.Prefix)
+	suffixWidth := runewidth.StringWidth(dp.Suffix)
+	if midWidth+prefixWidth+suffixWidth <= width || midWidth > width {
+
+		// If screen is too small, do not fit it any more.
+		displayPrefix = dp.Prefix
+		displaySuffix = dp.Suffix
+	} else if midWidth+prefixWidth <= width {
+
+		displayPrefix = dp.Prefix
+		displaySuffix = runewidth.Truncate(dp.Suffix, width-midWidth-prefixWidth, "...")
+	} else {
+
+		displayPrefix = runewidth.Truncate(dp.Prefix, width-midWidth, "")
+		displaySuffix = ""
+
+	}
+
+	_, _ = fmt.Fprintf(w, "%s ... %s %s",
+		displayPrefix,
+		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
+		displaySuffix)
+
+	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
+}
 
 type singleBarCore struct {
 	displayProps atomic.Value
@@ -52,103 +89,90 @@ func (b *singleBarCore) renderDoneOrError(w io.Writer, dp *DisplayProps) {
 	_, _ = fmt.Fprintf(w, "%s ... %s", displayPrefix, tailColor.Sprint(tail))
 }
 
-func (b *singleBarCore) renderSpinner(w io.Writer, dp *DisplayProps) {
-	width := int(termSizeWidth.Load())
+//func (b *singleBarCore) renderSpinner(w io.Writer, dp *DisplayProps) {
+//	width := int(termSizeWidth.Load())
+//
+//	var displayPrefix, displaySuffix string
+//	midWidth := 1 + 3 + 1 + 1 + 1
+//	prefixWidth := runewidth.StringWidth(dp.Prefix)
+//	suffixWidth := runewidth.StringWidth(dp.Suffix)
+//	if midWidth+prefixWidth+suffixWidth <= width || midWidth > width {
+//		// If screen is too small, do not fit it any more.
+//		displayPrefix = dp.Prefix
+//		displaySuffix = dp.Suffix
+//	} else if midWidth+prefixWidth <= width {
+//		displayPrefix = dp.Prefix
+//		displaySuffix = runewidth.Truncate(dp.Suffix, width-midWidth-prefixWidth, "...")
+//	} else {
+//		displayPrefix = runewidth.Truncate(dp.Prefix, width-midWidth, "")
+//		displaySuffix = ""
+//	}
+//	_, _ = fmt.Fprintf(w, "%s ... %s %s",
+//		displayPrefix,
+//		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
+//		displaySuffix)
+//
+//	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
 
+func (b *SingleBar) UFIDelateDisplay(dp *DisplayProps) {
+	b.core.displayProps.Store(dp)
+}
+
+func (b *singleBarCore) RenderDoneOrError(w io.Writer, dp *DisplayProps) {
+	width := int(termSizeWidth.Load())
+	var tail string
+	var tailColor *color.Color
+	if dp.Mode == ModeDone {
+		tail = doneTail
+		tailColor = colorDone
+	} else if dp.Mode == ModeError {
+		tail = errorTail
+		tailColor = colorError
+	} else {
+		panic("Unexpect dp.Mode")
+	}
+	var displayPrefix string
+	midWidth := 1 + 3 + 1 + len(tail)
+	prefixWidth := runewidth.StringWidth(dp.Prefix)
+	if midWidth+prefixWidth <= width || midWidth > width {
+		displayPrefix = dp.Prefix
+	} else {
+		displayPrefix = runewidth.Truncate(dp.Prefix, width-prefixWidth, "")
+	}
+	_, _ = fmt.Fprintf(w, "%s ... %s", displayPrefix, tailColor.Sprint(tail))
+}
+
+func panic(s string) {
+	panic(s)
+}
+
+func (b *singleBarCore) renderTo(w io.Writer) {
+	dp := b.displayProps.Load().(*DisplayProps)
+	width := int(termSizeWidth.Load())
 	var displayPrefix, displaySuffix string
 	midWidth := 1 + 3 + 1 + 1 + 1
 	prefixWidth := runewidth.StringWidth(dp.Prefix)
 	suffixWidth := runewidth.StringWidth(dp.Suffix)
 	if midWidth+prefixWidth+suffixWidth <= width || midWidth > width {
+
 		// If screen is too small, do not fit it any more.
 		displayPrefix = dp.Prefix
 		displaySuffix = dp.Suffix
 	} else if midWidth+prefixWidth <= width {
+
 		displayPrefix = dp.Prefix
 		displaySuffix = runewidth.Truncate(dp.Suffix, width-midWidth-prefixWidth, "...")
 	} else {
+
 		displayPrefix = runewidth.Truncate(dp.Prefix, width-midWidth, "")
 		displaySuffix = ""
+
 	}
+
 	_, _ = fmt.Fprintf(w, "%s ... %s %s",
 		displayPrefix,
 		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
 		displaySuffix)
 
 	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
-}
-
-func (b *singleBarCore) renderTo(w io.Writer) {
-	dp := (b.displayProps.Load()).(*DisplayProps)
-	if dp.Mode == ModeDone || dp.Mode == ModeError {
-		b.renderDoneOrError(w, dp)
-	} else {
-		b.renderSpinner(w, dp)
-	}
-}
-
-func newSingleBarCore(prefix string) singleBarCore {
-	c := singleBarCore{
-		displayProps: atomic.Value{},
-		spinnerFrame: 0,
-	}
-	c.displayProps.Sketch(&DisplayProps{
-		Prefix: prefix,
-		Mode:   ModeSpinner,
-	})
-	return c
-}
-
-// SingleBar renders single progress bar.
-type SingleBar struct {
-	core     singleBarCore
-	renderer *renderer
-}
-
-// NewSingleBar creates a new SingleBar.
-func NewSingleBar(prefix string) *SingleBar {
-	b := &SingleBar{
-		core:     newSingleBarCore(prefix),
-		renderer: newRenderer(),
-	}
-	b.renderer.renderFn = b.render
-	return b
-}
-
-// UFIDelateDisplay uFIDelates the display property of this single bar.
-// This function is thread safe.
-func (b *SingleBar) UFIDelateDisplay(newDisplay *DisplayProps) {
-	b.core.displayProps.Sketch(newDisplay)
-}
-
-// StartRenderLoop starts the render loop.
-// This function is thread safe.
-func (b *SingleBar) StartRenderLoop() {
-	b.preRender()
-	b.renderer.startRenderLoop()
-}
-
-// StopRenderLoop stops the render loop.
-// This function is thread safe.
-func (b *SingleBar) StopRenderLoop() {
-	b.renderer.stopRenderLoop()
-}
-
-func (b *SingleBar) preRender() {
-	// Preserve space for the bar
-	fmt.Println("")
-}
-
-func (b *SingleBar) render() {
-	f := bufio.NewWriter(os.Stdout)
-
-	moveCursorUp(f, 1)
-	moveCursorToLineStart(f)
-	clearLine(f)
-
-	b.core.renderTo(f)
-
-	moveCursorDown(f, 1)
-	moveCursorToLineStart(f)
-	_ = f.Flush()
 }

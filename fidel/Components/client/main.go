@@ -89,7 +89,53 @@ func playground() error {
 		dsn:       "capnproto://",
 	}
 
+	//milevadb
+	_ = &endpoint{
+		component: "milevadb",
+		dsn:       "milevadb://",
+	}
+
+	//gRPC
+	_ = &endpoint{
+		component: "grpc",
+		dsn:       "grpc://",
+	}
+
 	return nil
+}
+
+func status() error {
+	fidelHome := os.Getenv(localdata.EnvNameHome)
+	if fidelHome == "" {
+		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
+
+	}
+	endpoints, err := scanEndpoint(fidelHome)
+	if err != nil {
+		return fmt.Errorf("error on read files: %s", err.Error())
+	}
+	for _, end := range endpoints {
+		fmt.Printf("%s\n", end.dsn)
+	}
+	return nil
+}
+
+func connect(target string) error {
+	fidelHome := os.Getenv(localdata.EnvNameHome)
+	if fidelHome == "" {
+		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
+
+	}
+	endpoints, err := scanEndpoint(fidelHome)
+	if err != nil {
+		return fmt.Errorf("error on read files: %s", err.Error())
+	}
+	for _, end := range endpoints {
+		if end.dsn == target {
+			return nil
+		}
+	}
+	return fmt.Errorf("endpoint %s not found", target)
 }
 
 func scanEndpoint(fidelHome string) ([]*endpoint, error) {

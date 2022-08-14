@@ -14,6 +14,38 @@
 package cliutil
 
 import (
+	_ `errors`
+	`fmt`
+	_ `io`
+	_ `strings`
+	`time`
+	`context`
+	`sync/atomic`
+	_ `math/big`
+	`strconv`
+	`encoding/json`
+	`os/exec`
+	`bytes`
+	`strings`
+	_ `sort`
+
+
+	imtui _"github.com/Kubuxu/imtui"
+	"github.com/gdamore/tcell/v2"
+	"github.com/ipfs/go-cid"
+	"github.com/urfave/cli/v2"
+	"golang.org/x/xerrors"
+
+	"github.com/filecoin-project/go-state-types/abi"
+	"github.com/filecoin-project/go-state-types/big"
+
+	"github.com/filecoin-project/lotus/api"
+	"github.com/filecoin-project/lotus/build"
+	"github.com/filecoin-project/lotus/chain/types"
+
+	"github.com/urfave/cli/v2"
+
+	"github.com/filecoin-project/lotus/build"
 
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
@@ -22,7 +54,7 @@ import (
 	"github.com/filecoin-project/go-state-types/network"
 
 	"github.com/filecoin-project/lotus/api"
-	lapi "github.com/filecoin-project/lotus/api"
+	api "github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api/v0api"
 	"github.com/filecoin-project/lotus/blockstore"
 	"github.com/filecoin-project/lotus/build"
@@ -32,21 +64,325 @@ import (
 	"github.com/filecoin-project/lotus/chain/state"
 	"github.com/filecoin-project/lotus/chain/stmgr"
 	"github.com/filecoin-project/lotus/chain/types"
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"math/big"
-	"os/exec"
-	"path"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
+	_ `bytes`
+	_ `context`
+	_ `encoding/json`
+
+	_ `math/big`
+	_ `os/exec`
+	_ `path`
+	_ `sort`
+	_ `strconv`
+
+	_ `time`
 
 	"go.uber.org/atomic"
 )
 
+const (
+	renderLoopSleep = 100 * time.Millisecond
+
+	//Memristor is the name of the memristor actor
+	Memristor = "memristor"
+
+	//MemristorState is the name of the memristor state field
+	MemristorState = "state"
+
+
+)
+
+type stoStateChangeHandler struct {
+	api v0api.FullNode
+	ctx context.Context
+
+}
+
+type renderer struct {
+	isUFIDelaterRunning atomic.Bool
+	stochastic          *stoStateChangeHandler
+	stopFinishedChan    chan struct{}
+	renderFn             func()
+
+}
+
+
+
+
+
+
+func (r *renderer) start(ctx context.Context, api v0api.FullNode) error {
+	r.stochastic = &stoStateChangeHandler{api: api, ctx: ctx}
+	r.stopFinishedChan = make(chan struct{})
+	go r.renderLoop()
+	return nil
+}
+
+
+func (r *renderer) stop() {
+	r.isUFIDelaterRunning.Store(false)
+	<-r.stopFinishedChan
+}
+
+
+func (r *renderer) renderLoop() {
+	for {
+		select {
+//If the UFIDelater is running, then we need to wait for it to finish before we can render the next frame
+		case <-r.stopFinishedChan:
+			return
+		case <-time.After(renderLoopSleep):
+			r.renderFn()
+		}
+	}
+}
+
+
+
+func (r *renderer) render() {
+	fmt.Printf("rendering\n")
+	r.renderFn()
+
+}
+
+var (
+	LotusStatusCliUtil = &cli.Command{
+		Name:  "status",
+		Usage: "Show status of the lotus node",
+		Action: func(cctx *cli.Context) error {
+			if cctx.Args().Len() > 0 {
+				return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+			}
+			r, err := newRenderer(cctx)
+			if err != nil {
+				return err
+			}
+			r.renderFn()
+			return nil
+		},
+
+		Filtron: func(ctx *cli.Context) error {
+			if ctx.Args().Len() > 0 {
+				return fmt.Errorf("unexpected argument: %s", ctx.Args().First())
+			}
+			r, err := newRenderer(ctx)
+			if err != nil {
+				return err
+			}
+			r.renderFn()
+			return nil
+		},
+	}
+)
+
+var LotuStopCliUtil = &cli.Command{
+	Name:  "stop",
+	Usage: "Stop the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return err
+		}
+		r.renderFn()
+		return nil
+	},
+
+	Filtron: func(ctx *cli.Context) error {
+		if ctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", ctx.Args().First())
+		}
+		r, err := newRenderer(ctx)
+		if err != nil {
+			return err
+		}
+		r.renderFn()
+		return nil
+	},
+
+
+}
+
+var StartCliUtil = &cli.Command{
+	Name:  "start",
+	Usage: "Start the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return err
+		}
+		r.renderFn()
+		return nil
+	}
+}
+
+var ScaleInCliUtil = &cli.Command{
+	Name:  "scale-in",
+	Usage: "Scale in the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+
+
+	FiltronParity: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+}
+
+var ScaleOutCliUtil = &cli.Command{
+	Name:  "scale-out",
+	Usage: "Scale out the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+
+
+	FiltronParity: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+}
+
+var ScaleOutCliUtil = &cli.Command{
+	Name:  "scale-out",
+	Usage: "Scale out the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+
+
+	FiltronParity: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+}
+
+var ScaleInCliUtil = &cli.Command{
+	Name:  "scale-in",
+	Usage: "Scale in the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+
+
+
+
+	FiltronParity: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+}
+
+var ScaleInCliUtil = &cli.Command{
+	Name:  "scale-in",
+	Usage: "Scale in the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+
+	FiltronParity:
+		func(cctx *cli.Context) error {
+			if cctx.Args().Len() > 0 {
+				return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+			}
+			r, err := newRenderer(cctx)
+			if err != nil {
+				return
+			}
+
+			r.renderFn()
+			return nil
+		}
+
+
+
+}
+
+
+var ScaleInCliUtil = &cli.Command{
+
+
+}
 //var ChainCmd = &cli.Command{
 //	Name:  "chain",
 //	Usage: "Interact with filecoin blockchain",
@@ -383,156 +719,203 @@ var ChainGetMsgCmd = &cli.Command{
 	},
 }
 
-
-var ChainGetSigCmd = &cli.Command{
-	Name:      "getsignature",
-	Aliases:   []string{"get-signature", "get-sig"},
-	Usage:     "Get and print a signature by its cid",
-	ArgsUsage: "[signatureCid]",
-	Action: func(cctx *cli.Context) error {
-		afmt := NewAppFmt(cctx.App)
-
-		if !cctx.Args().Present() {
-			return fmt.Errorf("must pass a cid of a signature to get")
-		}
-
-		api, closer, err := GetFullNodeAPI(cctx)
-		if err != nil {
-			return err
-		}
-		defer closer()
-		ctx := ReqContext(cctx)
-
-		c, err := cid.Decode(cctx.Args().First())
-		if err != nil {
-			return xerrors.Errorf("failed to parse cid input: %w", err)
-
-		}
-
-		sig, err := api.ChainReadObj(ctx, c)
-		if err != nil {
-			return xerrors.Errorf("failed to read object: %w", err)
-		}
+func GetFullNodeAPI(cctx *cli.Context) (api.FullNode, func(), error) {
+	node, err := DefaultGetAPI(cctx)
+	if err != nil {
+		return nil, nil, err
 	}
 
-var ChainSetHeadCmd = &cli.Command{
-	Name:      "sethead",
-	Aliases:   []string{"set-head"},
-	Usage:     "manually set the local nodes head tipset (Caution: normally only used for recovery)",
-	ArgsUsage: "[tipsetkey]",
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:  "genesis",
-			Usage: "reset head to genesis",
-		},
-		&cli.Uint64Flag{
-			Name:  "epoch",
-			Usage: "reset head to given epoch",
-		},
-	},
-	Action: func(cctx *cli.Context) error {
-		api, closer, err := GetFullNodeAPI(cctx)
+	closer := func() {}
+	if cctx.Bool("no-local") {
+		closer = func() {}
+	} else {
+		api, err := NewLocalAPI(node)
 		if err != nil {
-			return err
+			return nil, nil, err
 		}
-		defer closer()
-		ctx := ReqContext(cctx)
-
-		var ts *types.TipSet
-
-		if cctx.Bool("genesis") {
-			ts, err = api.ChainGetGenesis(ctx)
+		closer = func() {
+			api.Close()
 		}
-		if ts == nil && cctx.IsSet("epoch") {
-			ts, err = api.ChainGetTipSetByHeight(ctx, abi.ChainEpoch(cctx.Uint64("epoch")), types.EmptyTSK)
-		}
-		if ts == nil {
-			ts, err = parseTipSet(ctx, api, cctx.Args().Slice())
-		}
-		if err != nil {
-			return err
-		}
-
-		if ts == nil {
-			return fmt.Errorf("must pass cids for tipset to set as head")
-		}
-
-		if err := api.ChainSetHead(ctx, ts.Key()); err != nil {
-			return err
-		}
-
-		return nil
-	},
+	}
+	return api, closer, nil
 }
 
-var ChainInspectUsage = &cli.Command{
+func ReqContext(cctx *cli.Context) context.Context {
+	return cctx.Context
+}
+
+func GetDefaultFullNodeAPI(cctx *cli.Context) (api.FullNode, func(), error) {
+	node, err := DefaultGetAPI(cctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	closer := func() {}
+	if cctx.Bool("no-local") {
+		closer = func() {}
+	} else {
+		api, err := NewLocalAPI(node)
+		if err != nil {
+			return nil, nil, err
+		}
+		closer = func() {
+			api.Close()
+		}
+	}
+	return api, closer, nil
+}
+
+func DefaultGetAPI(cctx *cli.Context) (api.FullNode, error) {
+	var api api.FullNode
+	var err error
+	if cctx.Bool("local") {
+		api, err = NewLocalFullNode(cctx.String("dir"))
+	} else {
+		api, err = NewRemoteFullNode(cctx.String("peer"))
+	}
+	return api, err
+}
+
+func GetDefaultAPI(cctx *cli.Context) (api.Node, error) {
+	var api api.Node
+	var err error
+	if cctx.Bool("local") {
+		api, err = NewLocalNode(cctx.String("dir"))
+	} else {
+
+		api, err = NewRemoteNode(cctx.String("peer"))
+	}
+	return api, err
+}
+
+func GetDefaultAPIForChain(cctx *cli.Context) (api.Node, error) {
+	var api api.Node
+	var err error
+	if cctx.Bool("local") {
+		api, err = NewLocalNode(cctx.String("dir"))
+	} else {
+		api, err = NewRemoteNode(cctx.String("peer"))
+	}
+	return api, err
+}
+
+func GetDefaultAPIForChainWithLocal(cctx *cli.Context) (api.Node, error) {
+	var api api.Node
+	var err error
+	if cctx.Bool("local") {
+		api, err = NewLocalNode(cctx.String("dir"))
+	} else {
+		api, err = NewRemoteNode(cctx.String("peer"))
+	}
+	return api, err
+}
+
+func GetDefaultAPIForChainWithLocalAndRemote(cctx *cli.Context) (api.Node, error) {
+	var api api.Node
+	var err error
+	if cctx.Bool("local") {
+		api, err = NewLocalNode(cctx.String("dir"))
+	} else {
+		api, err = NewRemoteNode(cctx.String("peer"))
+	}
+	return api, err
+}
+
+
+
+
+var ChainGetCmd = &cli.Command{
 	Name:  "inspect-usage",
 	Usage: "Inspect block space usage of a given tipset",
 	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:  "tipset",
-			Usage: "specify tipset to view block space usage of",
-			Value: "@head",
-		},
-		&cli.IntFlag{
-			Name:  "length",
-			Usage: "length of chain to inspect block space usage for",
-			Value: 1,
-		},
-		&cli.IntFlag{
-			Name:  "num-results",
-			Usage: "number of results to print per category",
-			Value: 10,
-		},
-	},
-	Action: func(cctx *cli.Context) error {
-		afmt := NewAppFmt(cctx.App)
-		api, closer, err := GetFullNodeAPI(cctx)
-		if err != nil {
-			return err
-		}
-		defer closer()
-		ctx := ReqContext(cctx)
+	&cli.StringFlag{
+	Name:  "tipset",
+	Usage: "specify tipset to view block space usage of",
+	Value: "@head",
+},
+},
+	Action: func (cctx *cli.Context) error{
+	api, closer, err := GetDefaultAPI(cctx)
+	if err != nil{
+	return err
+}
+	defer closer()
+	ctx := ReqContext(cctx)
 
-		ts, err := LoadTipSet(ctx, cctx, api)
-		if err != nil {
-			return err
-		}
+	Name:  "length",
+	Usage: "length of chain to inspect block space usage for",
+	Value: 1,
+},
 
-		cur := ts
-		var msgs []lapi.Message
-		for i := 0; i < cctx.Int("length"); i++ {
-			pmsgs, err := api.ChainGetParentMessages(ctx, cur.Blocks()[0].Cid())
-			if err != nil {
-				return err
-			}
+	Name:  "offset",
+	Usage: "offset from tipset to start inspecting block space usage for",
 
-			msgs = append(msgs, pmsgs...)
+	Action: func (cctx *cli.Context) error{
+	api, closer, err := GetDefaultAPI(cctx)
+	if err != nil{
+	return err
+}
+	defer closer()
+	ctx := ReqContext(cctx)
 
-			next, err := api.ChainGetTipSet(ctx, cur.Parents())
-			if err != nil {
-				return err
-			}
+	Name:  "length",
+	Usage: "length of chain to inspect block space usage for",
+	Value: 1,
+},
+	Name:  "offset",
+	Usage: "offset from tipset to start inspecting block space usage for",
+	Value: 1,
+},
+	Name:  "offset",
+	Action: func(cctx *cli.Context) error{
+	afmt := NewAppFmt(cctx.App)
+	api, closer, err := GetFullNodeAPI(cctx)
+	if err != nil{
+	return err
+}
+	defer closer()
+	ctx := ReqContext(cctx)
 
-			cur = next
-		}
+	ts, err := LoadTipSet(ctx, cctx, api)
+	if err != nil{
+	return err
+}
 
-		codeCache := make(map[address.Address]cid.Cid)
+	cur := ts
+	var msgs []lapi.Message
+	for i := 0; i < cctx.Int("length"); i++{
+	pmsgs, err := api.ChainGetParentMessages(ctx, cur.Blocks()[0].Cid())
+	if err != nil{
+	return err
+}
 
-		lookupActorCode := func(a address.Address) (cid.Cid, error) {
-			c, ok := codeCache[a]
-			if ok {
-				return c, nil
-			}
+	msgs = append(msgs, pmsgs...)
 
-			act, err := api.StateGetActor(ctx, a, ts.Key())
-			if err != nil {
-				return cid.Undef, err
-			}
+	next, err := api.ChainGetTipSet(ctx, cur.Parents())
+	if err != nil{
+	return err
+}
 
-			codeCache[a] = act.Code
-			return act.Code, nil
-		}
+	cur = next
+}
+
+	codeCache := make(map[address.Address]cid.Cid)
+
+	lookupActorCode := func (a address.Address) (cid.Cid, error){
+	c, ok := codeCache[a]
+	if ok{
+	return c, nil
+}
+
+	act, err := api.StateGetActor(ctx, a, ts.Key())
+	if err != nil{
+	return cid.Undef, err
+}
+
+	codeCache[a] = act.Code
+	return act.Code, nil
+}
+
 
 		var totalSize int64
 		var totalGas int64
@@ -686,66 +1069,15 @@ var ChainListCmd = &cli.Command{
 		},
 	},
 
-	Action: func(cctx *cli.Context) error {
-		afmt := NewAppFmt(cctx.App)
-		api, closer, err := GetFullNodeAPI(cctx)
-		if err != nil {
-			return err
-		}
-		defer closer()
-		ctx := ReqContext(cctx)
-
-		var head *types.TipSet
-
-		if cctx.IsSet("height") {
-			head, err = api.ChainGetTipSetByHeight(ctx, abi.ChainEpoch(cctx.Uint64("height")), types.EmptyTSK)
-		} else {
-			head, err = api.ChainHead(ctx)
-		}
-		if err != nil {
-			return err
-		}
-
-		count := cctx.Int("count")
-		if count < 1 {
-			return nil
-		}
-
-		tss := make([]*types.TipSet, 0, count)
-		tss = append(tss, head)
-
-		for i := 1; i < count; i++ {
-			if head.Height() == 0 {
-				break
-			}
-
-			head, err = api.ChainGetTipSet(ctx, head.Parents())
-			if err != nil {
-				return err
-			}
-
-			tss = append(tss, head)
-		}
-
-		/*
-
-			Here we are going to print out the tipsets in reverse order.
-			This is because the tipsets are printed out in reverse order.
-
-			Remember, the tipsets are printed out in reverse order.
+	//
 
 
-		*/
-
-		for i := len(tss) - 1; i >= 0; i-- {
-			ts := tss[i]
-			if cctx.Bool("gas-stats") {
-				gasStats, err := api.ChainGetTipSetGasUsage(ctx, ts.Key())
-				if err != nil {
 
 
-					return err
-				}
+
+
+
+
 
 
 
@@ -1859,3 +2191,27 @@ func (r *renderer) renderLoopFn() {
 		}
 	}
 }
+
+
+
+
+func NewAppFmt(app *cli.App) *AppFmt {
+	return &AppFmt{
+		app: app,
+	}
+}
+
+
+
+func (a *AppFmt) Println(args ...interface{}) {
+	a.app.Writer.Write([]byte(fmt.Sprintln(args...)))
+}
+
+
+
+func (a *AppFmt) Printf(format string, args ...interface{}) {
+	a.app.Writer.Write([]byte(fmt.Sprintf(format, args...)))
+
+}
+
+

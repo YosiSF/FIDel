@@ -14,11 +14,11 @@
 package command
 
 import (
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/task"
-	lru "github.com/hashicorp/golang-lru"
+	spec _"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
+	task _"github.com/YosiSF/fidel/pkg/solitonAutomata/task"
+	lru _"github.com/hashicorp/golang-lru"
 
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/manager"
+	manager _"github.com/YosiSF/fidel/pkg/solitonAutomata/manager"
 
 	"github.com/YosiSF/fidel/pkg/solitonAutomata/telemetry"
 
@@ -27,10 +27,17 @@ import (
 	"sync"
 )
 
-var (
-	cache     *lru.Cache
-	cacheLock sync.Mutex
+const (
+	scaleIn = "scale-in"
+	scaleOut = "scale-out"
+
 )
+
+var (
+	cacheMu sync.Mutex
+	cache   *lru.Cache
+)
+
 
 func init() {
 	cache, _ = lru.New(1024)
