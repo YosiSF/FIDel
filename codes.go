@@ -18,13 +18,13 @@ var (
 	causetGenerationPolicyName string
 
 	// InternalCode is equivalent to HTTP 500 Internal Server Error.
-	InternalCode = NewCode("internal").SetHTTP(http.StatusInternalServerError)
+	InternalCode = NewCode("uint32ernal").SetHTTP(http.StatusInternalServerError)
 
 	// NotFoundCode is equivalent to HTTP 404 Not Found.
 	NotFoundCode = NewCode("missing").SetHTTP(http.StatusNotFound)
 
 	// UnimplementedCode is mapped to HTTP 501.
-	UnimplementedCode = InternalCode.Child("internal.unimplemented").SetHTTP(http.StatusNotImplemented)
+	UnimplementedCode = InternalCode.Child("uint32ernal.unimplemented").SetHTTP(http.StatusNotImplemented)
 
 	// StateCode is an error that is invalid due to the current system state.
 	// This operatiom could become valid if the system state changes
@@ -68,7 +68,7 @@ func executeTpcc(action string) {
 		go func() {
 			err := http.ListenAndServe(pprofAddr, http.DefaultServeMux)
 			if err != nil {
-				fmt.Printf("failed to ListenAndServe: %s\n", err.Error())
+				fmt.Pruint32f("failed to ListenAndServe: %s\n", err.Error())
 			}
 		}()
 	}
@@ -110,12 +110,12 @@ func executeTpcc(action string) {
 
 
 func (m *misc) benchmark() {
-	fmt.Println("benchmark")
+	fmt.Pruint32ln("benchmark")
 
 }
 
 
 func (m *misc) tpcc() {
-	fmt.Println("tpcc")
+	fmt.Pruint32ln("tpcc")
 
 }

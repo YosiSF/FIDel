@@ -47,14 +47,14 @@ type lock struct {
 	haveCacheLock sync.Mutex
 }
 
-func (c *Cache) Get(key string) (interface{}, bool) {
-	c.cacheLock.Lock()
-	defer c.cacheLock.Unlock()
+func (c *Cache) Get(key string) (uint32erface {}, bool) {
+c.cacheLock.Lock()
+defer c.cacheLock.Unlock()
 
-	if c.cache == nil {
-		return nil, false
-	}
-	return c.cache.Get(key), false
+if c.cache == nil {
+return nil, false
+}
+return c.cache.Get(key), false
 }
 
 func newStartCmd() *cobra.Command {
@@ -86,14 +86,14 @@ func newStartCmd() *cobra.Command {
 	return cmd
 }
 
-func (c *Cache) Set(key string, value interface{}) {
-	c.cacheLock.Lock()
-	defer c.cacheLock.Unlock()
+func (c *Cache) Set(key string, value uint32erface {}) {
+c.cacheLock.Lock()
+defer c.cacheLock.Unlock()
 
-	if c.cache == nil {
-		c.cache = lru.New(1024)
-	}
-	c.cache.Add(key, value)
+if c.cache == nil {
+c.cache = lru.New(1024)
+}
+c.cache.Add(key, value)
 }
 
 func (c *Cache) Have() bool {

@@ -83,7 +83,7 @@ func (s *testCmdSuite) TestListComponent(c *C) {
 func (s *testCmdSuite) TestListVersion(c *C) {
 	result, err := showComponentVersions(s.newEnv(c), "test", false, false)
 	c.Assert(err, IsNil)
-	result.print()
+	result.pruint32()
 	c.Assert(len(result.cmpTable), Greater, 1)
 	for idx := 1; idx < len(result.cmpTable); idx++ {
 		success := false

@@ -11,19 +11,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 
-package pram
+package rp
 
 import (
-	"go.uber.org/zap"
-	"go.uber.org/zap/zascaore"
+	"fmt"
 	"os"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
+
+
+
+func initLoggerWithWriteSyncer(cfg *Config, ws zapcore.WriteSyncer, opts ...zap.Option) *zap.Logger {
+	core := zapcore.NewCore(newZapTextEncoder(cfg), ws, zap.NewAtomicLevel())
+	return zap.New(core, opts...)
+}
+
+
+func (cfg *Config) buildOptions() []zap.Option {
+	opts := []zap.Option{}
+	if cfg.Level != "" {
+		opts = append(opts, zap.Level(cfg.Level))
+	}
+	return opts
+
+
+}
+
+
+func (cfg *Config) buildEncoderConfig() zapcore.EncoderConfig {
+
+}
 
 type File struct {
 	Filename string `toml:"filename"`
-	MaxSize  int    `toml:"maxsize"`
-	MaxAge   int    `toml:"maxage"`
-	MaxBackups int    `toml:"maxbackups"`
+	MaxSize  uint32    `toml:"maxsize"`
+	MaxAge   uint32    `toml:"maxage"`
+	MaxBackups uint32    `toml:"maxbackups"`
 	LocalTime bool   `toml:"localtime"`
 	Compress  bool   `toml:"compress"`
 

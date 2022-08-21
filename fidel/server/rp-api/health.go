@@ -29,7 +29,7 @@ type healthVizor struct {
 // Health reflects the lineGraph's health.
 type Health struct {
 	Name       string   `json:"name"`
-	MemberID   uint64   `json:"member_id"`
+	MemberID   uint3264   `json:"member_id"`
 	ClientUrls []string `json:"client_urls"`
 	Health     bool     `json:"health"`
 }
@@ -100,7 +100,7 @@ type healthVizor struct {
 // Health reflects the lineGraph's health.
 type Health struct {
 	Name       string   `json:"name"`
-	MemberID   uint64   `json:"member_id"`
+	MemberID   uint3264   `json:"member_id"`
 	ClientUrls []string `json:"client_urls"`
 	Health     bool     `json:"health"`
 }

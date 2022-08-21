@@ -26,7 +26,7 @@ func (m *misc) benchmark() {
 		for {
 			select {
 			case <-time.After(time.Second):
-				fmt.Println("benchmark")
+				fmt.Pruint32ln("benchmark")
 			}
 		}
 	}()
@@ -42,7 +42,7 @@ func (m *misc) tscac() {
 		for {
 			select {
 			case <-time.After(time.Second):
-				fmt.Println("tscac")
+				fmt.Pruint32ln("tscac")
 			}
 		}
 	}()
@@ -58,7 +58,7 @@ func (m *misc) tscacLoad() {
 		for {
 			select {
 			case <-time.After(time.Second):
-				fmt.Println("tscac-load")
+				fmt.Pruint32ln("tscac-load")
 			}
 		}
 	}()
@@ -74,7 +74,7 @@ func (m *misc) tscacRun() {
 		for {
 			select {
 			case <-time.After(time.Second):
-				fmt.Println("tscac-run")
+				fmt.Pruint32ln("tscac-run")
 			}
 		}
 	}()
@@ -86,10 +86,10 @@ type SolitonDispatcher struct {
 	shutdownC            chan struct{}
 }
 
-type WriteBehindLogLedgerInterface interface {
-	// NextCausetFlushingDispatch decides how much time the next dispatch
-	// for a Causet Sketch will be before flushing at the sink.
-	NextCausetFlushingDispatch() time.Duration
+type WriteBehindLogLedgerInterface uint32erface {
+// NextCausetFlushingDispatch decides how much time the next dispatch
+// for a Causet Sketch will be before flushing at the sink.
+NextCausetFlushingDispatch() time.Duration
 }
 
 func NewSolitonDispatcher(writeBehindLogLedger WriteBehindLogLedgerInterface) *SolitonDispatcher {

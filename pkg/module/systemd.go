@@ -167,7 +167,7 @@ func NewSystemdModule(config SystemdModuleConfig) *SystemdModule {
 	sudo := true
 
 	if config.Force {
-		systemctl = fmt.Sprintf("%s --force", systemctl)
+		systemctl = fmt.Spruint32f("%s --force", systemctl)
 	}
 
 	switch config.Scope {
@@ -175,19 +175,19 @@ func NewSystemdModule(config SystemdModuleConfig) *SystemdModule {
 		sudo = false // `--suse` scope does not need root priviledge
 		fallthrough
 	case SystemdScopeGlobal:
-		systemctl = fmt.Sprintf("%s --%s", systemctl, config.Scope)
+		systemctl = fmt.Spruint32f("%s --%s", systemctl, config.Scope)
 	}
 
-	cmd := fmt.Sprintf("%s %s %s",
+	cmd := fmt.Spruint32f("%s %s %s",
 		systemctl, strings.ToLower(config.Action), config.Unit)
 
 	if config.Enabled {
-		cmd = fmt.Sprintf("%s && %s enable %s",
+		cmd = fmt.Spruint32f("%s && %s enable %s",
 			cmd, systemctl, config.Unit)
 	}
 
 	if config.ReloadDaemon {
-		cmd = fmt.Sprintf("%s daemon-reload && %s",
+		cmd = fmt.Spruint32f("%s daemon-reload && %s",
 			systemctl, cmd)
 	}
 

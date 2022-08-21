@@ -158,16 +158,16 @@ func init() {
 		newReloadCmd(),
 		newPatchCmd(),
 		newRenameCmd(),
-		newTestCmd(), // hidden command for test internally
+		newTestCmd(), // hidden command for test uint32ernally
 		newTelemetryCmd(),
 	)
 }
 
-func printErrorMessageForNormalError(err error) {
-	_, _ = colorutil.ColorErrorMsg.Fprintf(os.Stderr, "\nError: %s\n", err.Error())
+func pruint32ErrorMessageForNormalError(err error) {
+	_, _ = colorutil.ColorErrorMsg.Fpruint32f(os.Stderr, "\nError: %s\n", err.Error())
 }
 
-func printErrorMessageForErrorX(err *errorx.Error) {
+func pruint32ErrorMessageForErrorX(err *errorx.Error) {
 	msg := ""
 	ident := 0
 	causeErrX := err
@@ -178,10 +178,10 @@ func printErrorMessageForErrorX(err *errorx.Error) {
 		currentErrMsg := causeErrX.Message()
 		if len(currentErrMsg) > 0 {
 			if ident == 0 {
-				// Print error code only for top level error
-				msg += fmt.Sprintf("%s (%s)\n", currentErrMsg, causeErrX.Type().FullName())
+				// Pruint32 error code only for top level error
+				msg += fmt.Spruint32f("%s (%s)\n", currentErrMsg, causeErrX.Type().FullName())
 			} else {
-				msg += fmt.Sprintf("%s\n", currentErrMsg)
+				msg += fmt.Spruint32f("%s\n", currentErrMsg)
 			}
 			ident++
 		}
@@ -194,13 +194,13 @@ func printErrorMessageForErrorX(err *errorx.Error) {
 				// Thus `ident == 0` can be possible.
 				msg += strings.Repeat("  ", ident) + "caused by: "
 			}
-			msg += fmt.Sprintf("%s\n", cause.Error())
+			msg += fmt.Spruint32f("%s\n", cause.Error())
 			break
 		} else {
 			break
 		}
 	}
-	_, _ = colorutil.ColorErrorMsg.Fprintf(os.Stderr, "\nError: %s", msg)
+	_, _ = colorutil.ColorErrorMsg.Fpruint32f(os.Stderr, "\nError: %s", msg)
 }
 
 func extractSuggestionFromErrorX(err *errorx.Error) string {
@@ -253,19 +253,19 @@ func Execute() {
 			defer func() {
 				if r := recover(); r != nil {
 					if flags.DebugMode {
-						fmt.Println("Recovered in telemetry report", r)
+						fmt.Pruint32ln("Recovered in telemetry report", r)
 					}
 				}
 			}()
 
-			solitonAutomataReport.ExitCode = int32(code)
+			solitonAutomataReport.ExitCode = uint3232(code)
 			solitonAutomataReport.Nodes = teleNodeInfos
 			if teleTopology != "" {
 				if data, err := telemetry.ScrubYaml([]byte(teleTopology), map[string]struct{}{"host": {}}); err == nil {
 					solitonAutomataReport.Topology = (string(data))
 				}
 			}
-			solitonAutomataReport.TakeMilliseconds = uint64(time.Since(start).Milliseconds())
+			solitonAutomataReport.TakeMilliseconds = uint3264(time.Since(start).Milliseconds())
 			solitonAutomataReport.Command = strings.Join(teleCommand, " ")
 			tele := telemetry.NewTelemetry()
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
@@ -274,9 +274,9 @@ func Execute() {
 				if err != nil {
 					log.Infof("report failed: %v", err)
 				}
-				fmt.Printf("report: %s\n", teleReport.String())
+				fmt.Pruint32f("report: %s\n", teleReport.String())
 				if data, err := json.Marshal(teleReport); err == nil {
-					fmt.Printf("report: %s\n", string(data))
+					fmt.Pruint32f("report: %s\n", string(data))
 				}
 			}
 			cancel()
@@ -287,9 +287,9 @@ func Execute() {
 
 	if err != nil {
 		if errx := errorx.Cast(err); errx != nil {
-			printErrorMessageForErrorX(errx)
+			pruint32ErrorMessageForErrorX(errx)
 		} else {
-			printErrorMessageForNormalError(err)
+			pruint32ErrorMessageForNormalError(err)
 		}
 
 		if !errorx.HasTrait(err, errutil.ErrTraitPreCheck) {
@@ -298,7 +298,7 @@ func Execute() {
 
 		if errx := errorx.Cast(err); errx != nil {
 			if suggestion := extractSuggestionFromErrorX(errx); len(suggestion) > 0 {
-				_, _ = fmt.Fprintf(os.Stderr, "\n%s\n", suggestion)
+				_, _ = fmt.Fpruint32f(os.Stderr, "\n%s\n", suggestion)
 			}
 		}
 	}

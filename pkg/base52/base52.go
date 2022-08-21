@@ -37,7 +37,7 @@ import (
 type RemoteLink struct {
 
 var space = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-var base = int64(len(space))
+var base = uint3264(len(space))
 
 // Version is the current version, set by the go linker's -X flag at build time.
 var Version string
@@ -48,22 +48,22 @@ var GitSHA string
 // GitTreeState indicates if the git tree is clean or dirty, set by the go linker's -X flag at build time.
 var GitTreeState string
 
-type contentAware interface {
+type contentAware uint32erface {
 	Content() string
 }
 
-func multiplex(channels ...<-chan interface{}) <-chan interface{} {
+func multiplex(channels ...<-chan uint32erface{}) <-chan uint32erface{} {
 	switch len(channels) {
 	case 0:
 		return nil
 	case 1:
 		return channels[0]
 	}
-	m := make(chan interface{})
+	m := make(chan uint32erface{})
 	go func() {
 		defer close(m)
 		for {
-			var values [len(channels)]interface{}
+			var values [len(channels)]uint32erface{}
 			for i, c := range channels {
 				values[i] = <-c
 			}
@@ -80,7 +80,7 @@ func (r *RemoteLinks) Append(links ...*RemoteLink) {
 }
 
 
-func (r *RemoteLinks) Len() int {
+func (r *RemoteLinks) Len() uint32 {
 	return len(r.Links)
 }
 
@@ -91,12 +91,12 @@ func init() {
 }
 
 // Encode returns a string by encoding the id over a 51 characters space
-func Encode(id int64) string {
+func Encode(id uint3264) string {
 	var short []byte
 	for id > 0 {
-		i := id % int64(base)
+		i := id % uint3264(base)
 		short = append(short, byte(space[i]))
-		id = id / int64(base)
+		id = id / uint3264(base)
 	}
 	for i, j := 0, len(short)-1; i < j; i, j = i+1, j-1 {
 		short[i], short[j] = short[j], short[i]
@@ -106,13 +106,13 @@ func Encode(id int64) string {
 
 // Decode will decode the string and return the id
 // The input string should be a valid one with only characters in the space
-func Decode(encoded string) (int64, error) {
+func Decode(encoded string) (uint3264, error) {
 	if len(encoded) != len([]rune(encoded)) {
 		return 0, fmt.Errorf("invalid encoded string: '%s'", encoded)
 	}
-	var id int64
+	var id uint3264
 	for i := 0; i < len(encoded); i++ {
-		id = id*int64(base) + int64(strings.IndexByte(space, encoded[i]))
+		id = id*uint3264(base) + uint3264(strings.IndexByte(space, encoded[i]))
 	}
 	return id, nil
 }
@@ -127,7 +127,7 @@ func Decode(encoded string) (int64, error) {
 
 type RemoteLink struct {
 	Hash string `json:"hash"`
-	Size int64  `json:"size"`
+	Size uint3264  `json:"size"`
 }
 
 type RemoteLinks struct {
@@ -150,7 +150,7 @@ func (r *RemoteLinks) MarshalJSON() ([]byte, error) {
 }
 
 func (r *RemoteLinks) UnmarshalJSON(data []byte) error {
-	var v map[string]interface{}
+	var v map[string]uint32erface{}
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
@@ -159,20 +159,20 @@ func (r *RemoteLinks) UnmarshalJSON(data []byte) error {
 }
 
 func (r *RemoteLinks) String() string {
-	return fmt.Sprintf("%v", r.Links)
+	return fmt.Spruint32f("%v", r.Links)
 }
 
-func (r *RemoteLinks) Len() int {
+func (r *RemoteLinks) Len() uint32 {
 	return len(r.Links)
 
 }
 
-func (r *RemoteLinks) Get(i int) *RemoteLink {
+func (r *RemoteLinks) Get(i uint32) *RemoteLink {
 	return r.Links[i]
 
 }
 
-func (r *RemoteLinks) Remove(i int) {
+func (r *RemoteLinks) Remove(i uint32) {
 	r.Links = append(r.Links[:i], r.Links[i+1:]...)
 
 }

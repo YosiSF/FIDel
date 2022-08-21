@@ -1,19 +1,19 @@
 package torus
 
 // torusTraitsInterface encapsulates the properties of a torusInterface
-// that are required for other components of the system to interact with
-// it in a non-intrusive manner.
-type torusTraitsInterface interface {
-	// Capacity() specifies the overall torusCapacity of a torusInterface.
-	Capacity() torusCapacity
-	// DecayMultiplier specifies the decay multiplier that should take
-	// effect when a torusItem is placed on a particular torusInterface.
-	DecayMultiplier() float64
-	// TorusItemEvaluators provides access to the
-	// torusItemEvaluatorsInterface that defines the key behaviors (in
-	// evaluation contexts) of a torusItem when placed on a particular
-	// torusInterface.
-	TorusItemEvaluators() torusItemEvaluatorsInterface
+// that are required for other components of the system to uint32eract with
+// it in a non-uint32rusive manner.
+type torusTraitsInterface uint32erface {
+// Capacity() specifies the overall torusCapacity of a torusInterface.
+Capacity() torusCapacity
+// DecayMultiplier specifies the decay multiplier that should take
+// effect when a torusItem is placed on a particular torusInterface.
+DecayMultiplier() float64
+// TorusItemEvaluators provides access to the
+// torusItemEvaluatorsInterface that defines the key behaviors (in
+// evaluation contexts) of a torusItem when placed on a particular
+// torusInterface.
+TorusItemEvaluators() torusItemEvaluatorsInterface
 }
 
 // configurableTorusTraits is a concrete implementation of
@@ -56,13 +56,13 @@ func (cst *configurableTorusTraits) TorusItemEvaluators() torusItemEvaluatorsInt
 // are indirectly accessible via
 // torusTraitsInterface.TorusItemEvaluators(), and which effectively
 // control the key evaluation behaviors of the system) in a
-// non-intrusive (and safe) manner, with minimal code changes.
-type torusTraitsFactoryInterface interface {
-	createSingleTemperatureTorusTraits(
-		torusItemEvaluators torusItemEvaluatorsInterface) torusTraitsInterface
+// non-uint32rusive (and safe) manner, with minimal code changes.
+type torusTraitsFactoryInterface uint32erface {
+createSingleTemperatureTorusTraits(
+torusItemEvaluators torusItemEvaluatorsInterface) torusTraitsInterface
 
-	createMultiTemperatureTorusTraits(
-		torusItemEvaluators torusItemEvaluatorsInterface) torusTraitsInterface
+createMultiTemperatureTorusTraits(
+torusItemEvaluators torusItemEvaluatorsInterface) torusTraitsInterface
 }
 
 // productionTorusTraitsFactory is the real torusTraitsFactoryInterface

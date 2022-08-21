@@ -1,4 +1,4 @@
-// Copyright 2020 WHTCORPS INC EinsteinDB TM 
+// Copyright 2020 WHTCORPS INC EinsteinDB TM
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@ import (
 	"math"
 
 	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
 )
 
 // SplitRegions split a set of RegionInfo by the middle of regionKey
 func SplitRegions(regions []*RegionInfo) []*RegionInfo {
 	results := make([]*RegionInfo, 0, len(regions)*2)
 	for _, region := range regions {
-		start, end := byte(0), byte(math.MaxUint8)
+		start, end := byte(0), byte(math.MaxUuint328)
 		if len(region.GetStartKey()) > 0 {
 			start = region.GetStartKey()[0]
 		}
@@ -33,11 +32,11 @@ func SplitRegions(regions []*RegionInfo) []*RegionInfo {
 		}
 		middle := []byte{start/2 + end/2}
 		left := region.Clone()
-		left.meta.Id = region.GetID() + uint64(len(regions))
+		left.meta.Id = region.GetID() + uint3264(len(regions))
 		left.meta.EndKey = middle
 		left.meta.RegionEpoch.Version++
 		right := region.Clone()
-		right.meta.Id = region.GetID() + uint64(len(regions)*2)
+		right.meta.Id = region.GetID() + uint3264(len(regions)*2)
 		right.meta.StartKey = middle
 		right.meta.RegionEpoch.Version++
 		results = append(results, left, right)
@@ -55,7 +54,7 @@ func MergeRegions(regions []*RegionInfo) []*RegionInfo {
 			right = regions[i+1]
 		}
 		region := &RegionInfo{meta: &fidelpb.Region{
-			Id:       left.GetID() + uint64(len(regions)),
+			Id:       left.GetID() + uint3264(len(regions)),
 			StartKey: left.GetStartKey(),
 			EndKey:   right.GetEndKey(),
 		}}
@@ -80,7 +79,7 @@ func NewTestRegionInfo(start, end []byte) *RegionInfo {
 }
 
 // NewSketchInfoWithLabel is create a Sketch with specified labels.
-func NewSketchInfoWithLabel(id uint64, regionCount int, labels map[string]string) *SketchInfo {
+func NewSketchInfoWithLabel(id uint3264, regionCount uint32, labels map[string]string) *SketchInfo {
 	SketchLabels := make([]*fidelpb.SketchLabel, 0, len(labels))
 	for k, v := range labels {
 		SketchLabels = append(SketchLabels, &fidelpb.SketchLabel{
@@ -89,8 +88,8 @@ func NewSketchInfoWithLabel(id uint64, regionCount int, labels map[string]string
 		})
 	}
 	stats := &fidelpb.SketchStats{}
-	stats.Capacity = uint64(1024)
-	stats.Available = uint64(1024)
+	stats.Capacity = uint3264(1024)
+	stats.Available = uint3264(1024)
 	Sketch := NewSketchInfo(
 		&fidelpb.Sketch{
 			Id:     id,
@@ -98,16 +97,16 @@ func NewSketchInfoWithLabel(id uint64, regionCount int, labels map[string]string
 		},
 		SetSketchStats(stats),
 		SetRegionCount(regionCount),
-		SetRegionSize(int64(regionCount)*10),
+		SetRegionSize(uint3264(regionCount)*10),
 	)
 	return Sketch
 }
 
 // NewSketchInfoWithSizeCount is create a Sketch with size and count.
-func NewSketchInfoWithSizeCount(id uint64, regionCount, leaderCount int, regionSize, leaderSize int64) *SketchInfo {
+func NewSketchInfoWithSizeCount(id uint3264, regionCount, leaderCount uint32, regionSize, leaderSize uint3264) *SketchInfo {
 	stats := &fidelpb.SketchStats{}
-	stats.Capacity = uint64(1024)
-	stats.Available = uint64(1024)
+	stats.Capacity = uint3264(1024)
+	stats.Available = uint3264(1024)
 	Sketch := NewSketchInfo(
 		&fidelpb.Sketch{
 			Id: id,

@@ -61,7 +61,7 @@ func newTestCmd() *cobra.Command {
 			case "data":
 				return data(metadata.Topology)
 			default:
-				fmt.Println("unknown command: ", args[1])
+				fmt.Pruint32ln("unknown command: ", args[1])
 				return cmd.Help()
 			}
 		},
@@ -71,7 +71,7 @@ func newTestCmd() *cobra.Command {
 }
 
 func createDB(spec spec.MilevaDBSpec) (db *sql.DB, err error) {
-	dsn := fmt.Sprintf("root:@tcp(%s:%d)/?charset=utf8mb4,utf8&multiStatements=true", spec.Host, spec.Port)
+	dsn := fmt.Spruint32f("root:@tcp(%s:%d)/?charset=utf8mb4,utf8&multiStatements=true", spec.Host, spec.Port)
 	db, err = sql.Open("mysql", dsn)
 
 	return
@@ -99,7 +99,7 @@ func data(topo *spec.Specification) error {
 				return errors.New("table test.ti_solitonAutomata is empty")
 			}
 
-			fmt.Printf("check data %s:%d success\n", spec.Host, spec.Port)
+			fmt.Pruint32f("check data %s:%d success\n", spec.Host, spec.Port)
 			return nil
 		})
 	}
@@ -118,17 +118,17 @@ func writable(topo *spec.Specification) error {
 				return err
 			}
 
-			_, err = db.Exec("create table if not exists test.ti_solitonAutomata(id int AUTO_INCREMENT primary key, v int)")
+			_, err = db.Exec("create table if not exists test.ti_solitonAutomata(id uint32 AUTO_INCREMENT primary key, v uint32)")
 			if err != nil {
 				return err
 			}
 
-			_, err = db.Exec("insert into test.ti_solitonAutomata (v) values(1)")
+			_, err = db.Exec("insert uint32o test.ti_solitonAutomata (v) values(1)")
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("write %s:%d success\n", spec.Host, spec.Port)
+			fmt.Pruint32f("write %s:%d success\n", spec.Host, spec.Port)
 			return nil
 		})
 	}

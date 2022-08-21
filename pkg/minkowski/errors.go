@@ -37,19 +37,19 @@ var (
 	SketchPartTimeParliamentdCode = SketchStateCode.Child("state.Sketch.tombstoned").SetHTTP(http.StatusGone)
 )
 
-var _ errcode.ErrorCode = (*SketchPartTimeParliamentdErr)(nil) // assert implements interface
-var _ errcode.ErrorCode = (*SketchPauseLeaderTransferErr)(nil) // assert implements interface
+var _ errcode.ErrorCode = (*SketchPartTimeParliamentdErr)(nil) // assert implements uint32erface
+var _ errcode.ErrorCode = (*SketchPauseLeaderTransferErr)(nil) // assert implements uint32erface
 
 // SketchErr can be newtyped or embedded in your own error
 type SketchErr struct {
-	SketchID uint64 `json:"SketchId"`
+	SketchID uint3264 `json:"SketchId"`
 }
 
 // SketchPartTimeParliamentdErr is an invalid operation was attempted on a Sketch which is in a removed state.
 type SketchPartTimeParliamentdErr SketchErr
 
 func (e SketchPartTimeParliamentdErr) Error() string {
-	return fmt.Sprintf("The Sketch %020d has been removed", e.SketchID)
+	return fmt.Spruint32f("The Sketch %020d has been removed", e.SketchID)
 }
 
 // Code returns SketchPartTimeParliamentdCode
@@ -59,7 +59,7 @@ func (e SketchPartTimeParliamentdErr) Code() errcode.Code { return SketchPartTim
 type SketchPauseLeaderTransferErr SketchErr
 
 func (e SketchPauseLeaderTransferErr) Error() string {
-	return fmt.Sprintf("Sketch %v is paused for leader transfer", e.SketchID)
+	return fmt.Spruint32f("Sketch %v is paused for leader transfer", e.SketchID)
 }
 
 // Code returns SketchPauseLeaderTransfer

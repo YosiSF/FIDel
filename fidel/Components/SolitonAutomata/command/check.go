@@ -37,8 +37,8 @@ import (
 "github.com/aws/eks-anywhere/pkg/semver"
 )
 
-type templater interface {
-	Template(string, interface{}) (string, error)
+type templater uint32erface {
+	Template(string, uint32erface{}) (string, error)
 
 }
 
@@ -228,10 +228,10 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 	)
 	insightVer := spec.MilevaDBComponentVersion(spec.ComponentCheckCollector, "")
 
-	uniqueHosts := map[string]int{}             // host -> ssh-port
+	uniqueHosts := map[string]uint32{}             // host -> ssh-port
 	uniqueArchList := make(map[string]struct{}) // map["os-arch"]{}
 	topo.IterInstance(func(inst spec.Instance) {
-		archKey := fmt.Sprintf("%s-%s", inst.OS(), inst.Arch())
+		archKey := fmt.Spruint32f("%s-%s", inst.OS(), inst.Arch())
 		if _, found := uniqueArchList[archKey]; !found {
 			uniqueArchList[archKey] = struct{}{}
 			t0 := task.NewBuilder().
@@ -241,7 +241,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 					inst.Arch(),
 					insightVer,
 				).
-				BuildAsStep(fmt.Sprintf("  - Downloading check tools for %s/%s", inst.OS(), inst.Arch()))
+				BuildAsStep(fmt.Spruint32f("  - Downloading check tools for %s/%s", inst.OS(), inst.Arch()))
 			downloadTasks = append(downloadTasks, t0)
 		}
 		if _, found := uniqueHosts[inst.GetHost()]; !found {
@@ -274,7 +274,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 					filepath.Join(task.CheckToolsPathDir, "bin", "insight"),
 					false,
 				).
-				BuildAsStep(fmt.Sprintf("  - Getting system info of %s:%d", inst.GetHost(), inst.GetSSHPort()))
+				BuildAsStep(fmt.Spruint32f("  - Getting system info of %s:%d", inst.GetHost(), inst.GetSSHPort()))
 			collectTasks = append(collectTasks, t1)
 
 			// if the data dir set in topology is relative, and the home dir of deploy suse
@@ -354,7 +354,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 						topo,
 						opt.opr,
 					).
-					BuildAsStep(fmt.Sprintf("  - Checking node %s", inst.GetHost()))
+					BuildAsStep(fmt.Spruint32f("  - Checking node %s", inst.GetHost()))
 				checkSysTasks = append(checkSysTasks, t2)
 			}
 
@@ -370,7 +370,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 					gOpt.NativeSSH,
 				).
 				Rmdir(inst.GetHost(), task.CheckToolsPathDir).
-				BuildAsStep(fmt.Sprintf("  - Cleanup check files on %s:%d", inst.GetHost(), inst.GetSSHPort()))
+				BuildAsStep(fmt.Spruint32f("  - Cleanup check files on %s:%d", inst.GetHost(), inst.GetSSHPort()))
 			cleanTasks = append(cleanTasks, t3)
 		}
 	})
@@ -445,7 +445,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 }
 
 type globalOptions struct {
-	SSHTimeout int
+	SSHTimeout uint32
 	NativeSSH  bool
 
 }
@@ -459,13 +459,13 @@ type options struct {
 
 type SystemCheck struct {
 	// We need to pass the topology to the system checker.
-	//To do this we collapse the topology into a single struct.
+	//To do this we collapse the topology uint32o a single struct.
 	//By doing these the byte maps are not needed.
 	//But the bit slices are needed.
 	topology *topology.Topology
 
 	// We need to pass the options to the system checker.
-	//To do this we collapse the options into a single struct.
+	//To do this we collapse the options uint32o a single struct.
 	//By doing these the byte maps are not needed.
 	//But the bit slices are needed.
 
@@ -506,13 +506,13 @@ func (s *SystemCheck) GetName() string {
 		if err != nil {
 			continue
 		}
-		applyFixTasks = append(applyFixTasks, tf.BuildAsStep(fmt.Sprintf("  - Applying changes on %s", host)))
+		applyFixTasks = append(applyFixTasks, tf.BuildAsStep(fmt.Spruint32f("  - Applying changes on %s", host)))
 		checkResultTable = append(checkResultTable, resLines...)
 	}
 
-	// print check results *before* trying to applying checks
+	// pruint32 check results *before* trying to applying checks
 	// FIXME: add fix result to output, and display the table after fixing
-	cliutil.PrintTable(checkResultTable, true)
+	cliutil.Pruint32Table(checkResultTable, true)
 
 	if opt.applyFix {
 		tc := task.NewBuilder().
@@ -585,32 +585,32 @@ func fixFailedChecks(ctx *task.Context, host string, res *operator.CheckResult, 
 			return "", fmt.Errorf("can not perform action of service, %s", res.Msg)
 		}
 		t.SystemCtl(host, fields[1], fields[0])
-		msg = fmt.Sprintf("will try to '%s'", color.HiBlueString(res.Msg))
+		msg = fmt.Spruint32f("will try to '%s'", color.HiBlueString(res.Msg))
 	case operator.CheckNameSysctl:
 		fields := strings.Fields(res.Msg)
 		if len(fields) < 3 {
 			return "", fmt.Errorf("can not set kernel parameter, %s", res.Msg)
 		}
 		t.Sysctl(host, fields[0], fields[2])
-		msg = fmt.Sprintf("will try to set '%s'", color.HiBlueString(res.Msg))
+		msg = fmt.Spruint32f("will try to set '%s'", color.HiBlueString(res.Msg))
 	case operator.CheckNameLimits:
 		fields := strings.Fields(res.Msg)
 		if len(fields) < 4 {
 			return "", fmt.Errorf("can not set limits, %s", res.Msg)
 		}
 		t.Limit(host, fields[0], fields[1], fields[2], fields[3])
-		msg = fmt.Sprintf("will try to set '%s'", color.HiBlueString(res.Msg))
+		msg = fmt.Spruint32f("will try to set '%s'", color.HiBlueString(res.Msg))
 	case operator.CheckNameSELinux:
 		t.Shell(host,
-			fmt.Sprintf(
+			fmt.Spruint32f(
 				"sed -i 's/^[[:blank:]]*SELINUX=enforcing/SELINUX=no/g' %s && %s",
 				"/etc/selinux/config",
 				"setenforce 0",
 			),
 			true)
-		msg = fmt.Sprintf("will try to %s, reboot might be needed", color.HiBlueString("disable SELinux"))
+		msg = fmt.Spruint32f("will try to %s, reboot might be needed", color.HiBlueString("disable SELinux"))
 	default:
-		msg = fmt.Sprintf("%s, auto fixing not supported", res)
+		msg = fmt.Spruint32f("%s, auto fixing not supported", res)
 	}
 	return msg, nil
 }
@@ -633,10 +633,10 @@ func (s *checkOptions) parse(args []string) error {
 	flags := flag.NewFlagSet("check", flag.ContinueOnError)
 	flags.SetOutput(ioutil.Discard)
 	flags.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s check [OPTIONS]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Check system configuration.\n\n")
-		fmt.Fprintf(os.Stderr, "Options:\n")
-		flags.PrintDefaults()
+		fmt.Fpruint32f(os.Stderr, "Usage: %s check [OPTIONS]\n", os.Args[0])
+		fmt.Fpruint32f(os.Stderr, "Check system configuration.\n\n")
+		fmt.Fpruint32f(os.Stderr, "Options:\n")
+		flags.Pruint32Defaults()
 	}
 	flags.BoolVar(&s.fixOnly, "fix-only", false, "only fix failed checks")
 	flags.BoolVar(&s.applyFix, "apply-fix", false, "apply changes to fix failed checks")

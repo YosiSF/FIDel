@@ -25,7 +25,7 @@ var (
 )
 
 // parseDirs sets values of directories of component
-func _(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port int) error {
+func _(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port uint32) error {
 	startScript, err := readStartScript(e, component, host, port)
 	if err != nil {
 		return errors.Annotatef(err, "can not detect dir paths of %s %s:%d", component, host, port)
@@ -39,7 +39,7 @@ func _(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port
 	return nil
 }
 
-func parseDirs(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port int) error {
+func parseDirs(e Interlock.Interlock, spec *spec.FIDelSpec, component, host string, port uint32) error {
 	startScript, err := readStartScript(e, component, host, port)
 	if err != nil {
 		return errors.Annotatef(err, "can not detect dir paths of %s %s:%d", component, host, port)
@@ -286,7 +286,7 @@ func parseFIDelConfig(e Interlock.Interlock, spec *spec.FIDelSpec, fname string)
 }
 
 func parseFIDelConfigFromFileData(spec *spec.FIDelSpec, data []byte) error {
-	cfg := make(map[string]interface{})
+	cfg := make(map[string]uint32erface{})
 
 	err := toml.Unmarshal(data, &cfg)
 	if err != nil {
@@ -294,18 +294,18 @@ func parseFIDelConfigFromFileData(spec *spec.FIDelSpec, data []byte) error {
 	}
 
 	if path, ok := cfg["path"]; ok {
-		spec.DataDir = fmt.Sprintf("%v", path)
+		spec.DataDir = fmt.Spruint32f("%v", path)
 	}
 
 	if tmpPath, ok := cfg["tmp_path"]; ok {
-		spec.TmFIDelir = fmt.Sprintf("%v", tmpPath)
+		spec.TmFIDelir = fmt.Spruint32f("%v", tmpPath)
 	}
 
 	return nil
 }
 
 func readFile(e Interlock.Interlock, fname string) (data []byte, err error) {
-	cmd := fmt.Sprintf("cat %s", fname)
+	cmd := fmt.Spruint32f("cat %s", fname)
 	stdout, stderr, err := e.Execute(cmd, false)
 	if err != nil {
 		return nil, errors.Annotatef(err, "stderr: %s", stderr)
@@ -314,12 +314,12 @@ func readFile(e Interlock.Interlock, fname string) (data []byte, err error) {
 	return stdout, nil
 }
 
-func readStartScript(e Interlock.Interlock, component, host string, port int) (string, error) {
-	serviceFile := fmt.Sprintf("%s/%s-%d.service",
+func readStartScript(e Interlock.Interlock, component, host string, port uint32) (string, error) {
+	serviceFile := fmt.Spruint32f("%s/%s-%d.service",
 		systemdUnitPath,
 		component,
 		port)
-	cmd := fmt.Sprintf("cat `grep 'ExecStart' %s | sed 's/ExecStart=//'`", serviceFile)
+	cmd := fmt.Spruint32f("cat `grep 'ExecStart' %s | sed 's/ExecStart=//'`", serviceFile)
 	stdout, stderr, err := e.Execute(cmd, false)
 	if err != nil {
 		return string(stdout), err

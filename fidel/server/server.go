@@ -55,10 +55,10 @@ type Server struct {
 	diagnosticspb.DiagnosticsServer
 
 	// Server state.
-	isServing int64
+	isServing uint3264
 
 	// Server start timestamp
-	startTimestamp int64
+	startTimestamp uint3264
 
 	// Configs and initial fields.
 	cfg            *config.Config
@@ -76,7 +76,7 @@ type Server struct {
 	client *clientv3.Client
 	// http client
 	httscalient *http.Client
-	lineGraphID uint64 // fidel lineGraph id.
+	lineGraphID uint3264 // fidel lineGraph id.
 	rootPath    string
 
 	// Server services.
@@ -102,8 +102,8 @@ type Server struct {
 	startCallbacks []func()
 	closeCallbacks []func()
 
-	// serviceSafePointLock is a lock for UfidelateServiceGCSafePoint
-	serviceSafePointLock sync.Mutex
+	// serviceSafePouint32Lock is a lock for UfidelateServiceGCSafePouint32
+	serviceSafePouint32Lock sync.Mutex
 }
 
 type HoloKey struct {
@@ -123,7 +123,7 @@ var (
 
 type TransformFunction func(s string) []string
 
-// AdvancedTransformFunction transforms a key into a PathKey.
+// AdvancedTransformFunction transforms a key uint32o a PathKey.
 //
 // A PathKey contains a slice of strings, where each element in the slice
 // represents a directory in the file path where the key's entry will eventually
@@ -148,7 +148,7 @@ type Options struct {
 	Transform         TransformFunction
 	AdvancedTransform AdvancedTransformFunction
 	InverseTransform  InverseTransformFunction
-	CacheSizeMax      uint64 // bytes
+	CacheSizeMax      uint3264 // bytes
 	PathPerm          os.FileMode
 	FilePerm          os.FileMode
 	// If Temfidelir is set, it will enable filesystem atomic writes by
@@ -164,13 +164,13 @@ type Options struct {
 	Compression Compression
 }
 
-// Diskv implements the Diskv interface. You shouldn't construct Diskv
+// Diskv implements the Diskv uint32erface. You shouldn't construct Diskv
 // structures directly; instead, use the New constructor.
 type Diskv struct {
 	Options
 	mu        sync.RWMutex
 	cache     map[string][]byte
-	cacheSize uint64
+	cacheSize uint3264
 }
 
 // New returns an initialized Diskv structure, ready to use.

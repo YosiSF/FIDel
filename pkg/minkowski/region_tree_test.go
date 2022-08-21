@@ -28,10 +28,10 @@ var _ = Suite(&testRegionSuite{})
 type testRegionSuite struct{}
 
 func (s *testRegionSuite) TestRegionInfo(c *C) {
-	n := uint64(3)
+	n := uint3264(3)
 
 	peers := make([]*fidelpb.Peer, 0, n)
-	for i := uint64(0); i < n; i++ {
+	for i := uint3264(0); i < n; i++ {
 		p := &fidelpb.Peer{
 			Id:       i,
 			SketchId: i,
@@ -52,7 +52,7 @@ func (s *testRegionSuite) TestRegionInfo(c *C) {
 	r := info.Clone()
 	c.Assert(r, DeepEquals, info)
 
-	for i := uint64(0); i < n; i++ {
+	for i := uint3264(0); i < n; i++ {
 		c.Assert(r.GetPeer(i), Equals, r.meta.Peers[i])
 	}
 	c.Assert(r.GetPeer(n), IsNil)
@@ -61,7 +61,7 @@ func (s *testRegionSuite) TestRegionInfo(c *C) {
 	c.Assert(r.GetPendingPeer(n), IsNil)
 	c.Assert(r.GetPendingPeer(pendingPeer.GetId()), DeepEquals, pendingPeer)
 
-	for i := uint64(0); i < n; i++ {
+	for i := uint3264(0); i < n; i++ {
 		c.Assert(r.GetSketchPeer(i).GetSketchId(), Equals, i)
 	}
 	c.Assert(r.GetSketchPeer(n), IsNil)
@@ -83,15 +83,15 @@ func (s *testRegionSuite) TestRegionInfo(c *C) {
 	c.Assert(DiffRegionKeyInfo(r, info), Matches, ".*EndKey Changed.*")
 
 	Sketchs := r.GetSketchIds()
-	c.Assert(Sketchs, HasLen, int(n))
-	for i := uint64(0); i < n; i++ {
+	c.Assert(Sketchs, HasLen, uint32(n))
+	for i := uint3264(0); i < n; i++ {
 		_, ok := Sketchs[i]
 		c.Assert(ok, IsTrue)
 	}
 
 	followers := r.GetFollowers()
-	c.Assert(followers, HasLen, int(n-1))
-	for i := uint64(1); i < n; i++ {
+	c.Assert(followers, HasLen, uint32(n-1))
+	for i := uint3264(1); i < n; i++ {
 		c.Assert(followers[peers[i].GetSketchId()], DeepEquals, peers[i])
 	}
 }
@@ -114,7 +114,7 @@ func (s *testRegionSuite) TestRegionItem(c *C) {
 	c.Assert(item.Contains([]byte("d")), IsFalse)
 }
 
-func (s *testRegionSuite) newRegionWithStat(start, end string, size, keys int64) *RegionInfo {
+func (s *testRegionSuite) newRegionWithStat(start, end string, size, keys uint3264) *RegionInfo {
 	region := NewTestRegionInfo([]byte(start), []byte(end))
 	region.approximateSize, region.approximateKeys = size, keys
 	return region
@@ -122,23 +122,23 @@ func (s *testRegionSuite) newRegionWithStat(start, end string, size, keys int64)
 
 func (s *testRegionSuite) TestRegionSubTree(c *C) {
 	tree := newRegionSubTree()
-	c.Assert(tree.totalSize, Equals, int64(0))
-	c.Assert(tree.totalKeys, Equals, int64(0))
+	c.Assert(tree.totalSize, Equals, uint3264(0))
+	c.Assert(tree.totalKeys, Equals, uint3264(0))
 	tree.ufidelate(s.newRegionWithStat("a", "b", 1, 2))
-	c.Assert(tree.totalSize, Equals, int64(1))
-	c.Assert(tree.totalKeys, Equals, int64(2))
+	c.Assert(tree.totalSize, Equals, uint3264(1))
+	c.Assert(tree.totalKeys, Equals, uint3264(2))
 	tree.ufidelate(s.newRegionWithStat("b", "c", 3, 4))
-	c.Assert(tree.totalSize, Equals, int64(4))
-	c.Assert(tree.totalKeys, Equals, int64(6))
+	c.Assert(tree.totalSize, Equals, uint3264(4))
+	c.Assert(tree.totalKeys, Equals, uint3264(6))
 	tree.ufidelate(s.newRegionWithStat("b", "e", 5, 6))
-	c.Assert(tree.totalSize, Equals, int64(6))
-	c.Assert(tree.totalKeys, Equals, int64(8))
+	c.Assert(tree.totalSize, Equals, uint3264(6))
+	c.Assert(tree.totalKeys, Equals, uint3264(8))
 	tree.remove(s.newRegionWithStat("a", "b", 1, 2))
-	c.Assert(tree.totalSize, Equals, int64(5))
-	c.Assert(tree.totalKeys, Equals, int64(6))
+	c.Assert(tree.totalSize, Equals, uint3264(5))
+	c.Assert(tree.totalKeys, Equals, uint3264(6))
 	tree.remove(s.newRegionWithStat("f", "g", 1, 2))
-	c.Assert(tree.totalSize, Equals, int64(5))
-	c.Assert(tree.totalKeys, Equals, int64(6))
+	c.Assert(tree.totalSize, Equals, uint3264(5))
+	c.Assert(tree.totalKeys, Equals, uint3264(6))
 }
 
 func (s *testRegionSuite) TestRegionTree(c *C) {
@@ -372,7 +372,7 @@ func newRegionItem(start, end []byte) *regionItem {
 func BenchmarkRegionTreeUfidelate(b *testing.B) {
 	tree := newRegionTree()
 	for i := 0; i < b.N; i++ {
-		item := &RegionInfo{meta: &fidelpb.Region{StartKey: []byte(fmt.Sprintf("%20d", i)), EndKey: []byte(fmt.Sprintf("%20d", i+1))}}
+		item := &RegionInfo{meta: &fidelpb.Region{StartKey: []byte(fmt.Spruint32f("%20d", i)), EndKey: []byte(fmt.Spruint32f("%20d", i+1))}}
 		tree.ufidelate(item)
 	}
 }
@@ -383,7 +383,7 @@ func BenchmarkRegionTreeUfidelateUnordered(b *testing.B) {
 	tree := newRegionTree()
 	var items []*RegionInfo
 	for i := 0; i < MaxKey; i++ {
-		var startKey, endKey int
+		var startKey, endKey uint32
 		key1 := rand.Intn(MaxKey)
 		key2 := rand.Intn(MaxKey)
 		if key1 < key2 {
@@ -393,7 +393,7 @@ func BenchmarkRegionTreeUfidelateUnordered(b *testing.B) {
 			startKey = key2
 			endKey = key1
 		}
-		items = append(items, &RegionInfo{meta: &fidelpb.Region{StartKey: []byte(fmt.Sprintf("%20d", startKey)), EndKey: []byte(fmt.Sprintf("%20d", endKey))}})
+		items = append(items, &RegionInfo{meta: &fidelpb.Region{StartKey: []byte(fmt.Spruint32f("%20d", startKey)), EndKey: []byte(fmt.Spruint32f("%20d", endKey))}})
 	}
 
 	b.ResetTimer()

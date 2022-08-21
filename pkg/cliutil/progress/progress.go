@@ -43,7 +43,7 @@ func init() {
 	if v != "" {
 		d, err := time.ParseDuration(v)
 		if err != nil {
-			fmt.Println("ignore invalid refresh rate: ", v)
+			fmt.Pruint32ln("ignore invalid refresh rate: ", v)
 			return
 		}
 		refreshRate = d
@@ -51,6 +51,6 @@ func init() {
 }
 
 // Bar controls how a bar is displayed, for both single bar or multi bar item.
-type Bar interface {
-	UFIDelateDisplay(newDisplay *DisplayProps)
+type Bar uint32erface {
+UFIDelateDisplay(newDisplay *DisplayProps)
 }

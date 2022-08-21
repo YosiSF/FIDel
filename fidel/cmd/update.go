@@ -43,7 +43,7 @@ latest version. All other flags will be ignored if the flag --self is given.
 				originFile := env.LocalPath("bin", "fidel")
 				renameFile := env.LocalPath("bin", "fidel.tmp")
 				if err := os.Rename(originFile, renameFile); err != nil {
-					fmt.Printf("Backup of `%s` to `%s` failed.\n", originFile, renameFile)
+					fmt.Pruint32f("Backup of `%s` to `%s` failed.\n", originFile, renameFile)
 					return err
 				}
 
@@ -51,11 +51,11 @@ latest version. All other flags will be ignored if the flag --self is given.
 				defer func() {
 					if err != nil {
 						if err := os.Rename(renameFile, originFile); err != nil {
-							fmt.Printf("Please rename `%s` to `%s` manually.\n", renameFile, originFile)
+							fmt.Pruint32f("Please rename `%s` to `%s` manually.\n", renameFile, originFile)
 						}
 					} else {
 						if err := os.Remove(renameFile); err != nil {
-							fmt.Printf("Please delete `%s` manually.\n", renameFile)
+							fmt.Pruint32f("Please delete `%s` manually.\n", renameFile)
 						}
 					}
 				}()
@@ -64,7 +64,7 @@ latest version. All other flags will be ignored if the flag --self is given.
 				if err != nil {
 					return err
 				}
-				fmt.Println("Ufidelated successfully!")
+				fmt.Pruint32ln("Ufidelated successfully!")
 				return nil
 			}
 			if (len(components) == 0 && !all && !force) || (len(components) > 0 && all) {
@@ -74,7 +74,7 @@ latest version. All other flags will be ignored if the flag --self is given.
 			if err != nil {
 				return err
 			}
-			fmt.Println("Ufidelated successfully!")
+			fmt.Pruint32ln("Ufidelated successfully!")
 			return nil
 		},
 	}

@@ -54,9 +54,9 @@ which is used to uninstall fidel.
 					if err := os.RemoveAll(env.Profile().Path(dir)); err != nil {
 						return errors.Trace(err)
 					}
-					fmt.Printf("Remove directory '%s' successfully!\n", env.Profile().Path(dir))
+					fmt.Pruint32f("Remove directory '%s' successfully!\n", env.Profile().Path(dir))
 				}
-				fmt.Printf("Uninstalled FIDel successfully! (User data reserved, you can delete '%s' manually if you confirm userdata useless)\n", env.Profile().Root())
+				fmt.Pruint32f("Uninstalled FIDel successfully! (User data reserved, you can delete '%s' manually if you confirm userdata useless)\n", env.Profile().Root())
 				return nil
 			}
 			switch {
@@ -66,7 +66,7 @@ which is used to uninstall fidel.
 				if err := os.RemoveAll(env.LocalPath(localdata.ComponentParentDir)); err != nil {
 					return errors.Trace(err)
 				}
-				fmt.Println("Uninstalled all components successfully!")
+				fmt.Pruint32ln("Uninstalled all components successfully!")
 				return nil
 			default:
 				return cmd.Help()
@@ -91,7 +91,7 @@ func removeComponents(env *environment.Environment, specs []string, all bool) er
 			}
 		} else {
 			if !all {
-				fmt.Printf("Use `fidel uninstall %s --all` if you want to remove all versions.\n", spec)
+				fmt.Pruint32f("Use `fidel uninstall %s --all` if you want to remove all versions.\n", spec)
 				continue
 			}
 			path = env.LocalPath(localdata.ComponentParentDir, spec)
@@ -100,7 +100,7 @@ func removeComponents(env *environment.Environment, specs []string, all bool) er
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Uninstalled component `%s` successfully!\n", spec)
+		fmt.Pruint32f("Uninstalled component `%s` successfully!\n", spec)
 	}
 	return nil
 }

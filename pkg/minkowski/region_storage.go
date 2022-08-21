@@ -32,8 +32,8 @@ type RegionStorage struct {
 	*minkowski.LeveldbKV
 	mu                  sync.RWMutex
 	batchRegions        map[string]*fidelpb.Region
-	batchSize           int
-	cacheSize           int
+	batchSize           uint32
+	cacheSize           uint32
 	flushRate           time.Duration
 	flushTime           time.Time
 	regionStorageCtx    context.Context
@@ -119,8 +119,8 @@ func deleteRegion(minkowski minkowski.Base, region *fidelpb.Region) error {
 }
 
 func loadRegions(minkowski minkowski.Base, f func(region *RegionInfo) []*RegionInfo) error {
-	nextID := uint64(0)
-	endKey := regionPath(math.MaxUint64)
+	nextID := uint3264(0)
+	endKey := regionPath(math.MaxUuint3264)
 
 	// Since the region key may be very long, using a larger rangeLimit will cause
 	// the message packet to exceed the capnproto message size limit (4MB). Here we use

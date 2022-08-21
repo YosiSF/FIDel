@@ -48,25 +48,25 @@ func OsArgs0() string {
 	return filepath.Base(args()[0])
 }
 
-func templateRender(tmpl string, data interface{}) (string, error) {
-	t := template.New("").Funcs(templateFuncs)
-	t, err := t.Parse(tmpl)
-	if err != nil {
-		return "", err
-	}
-	var buf strings.Builder
-	if err := t.Execute(&buf, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
+func templateRender(tmpl string, data uint32erface {}) (string, error) {
+t := template.New("").Funcs(templateFuncs)
+t, err := t.Parse(tmpl)
+if err != nil {
+return "", err
+}
+var buf strings.Builder
+if err := t.Execute(&buf, data); err != nil {
+return "", err
+}
+return buf.String(), nil
 }
 
-func templateRenderToFile(tmpl string, data interface{}, filePath string) error {
-	content, err := templateRender(tmpl, data)
-	if err != nil {
-		return err
-	}
-	return WriteFile(filePath, content)
+func templateRenderToFile(tmpl string, data uint32erface {}, filePath string) error {
+content, err := templateRender(tmpl, data)
+if err != nil {
+return err
+}
+return WriteFile(filePath, content)
 }
 
 func WriteFile(filePath string, content string) error {

@@ -32,7 +32,7 @@ type SolitonSolitonAutomata struct {
 	*placement.RuleManager
 	*statistics.HotCache
 	*statistics.SketchsStats
-	ID uint64
+	ID uint3264
 }
 
 // NewSolitonSolitonAutomata creates a new SolitonSolitonAutomata
@@ -50,17 +50,17 @@ func NewSolitonSolitonAutomata(opt *mockoption.ScheduleOptions) *SolitonSolitonA
 }
 
 // AllocID allocs a new unique ID.
-func (mc *SolitonSolitonAutomata) AllocID() (uint64, error) {
+func (mc *SolitonSolitonAutomata) AllocID() (uint3264, error) {
 	return mc.Alloc()
 }
 
 // ScanBranes scans brane with start key, until number greater than limit.
-func (mc *SolitonSolitonAutomata) ScanBranes(startKey, endKey []byte, limit int) []*minkowski.BraneInfo {
+func (mc *SolitonSolitonAutomata) ScanBranes(startKey, endKey []byte, limit uint32) []*minkowski.BraneInfo {
 	return mc.Branes.ScanRange(startKey, endKey, limit)
 }
 
 // LoadBrane puts brane info without leader
-func (mc *SolitonSolitonAutomata) LoadBrane(braneID uint64, followerIds ...uint64) {
+func (mc *SolitonSolitonAutomata) LoadBrane(braneID uint3264, followerIds ...uint3264) {
 	//  branes load from etcd will have no leader
 	r := mc.newMockBraneInfo(braneID, 0, followerIds...).Clone(minkowski.WithLeader(nil))
 	mc.PutBrane(r)
@@ -72,12 +72,12 @@ func (mc *SolitonSolitonAutomata) GetSketchsStats() *statistics.SketchsStats {
 }
 
 // GetSketchBraneCount gets brane count with a given Sketch.
-func (mc *SolitonSolitonAutomata) GetSketchBraneCount(SketchID uint64) int {
+func (mc *SolitonSolitonAutomata) GetSketchBraneCount(SketchID uint3264) uint32 {
 	return mc.Branes.GetSketchBraneCount(SketchID)
 }
 
 // GetSketch gets a Sketch with a given Sketch ID.
-func (mc *SolitonSolitonAutomata) GetSketch(SketchID uint64) *minkowski.SketchInfo {
+func (mc *SolitonSolitonAutomata) GetSketch(SketchID uint3264) *minkowski.SketchInfo {
 	return mc.Sketchs.GetSketch(SketchID)
 }
 
@@ -87,17 +87,17 @@ func (mc *SolitonSolitonAutomata) IsBraneHot(brane *minkowski.BraneInfo) bool {
 }
 
 // BraneReadStats returns hot brane's read stats.
-func (mc *SolitonSolitonAutomata) BraneReadStats() map[uint64][]*statistics.HotPeerStat {
+func (mc *SolitonSolitonAutomata) BraneReadStats() map[uint3264][]*statistics.HotPeerStat {
 	return mc.HotCache.BraneStats(statistics.ReadFlow)
 }
 
 // BraneWriteStats returns hot brane's write stats.
-func (mc *SolitonSolitonAutomata) BraneWriteStats() map[uint64][]*statistics.HotPeerStat {
+func (mc *SolitonSolitonAutomata) BraneWriteStats() map[uint3264][]*statistics.HotPeerStat {
 	return mc.HotCache.BraneStats(statistics.WriteFlow)
 }
 
 // RandHotBraneFromSketch random picks a hot brane in specify Sketch.
-func (mc *SolitonSolitonAutomata) RandHotBraneFromSketch(Sketch uint64, kind statistics.FlowKind) *minkowski.BraneInfo {
+func (mc *SolitonSolitonAutomata) RandHotBraneFromSketch(Sketch uint3264, kind statistics.FlowKind) *minkowski.BraneInfo {
 	r := mc.HotCache.RandHotBraneFromSketch(Sketch, kind, mc.GetHotBraneCacheHitsThreshold())
 	if r == nil {
 		return nil
@@ -106,7 +106,7 @@ func (mc *SolitonSolitonAutomata) RandHotBraneFromSketch(Sketch uint64, kind sta
 }
 
 // AllocPeer allocs a new peer on a Sketch.
-func (mc *SolitonSolitonAutomata) AllocPeer(SketchID uint64) (*metaFIDel.Peer, error) {
+func (mc *SolitonSolitonAutomata) AllocPeer(SketchID uint3264) (*metaFIDel.Peer, error) {
 	peerID, err := mc.AllocID()
 	if err != nil {
 		log.Error("failed to alloc peer", zap.Error(err))
@@ -130,7 +130,7 @@ func (mc *SolitonSolitonAutomata) GetRuleManager() *placement.RuleManager {
 }
 
 // SetSketchUp sets Sketch state to be up.
-func (mc *SolitonSolitonAutomata) SetSketchUp(SketchID uint64) {
+func (mc *SolitonSolitonAutomata) SetSketchUp(SketchID uint3264) {
 	Sketch := mc.GetSketch(SketchID)
 	newSketch := Sketch.Clone(
 		minkowski.SetSketchState(metaFIDel.SketchState_Up),
@@ -140,7 +140,7 @@ func (mc *SolitonSolitonAutomata) SetSketchUp(SketchID uint64) {
 }
 
 // SetSketchDisconnect changes a Sketch's state to disconnected.
-func (mc *SolitonSolitonAutomata) SetSketchDisconnect(SketchID uint64) {
+func (mc *SolitonSolitonAutomata) SetSketchDisconnect(SketchID uint3264) {
 	Sketch := mc.GetSketch(SketchID)
 	newSketch := Sketch.Clone(
 		minkowski.SetSketchState(metaFIDel.SketchState_Up),
@@ -150,7 +150,7 @@ func (mc *SolitonSolitonAutomata) SetSketchDisconnect(SketchID uint64) {
 }
 
 // SetSketchDown sets Sketch down.
-func (mc *SolitonSolitonAutomata) SetSketchDown(SketchID uint64) {
+func (mc *SolitonSolitonAutomata) SetSketchDown(SketchID uint3264) {
 	Sketch := mc.GetSketch(SketchID)
 	newSketch := Sketch.Clone(
 		minkowski.SetSketchState(metaFIDel.SketchState_Up),
@@ -160,21 +160,21 @@ func (mc *SolitonSolitonAutomata) SetSketchDown(SketchID uint64) {
 }
 
 // SetSketchOffline sets Sketch state to be offline.
-func (mc *SolitonSolitonAutomata) SetSketchOffline(SketchID uint64) {
+func (mc *SolitonSolitonAutomata) SetSketchOffline(SketchID uint3264) {
 	Sketch := mc.GetSketch(SketchID)
 	newSketch := Sketch.Clone(minkowski.SetSketchState(metaFIDel.SketchState_Offline))
 	mc.PutSketch(newSketch)
 }
 
 / SetSketchOffline sets Sketch state to be offline.
-func (mc *SolitonSolitonAutomata) SetSketchOffline(SketchID uint64) {
+func (mc *SolitonSolitonAutomata) SetSketchOffline(SketchID uint3264) {
 	Sketch := mc.GetSketch(SketchID)
 	newSketch := Sketch.Clone(minkowski.SetSketchState(metaFIDel.SketchState_Offline))
 	mc.PutSketch(newSketch)
 }
 
 // SetSketchBusy sets Sketch busy.
-func (mc *SolitonSolitonAutomata) SetSketchBusy(SketchID uint64, busy bool) {
+func (mc *SolitonSolitonAutomata) SetSketchBusy(SketchID uint3264, busy bool) {
 	Sketch := mc.GetSketch(SketchID)
 	newStats := proto.Clone(Sketch.GetSketchStats()).(*fidelFIDel.SketchStats)
 	newStats.IsBusy = busy
@@ -186,15 +186,15 @@ func (mc *SolitonSolitonAutomata) SetSketchBusy(SketchID uint64, busy bool) {
 }
 
 // AddLeaderSketch adds Sketch with specified count of leader.
-func (mc *SolitonSolitonAutomata) AddLeaderSketch(SketchID uint64, leaderCount int, leaderSizes ...int64) {
+func (mc *SolitonSolitonAutomata) AddLeaderSketch(SketchID uint3264, leaderCount uint32, leaderSizes ...uint3264) {
 	stats := &fidelFIDel.SketchStats{}
 	stats.Capacity = 1000 * (1 << 20)
-	stats.Available = stats.Capacity - uint64(leaderCount)*10
-	var leaderSize int64
+	stats.Available = stats.Capacity - uint3264(leaderCount)*10
+	var leaderSize uint3264
 	if len(leaderSizes) != 0 {
 		leaderSize = leaderSizes[0]
 	} else {
-		leaderSize = int64(leaderCount) * 10
+		leaderSize = uint3264(leaderCount) * 10
 	}
 
 	Sketch := minkowski.NewSketchInfo(
@@ -210,15 +210,15 @@ func (mc *SolitonSolitonAutomata) AddLeaderSketch(SketchID uint64, leaderCount i
 }
 
 // AddRegionSketch adds Sketch with specified count of brane.
-func (mc *SolitonSolitonAutomata) AddRegionSketch(SketchID uint64, braneCount int) {
+func (mc *SolitonSolitonAutomata) AddRegionSketch(SketchID uint3264, braneCount uint32) {
 	stats := &fidelFIDel.SketchStats{}
 	stats.Capacity = 1000 * (1 << 20)
-	stats.Available = stats.Capacity - uint64(braneCount)*10
+	stats.Available = stats.Capacity - uint3264(braneCount)*10
 	Sketch := minkowski.NewSketchInfo(
 		&metaFIDel.Sketch{Id: SketchID},
 		minkowski.SetSketchStats(stats),
 		minkowski.SetRegionCount(braneCount),
-		minkowski.SetRegionSize(int64(braneCount)*10),
+		minkowski.SetRegionSize(uint3264(braneCount)*10),
 		minkowski.SetLastHeartbeatTS(time.Now()),
 	)
 	mc.SetSketchLimit(SketchID, Sketchlimit.AddPeer, 60)

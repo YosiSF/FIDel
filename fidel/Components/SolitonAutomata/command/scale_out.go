@@ -51,9 +51,9 @@ import (
 	"github.com/filecoin-project/lotus/cmd/lotus-sim/simulation/stages"
 	"github.com/filecoin-project/lotus/node/repo"
 	files "github.com/ipfs/go-ipfs-files"
-	coreiface "github.com/ipfs/interface-go-ipfs-core"
-	"github.com/ipfs/interface-go-ipfs-core/options"
-	ipath "github.com/ipfs/interface-go-ipfs-core/path"
+	coreiface "github.com/ipfs/uint32erface-go-ipfs-core"
+	"github.com/ipfs/uint32erface-go-ipfs-core/options"
+	ipath "github.com/ipfs/uint32erface-go-ipfs-core/path"
 	"github.com/ipfs/kubo/core"
 	"github.com/ipfs/kubo/core/coreapi"
 	"github.com/ipfs/kubo/repo/fsrepo/migrations"
@@ -169,14 +169,14 @@ func (n *Node) Run(ctx context.Context) error {
 
 
 type config struct {
-	NumNodes int `json:"num_nodes"`
+	NumNodes uint32 `json:"num_nodes"`
 
 	PeerAddr string `json:"peer_addr"`
 
 	IpfsAddr string `json:"ipfs_addr"`
 
-	//InitialBalance int `json:"initial_balance"`
-	InitialBalance int `json:"initial_balance"`
+	//InitialBalance uint32 `json:"initial_balance"`
+	InitialBalance uint32 `json:"initial_balance"`
 
 	//Poset - Proof of Timestake
 	Poset bool `json:"poset"`
@@ -248,7 +248,7 @@ type FidelNode struct {
 	PeerIpfsAddr string
 }
 
-func scaleOutWithNumNodes(numNodes int) error {
+func scaleOutWithNumNodes(numNodes uint32) error {
 	// Load the config file
 	configFile, err := ioutil.ReadFile(configFilePath)
 	if err != nil {
@@ -404,7 +404,7 @@ func addMigrationFiles(client *ipfs.Client, paths []string, pin bool) ([]string,
 /*
 
 We scale out by issuing out a belief propagation command to the solitonAutomata.
-This is a strategy to adjoint the scale out command to the solitonAutomata.
+This is a strategy to adjouint32 the scale out command to the solitonAutomata.
 By issuing a belief propagation command, we can scale out the solitonAutomata.
 
 1. The solitonAutomata will send a belief propagation command to the other solitonAutomata.
@@ -678,7 +678,7 @@ func postScaleOutHook(builder *task.Builder, newPart spec.Topology) {
 		var err error
 		teleNodeInfos, err = operator.GetNodeInfo(context.Background(), ctx, newPart)
 		_ = err
-		// intend to never return error
+		// uint32end to never return error
 		return nil
 	}).BuildAsStep("Check status").SetHidden(true)
 

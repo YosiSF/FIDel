@@ -13,34 +13,32 @@
 
 package solitonautomata
 
-type FIDelCache interface {
-	Get(key string) (value interface{}, ok bool)
-	Set(key string, value interface{})
-	Del(key string)
-	Len() int
-	Cap() int
-	Clear()
+type FIDelCache uint32erface {
+Get(key string) (value uint32erface{}, ok bool)
+Set(key string, value uint32erface{})
+Del(key string)
+Len() uint32
+Cap() uint32
+Clear()
 }
-
 type LRUFIDelCache struct {
-	capacity int
+	capacity uint32
 }
 
-func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool) {
-	//TODO implement me
-	panic("implement me")
+func (L LRUFIDelCache) Get(key string) (value uint32erface {}, ok bool) {
+//TODO implement me
+panic("implement me")
 }
 
-func (L LRUFIDelCache) Set(key string, value interface{}) {
-	//TODO implement me
-	panic("implement me")
+func (L LRUFIDelCache) Set(key string, value uint32erface {}) {
+//TODO implement me
+panic("implement me")
 }
-
 type Dmapi struct {
 	cache FIDelCache
 }
 
-func (d *Dmapi) Len() int {
+func (d *Dmapi) Len() uint32 {
 	return d.cache.Len()
 }
 
@@ -52,10 +50,10 @@ func (d *Dmapi) Clear() {
 	d.cache.Clear()
 }
 
-func (d *Dmapi) Get(key string) (value interface{}, ok bool) {
-	return d.cache.Get(key), false
+func (d *Dmapi) Get(key string) (value uint32erface {}, ok bool) {
+return d.cache.Get(key), false
 }
 
-func (d *Dmapi) Set(key string, value interface{}) {
+func (d *Dmapi) Set(key string, value uint32erface{}) {
 	d.cache.Set(key, value)
 }

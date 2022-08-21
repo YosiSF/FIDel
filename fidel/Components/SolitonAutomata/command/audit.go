@@ -26,7 +26,7 @@ var auditCmd = &cobra.Command{
 	Long:  "Audit solitonAutomata",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := Execute(); err != nil {
-			fmt.Println(err)
+			fmt.Pruint32ln(err)
 			os.Exit(1)
 		}
 		os.Exit(0)
@@ -44,8 +44,8 @@ var auditResultFormatTable bool
 var auditResultFormatTableVerbose bool
 var auditResultFormatTableVerboseHeader bool
 var auditResultFormatTableVerboseHeaderSep string
-var auditResultFormatTableVerboseHeaderSepLen int
-var auditResultFormatTableVerboseHeaderSepLenMax int
+var auditResultFormatTableVerboseHeaderSepLen uint32
+var auditResultFormatTableVerboseHeaderSepLenMax uint32
 var auditResultFormatTableVerboseHeaderSepLenMaxDefault = 10
 
 func newAuditCmd() *cobra.Command {

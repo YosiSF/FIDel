@@ -1,8 +1,19 @@
-package pram
+package rp
 
-import "time"
+import (
+	proto _ "github.com/djbarber/ipfs-hack/Godeps/_workspace/src/github.com/gogo/protobuf/proto"
+	"github.com/djbarber/ipfs-hack/Godeps/_workspace/src/golang.org/x/net/context"
+
+	mdag "github.com/djbarber/ipfs-hack/merkledag"
+	ft "github.com/djbarber/ipfs-hack/unixfs"
+	ftpb "github.com/djbarber/ipfs-hack/unixfs/pb"
+	"time"
+)
 
 const (
+	// LRUFIDelCache is the type of LRU FIDelCache
+	LRUFIDelCache = "LRU"
+
 	// DefaultFIDelCacheType is the default cache type.
 	DefaultFIDelCacheType = "lru"
 
@@ -20,7 +31,7 @@ const (
 )
 
 // NewFIDelCache create FIDelCache instance by cache type
-func NewFIDelCache(size int, cacheType Type) FIDelCache {
+func NewFIDelCache(size uint32, cacheType Type) FIDelCache {
 	switch cacheType {
 	case LRUFIDelCache:
 		return NewLRUFIDelCache(size)

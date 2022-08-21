@@ -139,7 +139,7 @@ func (r *renderer) renderLoop() {
 
 
 func (r *renderer) render() {
-	fmt.Printf("rendering\n")
+	fmt.Pruint32f("rendering\n")
 	r.renderFn()
 
 }
@@ -408,7 +408,7 @@ var ScaleInCliUtil = &cli.Command{
 //}
 
 /*
-We want to implement a solitonutil which provisions an EinsteinDB cluster replica to act as a bolt-on persistence layer that interacts
+We want to implement a solitonutil which provisions an EinsteinDB cluster replica to act as a bolt-on persistence layer that uint32eracts
 via Fidel with MilevaDB and VioletaBFT with IPFS.
 
 1. Create a new cluster with the following configuration:
@@ -437,7 +437,7 @@ func (r *renderer) renderLoopFn() {
 
 var ChainHeadCmd = &cli.Command{
 	Name:  "head",
-	Usage: "Print chain head",
+	Usage: "Pruint32 chain head",
 	Action: func(cctx *cli.Context) error {
 		afmt := NewAppFmt(cctx.App)
 
@@ -454,7 +454,7 @@ var ChainHeadCmd = &cli.Command{
 		}
 
 		for _, c := range head.Cids() {
-			afmt.Println(c)
+			afmt.Pruint32ln(c)
 		}
 		return nil
 	},
@@ -463,12 +463,12 @@ var ChainHeadCmd = &cli.Command{
 var ChainGetBlock = &cli.Command{
 	Name:      "get-block",
 	Aliases:   []string{"getblock"},
-	Usage:     "Get a block and print its details",
+	Usage:     "Get a block and pruint32 its details",
 	ArgsUsage: "[blockCid]",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  "raw",
-			Usage: "print just the raw block header",
+			Usage: "pruint32 just the raw block header",
 		},
 	},
 	Action: func(cctx *cli.Context) error {
@@ -482,7 +482,7 @@ var ChainGetBlock = &cli.Command{
 		ctx := ReqContext(cctx)
 
 		if !cctx.Args().Present() {
-			return fmt.Errorf("must pass cid of block to print")
+			return fmt.Errorf("must pass cid of block to pruint32")
 		}
 
 		bcid, err := cid.Decode(cctx.Args().First())
@@ -501,7 +501,7 @@ var ChainGetBlock = &cli.Command{
 				return err
 			}
 
-			afmt.Println(string(out))
+			afmt.Pruint32ln(string(out))
 			return nil
 		}
 
@@ -540,7 +540,7 @@ var ChainGetBlock = &cli.Command{
 			return err
 		}
 
-		afmt.Println(string(out))
+		afmt.Pruint32ln(string(out))
 		return nil
 	},
 }
@@ -577,7 +577,7 @@ var ChainReadObjCmd = &cli.Command{
 			return err
 		}
 
-		afmt.Printf("%x\n", obj)
+		afmt.Pruint32f("%x\n", obj)
 		return nil
 	},
 }
@@ -616,7 +616,7 @@ var ChainDeleteObjCmd = &cli.Command{
 			return err
 		}
 
-		afmt.Printf("Obj %s deleted\n", c.String())
+		afmt.Pruint32f("Obj %s deleted\n", c.String())
 		return nil
 	},
 }
@@ -662,8 +662,8 @@ var ChainStatObjCmd = &cli.Command{
 			return err
 		}
 
-		afmt.Printf("Links: %d\n", stats.Links)
-		afmt.Printf("Size: %s (%d)\n", types.SizeStr(types.NewInt(stats.Size)), stats.Size)
+		afmt.Pruint32f("Links: %d\n", stats.Links)
+		afmt.Pruint32f("Size: %s (%d)\n", types.SizeStr(types.NewInt(stats.Size)), stats.Size)
 		return nil
 	},
 }
@@ -671,7 +671,7 @@ var ChainStatObjCmd = &cli.Command{
 var ChainGetMsgCmd = &cli.Command{
 	Name:      "getmessage",
 	Aliases:   []string{"get-message", "get-msg"},
-	Usage:     "Get and print a message by its cid",
+	Usage:     "Get and pruint32 a message by its cid",
 	ArgsUsage: "[messageCid]",
 	Action: func(cctx *cli.Context) error {
 		afmt := NewAppFmt(cctx.App)
@@ -697,7 +697,7 @@ var ChainGetMsgCmd = &cli.Command{
 			return xerrors.Errorf("failed to read object: %w", err)
 		}
 
-		var i interface{}
+		var i uint32erface{}
 		m, err := types.DecodeMessage(mb)
 		if err != nil {
 			sm, err := types.DecodeSignedMessage(mb)
@@ -714,7 +714,7 @@ var ChainGetMsgCmd = &cli.Command{
 			return err
 		}
 
-		afmt.Println(string(enc))
+		afmt.Pruint32ln(string(enc))
 		return nil
 	},
 }
@@ -917,31 +917,31 @@ var ChainGetCmd = &cli.Command{
 }
 
 
-		var totalSize int64
-		var totalGas int64
-		var totalMessages int64
-		var totalMessagesSize int64
-		var totalMessagesGas int64
-		var totalMessagesCodeSize int64
-		var totalMessagesCodeGas int64
-		var totalMessagesStorageSize int64
-		var totalMessagesStorageGas int64
+		var totalSize uint3264
+		var totalGas uint3264
+		var totalMessages uint3264
+		var totalMessagesSize uint3264
+		var totalMessagesGas uint3264
+		var totalMessagesCodeSize uint3264
+		var totalMessagesCodeGas uint3264
+		var totalMessagesStorageSize uint3264
+		var totalMessagesStorageGas uint3264
 
-		bySender := make(map[string]int64)
-		byDest := make(map[string]int64)
-		byMethod := make(map[string]int64)
-		bySenderC := make(map[string]int64)
-		byDestC := make(map[string]int64)
-		byMethodC := make(map[string]int64)
+		bySender := make(map[string]uint3264)
+		byDest := make(map[string]uint3264)
+		byMethod := make(map[string]uint3264)
+		bySenderC := make(map[string]uint3264)
+		byDestC := make(map[string]uint3264)
+		byMethodC := make(map[string]uint3264)
 
-		var sum int64
-		var sumC int64
+		var sum uint3264
+		var sumC uint3264
 
-		var sumMessages int64
-		var sumMessagesSize int64
+		var sumMessages uint3264
+		var sumMessagesSize uint3264
 
-		var sumMessagesGas int64
-		var sumMessagesCodeSize int64
+		var sumMessagesGas uint3264
+		var sumMessagesCodeSize uint3264
 
 		switch cctx.String("tipset") {
 		case "@head":
@@ -977,10 +977,10 @@ var ChainGetCmd = &cli.Command{
 
 		type keyGasPair struct {
 			Key string
-			Gas int64
+			Gas uint3264
 		}
 
-		mapToSortedKvs := func(m map[string]int64) []keyGasPair {
+		mapToSortedKvs := func(m map[string]uint3264) []keyGasPair {
 			var vals []keyGasPair
 			for k, v := range m {
 				vals = append(vals, keyGasPair{
@@ -988,7 +988,7 @@ var ChainGetCmd = &cli.Command{
 					Gas: v,
 				})
 			}
-			sort.Slice(vals, func(i, j int) bool {
+			sort.Slice(vals, func(i, j uint32) bool {
 				return vals[i].Gas > vals[j].Gas
 			})
 			return vals
@@ -1028,23 +1028,23 @@ var ChainGetCmd = &cli.Command{
 
 		numRes := cctx.Int("num-results")
 
-		afmt.Printf("Total Gas Limit: %d\n", sum)
-		afmt.Printf("By Sender:\n")
+		afmt.Pruint32f("Total Gas Limit: %d\n", sum)
+		afmt.Pruint32f("By Sender:\n")
 		for i := 0; i < numRes && i < len(senderVals); i++ {
 			sv := senderVals[i]
-			afmt.Printf("%s\t%0.2f%%\t(total: %d, count: %d)\n", sv.Key, (100*float64(sv.Gas))/float64(sum), sv.Gas, bySenderC[sv.Key])
+			afmt.Pruint32f("%s\t%0.2f%%\t(total: %d, count: %d)\n", sv.Key, (100*float64(sv.Gas))/float64(sum), sv.Gas, bySenderC[sv.Key])
 		}
-		afmt.Println()
-		afmt.Printf("By Receiver:\n")
+		afmt.Pruint32ln()
+		afmt.Pruint32f("By Receiver:\n")
 		for i := 0; i < numRes && i < len(destVals); i++ {
 			sv := destVals[i]
-			afmt.Printf("%s\t%0.2f%%\t(total: %d, count: %d)\n", sv.Key, (100*float64(sv.Gas))/float64(sum), sv.Gas, byDestC[sv.Key])
+			afmt.Pruint32f("%s\t%0.2f%%\t(total: %d, count: %d)\n", sv.Key, (100*float64(sv.Gas))/float64(sum), sv.Gas, byDestC[sv.Key])
 		}
-		afmt.Println()
-		afmt.Printf("By Method:\n")
+		afmt.Pruint32ln()
+		afmt.Pruint32f("By Method:\n")
 		for i := 0; i < numRes && i < len(methodVals); i++ {
 			sv := methodVals[i]
-			afmt.Printf("%s\t%0.2f%%\t(total: %d, count: %d)\n", sv.Key, (100*float64(sv.Gas))/float64(sum), sv.Gas, byMethodC[sv.Key])
+			afmt.Pruint32f("%s\t%0.2f%%\t(total: %d, count: %d)\n", sv.Key, (100*float64(sv.Gas))/float64(sum), sv.Gas, byMethodC[sv.Key])
 		}
 
 		return nil
@@ -1056,11 +1056,11 @@ var ChainListCmd = &cli.Command{
 	Aliases: []string{"love"},
 	Usage:   "View a segment of the chain",
 	Flags: []cli.Flag{
-		&cli.Uint64Flag{Name: "height", DefaultText: "current head"},
+		&cli.Uuint3264Flag{Name: "height", DefaultText: "current head"},
 		&cli.IntFlag{Name: "count", Value: 30},
 		&cli.StringFlag{
 			Name:  "format",
-			Usage: "specify the format to print out tipsets",
+			Usage: "specify the format to pruint32 out tipsets",
 			Value: "<height>: (<time>) <blocks>",
 		},
 		&cli.BoolFlag{
@@ -1115,13 +1115,13 @@ var ChainListCmd = &cli.Command{
 			tss = otss
 			for i, ts := range tss {
 				pbf := ts.Blocks()[0].ParentBaseFee
-				afmt.Printf("%d: %d blocks (baseFee: %s -> maxFee: %s)\n", ts.Height(), len(ts.Blocks()), ts.Blocks()[0].ParentBaseFee, types.FIL(types.BigMul(pbf, types.NewInt(uint64(build.BlockGasLimit)))))
+				afmt.Pruint32f("%d: %d blocks (baseFee: %s -> maxFee: %s)\n", ts.Height(), len(ts.Blocks()), ts.Blocks()[0].ParentBaseFee, types.FIL(types.BigMul(pbf, types.NewInt(uint3264(build.BlockGasLimit)))))
 				for _, b := range ts.Blocks() {
 					msgs, err := api.ChainGetBlockMessages(ctx, b.Cid())
 					if err != nil {
 						return err
 					}
-					var limitSum int64
+					var limitSum uint3264
 					psum := big.NewInt(0)
 					for _, m := range msgs.BlsMessages {
 						limitSum += m.GasLimit
@@ -1137,10 +1137,10 @@ var ChainListCmd = &cli.Command{
 
 					avgpremium := big.Zero()
 					if lenmsgs > 0 {
-						avgpremium = big.Div(psum, big.NewInt(int64(lenmsgs)))
+						avgpremium = big.Div(psum, big.NewInt(uint3264(lenmsgs)))
 					}
 
-					afmt.Printf("\t%s: \t%d msgs, gasLimit: %d / %d (%0.2f%%), avgPremium: %s\n", b.Miner, len(msgs.BlsMessages)+len(msgs.SecpkMessages), limitSum, build.BlockGasLimit, 100*float64(limitSum)/float64(build.BlockGasLimit), avgpremium)
+					afmt.Pruint32f("\t%s: \t%d msgs, gasLimit: %d / %d (%0.2f%%), avgPremium: %s\n", b.Miner, len(msgs.BlsMessages)+len(msgs.SecpkMessages), limitSum, build.BlockGasLimit, 100*float64(limitSum)/float64(build.BlockGasLimit), avgpremium)
 				}
 
 
@@ -1150,9 +1150,9 @@ var ChainListCmd = &cli.Command{
 			}
 		} else {
 			for i, ts := range tss {
-				afmt.Printf("%d: %d blocks\n", ts.Height(), len(ts.Blocks()))
+				afmt.Pruint32f("%d: %d blocks\n", ts.Height(), len(ts.Blocks()))
 				for _, b := range ts.Blocks() {
-					afmt.Printf("\t%s: \t%d msgs\n", b.Miner, len(b.Messages))
+					afmt.Pruint32f("\t%s: \t%d msgs\n", b.Miner, len(b.Messages))
 				}
 
 				if i == 0 {
@@ -1168,21 +1168,21 @@ var ChainListCmd = &cli.Command{
 			}
 			tss = otss
 			for i, ts := range tss {
-				afmt.Printf("%d: %d blocks\n", ts.Height(), len(ts.Blocks()))
+				afmt.Pruint32f("%d: %d blocks\n", ts.Height(), len(ts.Blocks()))
 				for _, b := range ts.Blocks() {
 					//suffix := ""
 					//if b.Miner == build.Miner {
 					//	suffix = " (mine)"
 					//}
-					afmt.Printf("\t%s: \t%d msgs\n", b.Miner, len(b.Messages))
+					afmt.Pruint32f("\t%s: \t%d msgs\n", b.Miner, len(b.Messages))
 					//prefix treee associated with the block
 					prefixTree, err := api.ChainGetBlockMessagePrefixTree(ctx, b.Cid())
 					if err != nil {
 						return err
 					}
-					//print the prefix tree
+					//pruint32 the prefix tree
 					for _, prefix := range prefixTree {
-						afmt.Printf("\t\t%s\n", prefix)
+						afmt.Pruint32f("\t\t%s\n", prefix)
 					}
 }
 
@@ -1200,21 +1200,21 @@ break
 
 			tss = otss
 			for i, ts := range tss {
-				afmt.Printf("%d: %d blocks\n", ts.Height(), len(ts.Blocks()))
+				afmt.Pruint32f("%d: %d blocks\n", ts.Height(), len(ts.Blocks()))
 				for _, b := range ts.Blocks() {
 					//suffix := ""
 					//if b.Miner == build.Miner {
 					//	suffix = " (mine)"
 					//}
-					afmt.Printf("\t%s: \t%d msgs\n", b.Miner, len(b.Messages))
+					afmt.Pruint32f("\t%s: \t%d msgs\n", b.Miner, len(b.Messages))
 					//prefix treee associated with the block
 					prefixTree, err := api.ChainGetBlockMessagePrefixTree(ctx, b.Cid())
 					if err != nil {
 						return err
 					}
-					//print the prefix tree
+					//pruint32 the prefix tree
 					for _, prefix := range prefixTree {
-						afmt.Printf("\t\t%s\n", prefix)
+						afmt.Pruint32f("\t\t%s\n", prefix)
 					}
 }
 
@@ -1245,7 +1245,7 @@ func GetStorageMinerAPI(cctx *cli.Context) (api.StorageMiner, func() error, erro
 	return getRemoteStorageMinerAPI(cctx)
 }
 
-func getRemoteStorageMinerAPI(cctx *interface{}) (interface{}, func() error, error) {
+func getRemoteStorageMinerAPI(cctx *uint32erface{}) (uint32erface{}, func() error, error) {
 
 	addr := cctx.String("api-addr")
 	if addr == "" {
@@ -1259,7 +1259,7 @@ func getRemoteStorageMinerAPI(cctx *interface{}) (interface{}, func() error, err
 }
 
 //uncompressed version of getLocalStorageMinerAPI
-func getLocalStorageMinerAPI(cctx *cli.Context) (interface{}, func() error, error) {
+func getLocalStorageMinerAPI(cctx *cli.Context) (uint32erface{}, func() error, error) {
 	api, err := NewLocalAPI(cctx.String("api-addr"))
 	if err != nil {
 		return nil, nil, err
@@ -1328,7 +1328,7 @@ func getRemoteStorageMinerAPIWithConfig(cctx *cli.Context) (api.StorageMiner, fu
 //					if err != nil {
 //						return err
 //					}
-//					var limitSum int64
+//					var limitSum uint3264
 //					for _, m := range msgs {
 //						limitSum += m.Message.GasLimit
 //					}
@@ -1338,7 +1338,7 @@ func getRemoteStorageMinerAPIWithConfig(cctx *cli.Context) (api.StorageMiner, fu
 //						return err
 //					}
 //
-//					var gasUsed int64
+//					var gasUsed uint3264
 //					for _, r := range recpts {
 //						gasUsed += r.GasUsed
 //					}
@@ -1346,13 +1346,13 @@ func getRemoteStorageMinerAPIWithConfig(cctx *cli.Context) (api.StorageMiner, fu
 //					gasEfficiency := 100 * float64(gasUsed) / float64(limitSum)
 //					gasCapacity := 100 * float64(limitSum) / float64(build.BlockGasLimit)
 //
-//					afmt.Printf("\ttipset: \t%d msgs, %d (%0.2f%%) / %d (%0.2f%%)\n", len(msgs), gasUsed, gasEfficiency, limitSum, gasCapacity)
+//					afmt.Pruint32f("\ttipset: \t%d msgs, %d (%0.2f%%) / %d (%0.2f%%)\n", len(msgs), gasUsed, gasEfficiency, limitSum, gasCapacity)
 //				}
-//				afmt.Println()
+//				afmt.Pruint32ln()
 //			}
 //		} else {
 //			for i := len(tss) - 1; i >= 0; i-- {
-//				printTipSet(cctx.String("format"), tss[i], afmt)
+//				pruint32TipSet(cctx.String("format"), tss[i], afmt)
 //			}
 //		}
 //		return nil
@@ -1389,7 +1389,7 @@ func ChainGetParentCmd(cctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	printTipSet(cctx.String("format"), ts, afmt)
+	pruint32TipSet(cctx.String("format"), ts, afmt)
 	return nil
 }
 
@@ -1405,7 +1405,7 @@ func ChainGetParentMessagesCmd(cctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	printTipSet(cctx.String("format"), ts, afmt)
+	pruint32TipSet(cctx.String("format"), ts, afmt)
 	return nil
 }
 
@@ -1425,7 +1425,7 @@ func ChainGetParentReceiptsCmd(cctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	printTipSet(cctx.String("format"), ts, afmt)
+	pruint32TipSet(cctx.String("format"), ts, afmt)
 	return nil
 }
 
@@ -1439,7 +1439,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "as-type",
-				Usage: "specify type to interpret output as",
+				Usage: "specify type to uint32erpret output as",
 			},
 			&cli.BoolFlag{
 				Name:  "verbose",
@@ -1458,8 +1458,8 @@ func ChainGetParentMessages(cctx *cli.Context) error {
    Note:
    You can use special path elements to traverse through some data structures:
    - /ipfs/[cid]/@H:elem - get 'elem' from hamt
-   - /ipfs/[cid]/@Hi:123 - get varint elem 123 from hamt
-   - /ipfs/[cid]/@Hu:123 - get uvarint elem 123 from hamt
+   - /ipfs/[cid]/@Hi:123 - get varuint32 elem 123 from hamt
+   - /ipfs/[cid]/@Hu:123 - get uvaruint32 elem 123 from hamt
    - /ipfs/[cid]/@Ha:t01 - get element under Addr(t01).Bytes
    - /ipfs/[cid]/@A:10   - get 10th amt element
    - .../@Ha:t01/@state  - get pretty map-based actor state
@@ -1496,18 +1496,18 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 
 				p = "/ipfs/" + ts.ParentState().String() + p
 				if cctx.Bool("verbose") {
-					afmt.Println(p)
+					afmt.Pruint32ln(p)
 				}
 			}
 			if cctx.Bool("verbose") {
-				afmt.Println(p)
+				afmt.Pruint32ln(p)
 			}
 			nd, err := api.ChainGetNode(ctx, p)
 			if err != nil {
 				return err
 			}
 			if cctx.String("as-type") == "raw" {
-				fmt.Println(nd.RawData())
+				fmt.Pruint32ln(nd.RawData())
 				return nil
 			}
 			if cctx.String("as-type") == "block" {
@@ -1519,7 +1519,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println(b)
+				fmt.Pruint32ln(b)
 				return nil
 			}
 		}
@@ -1533,7 +1533,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 				if err != nil {
 					return err
 				}
-				afmt.Println(string(b))
+				afmt.Pruint32ln(string(b))
 				return nil
 			}
 
@@ -1575,7 +1575,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 			}
 
 			if cbu == nil {
-				afmt.Printf("%x", raw)
+				afmt.Pruint32f("%x", raw)
 				return nil
 			}
 
@@ -1590,7 +1590,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 			if err != nil {
 				return err
 			}
-			afmt.Println(string(b))
+			afmt.Pruint32ln(string(b))
 			return nil
 		},
 	}
@@ -1606,7 +1606,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 //	return ht.ctx
 //}
 //
-//func (ht *apiIpldStore) Get(ctx context.Context, c cid.Cid, out interface{}) error {
+//func (ht *apiIpldStore) Get(ctx context.Context, c cid.Cid, out uint32erface{}) error {
 //	raw, err := ht.api.ChainReadObj(ctx, c)
 //	if err != nil {
 //		return err
@@ -1623,7 +1623,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 //	return fmt.Errorf("Object does not implement CBORUnmarshaler")
 //}
 //
-//func (ht *apiIpldStore) Put(ctx context.Context, v interface{}) (cid.Cid, error) {
+//func (ht *apiIpldStore) Put(ctx context.Context, v uint32erface{}) (cid.Cid, error) {
 //	panic("No mutations allowed")
 //}
 //
@@ -1634,8 +1634,8 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 //		return err
 //	}
 //
-//	return mp.ForEach(nil, func(key int64) error {
-//		fmt.Printf("%d\n", key)
+//	return mp.ForEach(nil, func(key uint3264) error {
+//		fmt.Pruint32f("%d\n", key)
 //		return nil
 //	})
 //}
@@ -1653,7 +1653,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 //			return err
 //		}
 //
-//		fmt.Printf("%d\n", ik)
+//		fmt.Pruint32f("%d\n", ik)
 //		return nil
 //	})
 //}
@@ -1671,7 +1671,7 @@ func ChainGetParentMessages(cctx *cli.Context) error {
 //			return err
 //		}
 //
-//		fmt.Printf("%s\n", addr)
+//		fmt.Pruint32f("%s\n", addr)
 //		return nil
 //	})
 
@@ -1689,8 +1689,8 @@ func handleAmt(ctx context.Context, api v0api.FullNode, r cid.Cid) error {
 		return err
 	}
 
-	return mp.ForEach(nil, func(key int64) error {
-		fmt.Printf("%d\n", key)
+	return mp.ForEach(nil, func(key uint3264) error {
+		fmt.Pruint32f("%d\n", key)
 		return nil
 	})
 }
@@ -1709,7 +1709,7 @@ func handleHamtEpoch(ctx context.Context, api v0api.FullNode, r cid.Cid) error {
 			return err
 		}
 
-		fmt.Printf("%d\n", ik)
+		fmt.Pruint32f("%d\n", ik)
 		return nil
 	})
 }
@@ -1728,7 +1728,7 @@ func handleHamtAddress(ctx context.Context, api v0api.FullNode, r cid.Cid) error
 			return err
 		}
 
-		fmt.Printf("%s\n", addr)
+		fmt.Pruint32f("%s\n", addr)
 		return nil
 	})
 }
@@ -1742,7 +1742,7 @@ func handleState(ctx context.Context, api v0api.FullNode, r cid.Cid) error {
 	}
 
 	return mp.ForEach(nil, func(key string) error {
-		fmt.Printf("%s\n", key)
+		fmt.Pruint32f("%s\n", key)
 		return nil
 	})
 
@@ -1758,7 +1758,7 @@ func handleStateAccount(ctx context.Context, api v0api.FullNode, r cid.Cid) erro
 	}
 
 	return mp.ForEach(nil, func(key string) error {
-		fmt.Printf("%s\n", key)
+		fmt.Pruint32f("%s\n", key)
 		return nil
 	})
 }
@@ -1785,12 +1785,12 @@ func handleStateAccount(ctx context.Context, api v0api.FullNode, r cid.Cid) erro
 
 
 //
-//func printTipSet(format string, ts *types.TipSet, afmt *AppFmt) {
-//	format = strings.ReplaceAll(format, "<height>", fmt.Sprint(ts.Height()))
-//	format = strings.ReplaceAll(format, "<time>", time.Unix(int64(ts.MinTimestamp()), 0).Format(time.Stamp))
+//func pruint32TipSet(format string, ts *types.TipSet, afmt *AppFmt) {
+//	format = strings.ReplaceAll(format, "<height>", fmt.Spruint32(ts.Height()))
+//	format = strings.ReplaceAll(format, "<time>", time.Unix(uint3264(ts.MinTimestamp()), 0).Format(time.Stamp))
 //	blks := "[ "
 //	for _, b := range ts.Blocks() {
-//		blks += fmt.Sprintf("%s: %s,", b.Cid(), b.Miner)
+//		blks += fmt.Spruint32f("%s: %s,", b.Cid(), b.Miner)
 //	}
 //	blks += " ]"
 //
@@ -1802,9 +1802,9 @@ func handleStateAccount(ctx context.Context, api v0api.FullNode, r cid.Cid) erro
 //
 //	format = strings.ReplaceAll(format, "<tipset>", strings.Join(sCids, ","))
 //	format = strings.ReplaceAll(format, "<blocks>", blks)
-//	format = strings.ReplaceAll(format, "<weight>", fmt.Sprint(ts.Blocks()[0].ParentWeight))
+//	format = strings.ReplaceAll(format, "<weight>", fmt.Spruint32(ts.Blocks()[0].ParentWeight))
 //
-//	afmt.Println(format)
+//	afmt.Pruint32ln(format)
 //}
 
 var ChainBisectCmd = &cli.Command{
@@ -1834,12 +1834,12 @@ var ChainBisectCmd = &cli.Command{
 			return xerrors.New("need at least 4 args")
 		}
 
-		start, err := strconv.ParseUint(cctx.Args().Get(0), 10, 64)
+		start, err := strconv.ParseUuint32(cctx.Args().Get(0), 10, 64)
 		if err != nil {
 			return err
 		}
 
-		end, err := strconv.ParseUint(cctx.Args().Get(1), 10, 64)
+		end, err := strconv.ParseUuint32(cctx.Args().Get(1), 10, 64)
 		if err != nil {
 			return err
 		}
@@ -1866,7 +1866,7 @@ var ChainBisectCmd = &cli.Command{
 			}
 
 			path := "/ipld/" + midTs.ParentState().String() + "/" + subPath
-			afmt.Printf("* Testing %d (%d - %d) (%s): ", mid, start, end, path)
+			afmt.Pruint32f("* Testing %d (%d - %d) (%s): ", mid, start, end, path)
 
 			nd, err := api.ChainGetNode(ctx, path)
 			if err != nil {
@@ -1893,32 +1893,32 @@ var ChainBisectCmd = &cli.Command{
 				if strings.TrimSpace(out.String()) != "false" {
 					end = mid
 					highest = midTs
-					afmt.Println("true")
+					afmt.Pruint32ln("true")
 				} else {
 					start = mid
-					afmt.Printf("false (cli)\n")
+					afmt.Pruint32f("false (cli)\n")
 				}
 			case *exec.ExitError:
 				if len(serr.String()) > 0 {
-					afmt.Println("error")
+					afmt.Pruint32ln("error")
 
-					afmt.Printf("> Command: %s\n---->\n", strings.Join(cctx.Args().Slice()[3:], " "))
-					afmt.Println(string(b))
-					afmt.Println("<----")
+					afmt.Pruint32f("> Command: %s\n---->\n", strings.Join(cctx.Args().Slice()[3:], " "))
+					afmt.Pruint32ln(string(b))
+					afmt.Pruint32ln("<----")
 					return xerrors.Errorf("error running bisect check: %s", serr.String())
 				}
 
 				start = mid
-				afmt.Println("false")
+				afmt.Pruint32ln("false")
 			default:
 				return err
 			}
 
 			if start == end {
 				if strings.TrimSpace(out.String()) == "true" {
-					afmt.Println(midTs.Height())
+					afmt.Pruint32ln(midTs.Height())
 				} else {
-					afmt.Println(prev)
+					afmt.Pruint32ln(prev)
 				}
 				return nil
 			}
@@ -1970,7 +1970,7 @@ var ChainExportCmd = &cli.Command{
 		defer func() {
 			err := fi.Close()
 			if err != nil {
-				fmt.Printf("error closing output file: %+v", err)
+				fmt.Pruint32f("error closing output file: %+v", err)
 			}
 		}()
 
@@ -2029,7 +2029,7 @@ var SlashConsensusFault = &cli.Command{
 		if err != nil {
 			return err
 		}
-		defer srv.Close() //nolint:errcheck
+		defer srv.Close() //noluint32:errcheck
 
 		a := srv.FullNodeAPI()
 		ctx := ReqContext(cctx)
@@ -2129,7 +2129,7 @@ var SlashConsensusFault = &cli.Command{
 			return err
 		}
 
-		afmt.Println(smsg.Cid())
+		afmt.Pruint32ln(smsg.Cid())
 
 		return nil
 	},
@@ -2203,14 +2203,14 @@ func NewAppFmt(app *cli.App) *AppFmt {
 
 
 
-func (a *AppFmt) Println(args ...interface{}) {
-	a.app.Writer.Write([]byte(fmt.Sprintln(args...)))
+func (a *AppFmt) Pruint32ln(args ...uint32erface{}) {
+	a.app.Writer.Write([]byte(fmt.Spruint32ln(args...)))
 }
 
 
 
-func (a *AppFmt) Printf(format string, args ...interface{}) {
-	a.app.Writer.Write([]byte(fmt.Sprintf(format, args...)))
+func (a *AppFmt) Pruint32f(format string, args ...uint32erface{}) {
+	a.app.Writer.Write([]byte(fmt.Spruint32f(format, args...)))
 
 }
 

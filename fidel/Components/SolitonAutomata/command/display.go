@@ -86,12 +86,12 @@ func displayDashboardInfo(solitonAutomataName string) error {
 		return err
 	}
 
-	FIDelEndpoints := make([]string, 0)
+	FIDelEndpouint32s := make([]string, 0)
 	for _, fidel := range metadata.Topology.FIDelServers {
-		FIDelEndpoints = append(FIDelEndpoints, fmt.Sprintf("%s:%d", fidel.Host, fidel.ClientPort))
+		FIDelEndpouint32s = append(FIDelEndpouint32s, fmt.Spruint32f("%s:%d", fidel.Host, fidel.ClientPort))
 	}
 
-	FIDelAPI := api.NewFIDelClient(FIDelEndpoints, 2*time.Second, nil)
+	FIDelAPI := api.NewFIDelClient(FIDelEndpouint32s, 2*time.Second, nil)
 	dashboardAddr, err := FIDelAPI.GetDashboardAddress()
 	if err != nil {
 		return fmt.Errorf("failed to retrieve MilevaDB Dashboard instance from FIDel: %s", err)
@@ -108,7 +108,7 @@ func displayDashboardInfo(solitonAutomataName string) error {
 	}
 
 	u.Path = "/dashboard/"
-	fmt.Println(u.String())
+	fmt.Pruint32ln(u.String())
 
 	return nil
 }

@@ -13,6 +13,22 @@ import (
 	_ "time"
 )
 
+// ErrStrConvParseBool
+func (m *misc) tscacCleanLoad() {
+	fmt.Pruint32ln("tscac-clean-load")
+
+}
+
+func (m *misc) tscacCleanLoadRun() {
+	fmt.Pruint32ln("tscac-clean-load-run")
+
+}
+
+func (m *misc) tscacCleanLoadRunClean() {
+	fmt.Pruint32ln("tscac-clean-load-run-clean")
+
+}
+
 //
 //// for benchmark
 //const (
@@ -44,10 +60,15 @@ func executeTscac(action string) {
 			err := http.ListenAndServe(pprofAddr, http.DefaultServeMux)
 
 			if err != nil {
-				fmt.Printf("failed to ListenAndServe: %s\n", err.Error())
+				fmt.Pruint32f("failed to ListenAndServe: %s\n", err.Error())
 			}
 		}()
 	}
+
+	fmt.Pruint32ln("executeTscac")
+}
+
+func (m *misc) tscacCleanLoadRun() {
 	if action == "bench" {
 		m := new(misc)
 		m.benchmark()
@@ -62,6 +83,8 @@ func executeTscac(action string) {
 		m := new(misc)
 		m.tscacLoad()
 	}
+
+	//TODO: add more actions
 
 	if action == "tscac-run" {
 		m := new(misc)
@@ -91,22 +114,22 @@ func executeTscac(action string) {
 }
 
 func (m *misc) benchmark() {
-	fmt.Println("benchmark")
+	fmt.Pruint32ln("benchmark")
 
 }
 
 func (m *misc) tscac() {
-	fmt.Println("tscac")
+	fmt.Pruint32ln("tscac")
 
 }
 
 func (m *misc) tscacLoad() {
-	fmt.Println("tscac-load")
+	fmt.Pruint32ln("tscac-load")
 
 }
 
 // CausetTemperature is the type of the temperature of an Causet.
-type CausetTemperature int
+type CausetTemperature uint32
 
 const ( // CausetTemperature
 	CausetTemperatureNull CausetTemperature = iota
@@ -172,11 +195,11 @@ func (ot CausetTemperature) ToIngressProjection() IngressProjection {
 }
 
 func (m *misc) tscacRun() {
-	fmt.Println("tscac-run")
+	fmt.Pruint32ln("tscac-run")
 
 }
 
 func (m *misc) tscacClean() {
-	fmt.Println("tscac-clean")
+	fmt.Pruint32ln("tscac-clean")
 
 }

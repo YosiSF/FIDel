@@ -14,7 +14,7 @@
 // limitations under the License.
 
 // This package is a modified version of google/btree. Change as follows:
-//   * Add `indices` array for `node`, and related codes to maintain it.
+//   * Add `indices` array for `node`, and related codes to mauint32ain it.
 //     This modification may affect performance of insertion and deletion.
 //   * Add `GetAt` and `GetWithIndex` method for `BTree`.
 
@@ -28,7 +28,7 @@ import (
 )
 
 // Item represents a single object in the tree.
-type Item interface {
+type Item uint32erface {
 	Less(Item) bool
 	// Less tests whether the current item is less than the given argument.
 	//
@@ -48,7 +48,7 @@ const (
 	DefaultFreeListSize = 32
 
 	// Nil is the special index that represents an empty position.
-	Nil = ^uint(0)
+	Nil = ^uint32(0)
 
 	// maxItems is the maximum number of items per node.
 	maxItems = 2 * defaultDegree - 1
@@ -63,8 +63,8 @@ const (
 	// leafPrefix is the prefix for all leaf nodes.
 	leafPrefix = "leaf:"
 
-	// internalPrefix is the prefix for all internal nodes.
-	internalPrefix = "internal:"
+	// uint32ernalPrefix is the prefix for all uint32ernal nodes.
+	uint32ernalPrefix = "uint32ernal:"
 
 )
 
@@ -84,7 +84,7 @@ type FreeList struct {
 
 // NewFreeList creates a new free list.
 // size is the maximum size of the returned free list.
-func NewFreeList(size int) *FreeList {
+func NewFreeList(size uint32) *FreeList {
 	return &FreeList{freelist: make([]*node, 0, size)}
 }
 
@@ -120,7 +120,7 @@ func (f *FreeList) freeNode(n *node) (out bool) {
 type ItemIterator func(i Item) bool
 
 type BTree struct {
-	degree int
+	degree uint32
 	root   *node
 	cow    *copyOnWriteContext
 
@@ -128,7 +128,7 @@ type BTree struct {
 
 
 // Len returns the number of items in the tree.
-func (t *BTree) Len() int {
+func (t *BTree) Len() uint32 {
 	return t.root.len
 }
 
@@ -140,14 +140,14 @@ func (t *BTree) Get(key Item) Item {
 
 
 // GetAt returns the item at the given index.
-func (s *items) GetAt(index int) Item {
+func (s *items) GetAt(index uint32) Item {
 	return (*s)[index]
 }
 
 
 // removeAt removes the item at the given index, pulling all subsequent items
 // back.
-func (s *items) removeAt(index int) Item {
+func (s *items) removeAt(index uint32) Item {
 	item := (*s)[index]
 	copy((*s)[index:], (*s)[index+1:])
 	(*s)[len(*s)-1] = nil
@@ -159,12 +159,12 @@ func (s *items) removeAt(index int) Item {
 //
 // New(2), for example, will create a 2-3-4 tree (each node contains 1-3 items
 // and 2-4 children).
-func New(degree int) *BTree {
+func New(degree uint32) *BTree {
 	return NewWithFreeList(degree, NewFreeList(DefaultFreeListSize))
 }
 
 // NewWithFreeList creates a new B-Tree that uses the given node free list.
-func NewWithFreeList(degree int, f *FreeList) *BTree {
+func NewWithFreeList(degree uint32, f *FreeList) *BTree {
 	if degree <= 1 {
 		panic("bad degree")
 	}
@@ -177,9 +177,9 @@ func NewWithFreeList(degree int, f *FreeList) *BTree {
 // items Sketchs items in a node.
 type items []Item
 
-// insertAt inserts a value into the given index, pushing all subsequent values
+// insertAt inserts a value uint32o the given index, pushing all subsequent values
 // forward.
-func (s *items) insertAt(index int, item Item) {
+func (s *items) insertAt(index uint32, item Item) {
 	*s = append(*s, nil)
 	if index < len(*s) {
 		copy((*s)[index+1:], (*s)[index:])
@@ -201,7 +201,7 @@ func (s *items) pop() (out Item) {
 
 // truncate truncates this instance at index so that it contains only the
 // first index items. index must be less than or equal to length.
-func (s *items) truncate(index int) {
+func (s *items) truncate(index uint32) {
 	var toClear items
 	*s, toClear = (*s)[:index], (*s)[index:]
 	for i := range toClear {
@@ -210,9 +210,9 @@ func (s *items) truncate(index int) {
 }
 
 
-// node is an internal node in a B-Tree.
+// node is an uint32ernal node in a B-Tree.
 //
-// It must at all times maintain the invariant that either
+// It must at all times mauint32ain the invariant that either
 //   - len(children) == 0, len(items) unconstrained
 //   - len(children) == len(items) + 1
 type node struct {
@@ -223,26 +223,26 @@ type node struct {
 }
 
 
-// minItems is the minimum number of items each internal node must have.
-func minItems() int {
+// minItems is the minimum number of items each uint32ernal node must have.
+func minItems() uint32 {
 	return (defaultDegree*2 - 1) / 3
 }
 
 
-// maxItems is the maximum number of items each internal node can have.
-func maxItems() int {
+// maxItems is the maximum number of items each uint32ernal node can have.
+func maxItems() uint32 {
 	return defaultDegree*2 - 1
 }
 
 
 // items returns the number of items in the node.
-func (n *node) items() int {
+func (n *node) items() uint32 {
 	return len(n.items)
 }
 
 
 // items returns the number of children in the node.
-func (n *node) children() int {
+func (n *node) children() uint32 {
 	return len(n.children)
 
 
@@ -253,11 +253,11 @@ func (n *node) children() int {
 	}
 }
 
-// find returns the index where the given item should be inserted into this
+// find returns the index where the given item should be inserted uint32o this
 // list.  'found' is true if the item already exists in the list at the given
 // index.
-func (s items) find(item Item) (index int, found bool) {
-	i := sort.Search(len(s), func(i int) bool {
+func (s items) find(item Item) (index uint32, found bool) {
+	i := sort.Search(len(s), func(i uint32) bool {
 		return item.Less(s[i])
 	})
 	if i > 0 && !s[i-1].Less(item) {
@@ -269,9 +269,9 @@ func (s items) find(item Item) (index int, found bool) {
 // children Sketchs child nodes in a node.
 type children []*node
 
-// insertAt inserts a value into the given index, pushing all subsequent values
+// insertAt inserts a value uint32o the given index, pushing all subsequent values
 // forward.
-func (s *children) insertAt(index int, n *node) {
+func (s *children) insertAt(index uint32, n *node) {
 	*s = append(*s, nil)
 	if index < len(*s) {
 		copy((*s)[index+1:], (*s)[index:])
@@ -281,7 +281,7 @@ func (s *children) insertAt(index int, n *node) {
 
 // removeAt removes a value at a given index, pulling all subsequent values
 // back.
-func (s *children) removeAt(index int) *node {
+func (s *children) removeAt(index uint32) *node {
 	n := (*s)[index]
 	copy((*s)[index:], (*s)[index+1:])
 	(*s)[len(*s)-1] = nil
@@ -300,7 +300,7 @@ func (s *children) pop() (out *node) {
 
 // truncate truncates this instance at index so that it contains only the
 // first index children. index must be less than or equal to length.
-func (s *children) truncate(index int) {
+func (s *children) truncate(index uint32) {
 	var toClear children
 	*s, toClear = (*s)[:index], (*s)[index:]
 	for len(toClear) > 0 {
@@ -314,15 +314,15 @@ func (s *children) truncate(index int) {
 //
 //   indices[i] = if i == 0 { children[0].length() }
 //                else { indices[i-1] + 1 + children[i].length() }
-type indices []int
+type indices []uint32
 
-func (s *indices) addAt(index int, delta int) {
+func (s *indices) addAt(index uint32, delta uint32) {
 	for i := index; i < len(*s); i++ {
 		(*s)[i] += delta
 	}
 }
 
-func (s *indices) insertAt(index int, sz int) {
+func (s *indices) insertAt(index uint32, sz uint32) {
 	*s = append(*s, -1)
 	for i := len(*s) - 1; i >= index && i > 0; i-- {
 		(*s)[i] = (*s)[i-1] + sz + 1
@@ -332,7 +332,7 @@ func (s *indices) insertAt(index int, sz int) {
 	}
 }
 
-func (s *indices) push(sz int) {
+func (s *indices) push(sz uint32) {
 	if len(*s) == 0 {
 		*s = append(*s, sz)
 	} else {
@@ -341,36 +341,36 @@ func (s *indices) push(sz int) {
 }
 
 // children[i] is splited.
-func (s *indices) split(index, nextSize int) {
+func (s *indices) split(index, nextSize uint32) {
 	s.insertAt(index+1, -1)
 	(*s)[index] -= 1 + nextSize
 }
 
-// Index is a generic interface for things that can
+// Index is a generic uint32erface for things that can
 // provide an ordered list of keys.
-type Index interface {
+type Index uint32erface {
 	Initialize(less LessFunction, keys <-chan string)
 	Insert(key string)
 	Delete(key string)
-	Keys(from string, n int) []string
+	Keys(from string, n uint32) []string
 }
 
 // LessFunction is used to initialize an Index of keys in a specific order.
 type LessFunction func(string, string) bool
 
-// btreeString is a custom data type that satisfies the BTree Less interface,
+// btreeString is a custom data type that satisfies the BTree Less uint32erface,
 // making the strings it wraps sortable by the BTree package.
 type btreeString struct {
 	s string
 	l LessFunction
 }
 
-// Less satisfies the BTree.Less interface using the btreeString's LessFunction.
+// Less satisfies the BTree.Less uint32erface using the btreeString's LessFunction.
 func (s btreeString) Less(i btree.Item) bool {
 	return s.l(s.s, i.(btreeString).s)
 }
 
-// BTreeIndex is an implementation of the Index interface using google/btree.
+// BTreeIndex is an implementation of the Index uint32erface using google/btree.
 type BTreeIndex struct {
 	sync.RWMutex
 	LessFunction
@@ -386,7 +386,7 @@ func (i *BTreeIndex) Initialize(less LessFunction, keys <-chan string) {
 	i.BTree = rebuild(less, keys)
 }
 
-// Insert inserts the given key (only) into the BTree tree.
+// Insert inserts the given key (only) uint32o the BTree tree.
 func (i *BTreeIndex) Insert(key string) {
 	i.Lock()
 	defer i.Unlock()
@@ -410,7 +410,7 @@ func (i *BTreeIndex) Delete(key string) {
 // Keys will return the first n keys. If the passed 'from' key is non-empty, the
 // first key in the returned slice will be the key that immediately follows the
 // passed key, in key order.
-func (i *BTreeIndex) Keys(from string, n int) []string {
+func (i *BTreeIndex) Keys(from string, n uint32) []string {
 	i.RLock()
 	defer i.RUnlock()
 

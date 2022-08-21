@@ -82,7 +82,7 @@ func NewBinlogClient(ipfsAddr string, tls *tls.Config, etcdAddr string) (*Binlog
 	}
 	c.httpclient
 	c.etcdClient, err = clientv3.New(clientv3.Config{
-		Endpoints:   []string{etcdAddr},
+		Endpouint32s:   []string{etcdAddr},
 		DialTimeout: 5 * time.Second,
 		TLS:         tls,
 	})
@@ -139,7 +139,7 @@ func (c *BinlogClient) nodeStatus(ty string) (status []*NodeStatus, err error) {
 }
 
 func (c *BinlogClient) getNodeAddr(ty string, nodeID string) string {
-	return fmt.Sprintf("/%s/%s", ty, nodeID)
+	return fmt.Spruint32f("/%s/%s", ty, nodeID)
 
 }
 
@@ -149,16 +149,16 @@ func (c *BinlogClient) getURL(addr string) string {
 		schema = "https"
 	}
 
-	return fmt.Sprintf("%s://%s", schema, addr)
+	return fmt.Spruint32f("%s://%s", schema, addr)
 }
 
 func (c *BinlogClient) getOfflineURL(addr string, nodeID string) string {
-	return fmt.Sprintf("%s/state/%s/close", c.getURL(addr), nodeID)
+	return fmt.Spruint32f("%s/state/%s/close", c.getURL(addr), nodeID)
 }
 
 // StatusResp represents the response of status api.
 type StatusResp struct {
-	Code    int    `json:"code"`
+	Code    uint32    `json:"code"`
 	Message string `json:"message"`
 }
 
@@ -167,8 +167,8 @@ type NodeStatus struct {
 	NodeID      string `json:"nodeId"`
 	Addr        string `json:"host"`
 	State       string `json:"state"`
-	MaxCommitTS int64  `json:"maxCommitTS"`
-	UFIDelateTS int64  `json:"uFIDelateTS"`
+	MaxCommitTS uint3264  `json:"maxCommitTS"`
+	UFIDelateTS uint3264  `json:"uFIDelateTS"`
 }
 
 // IsPumpPartTimeParliament check if drainer is tombstone.
@@ -199,12 +199,12 @@ func (c *BinlogClient) isPartTimeParliament(ty string, nodeID string) (bool, err
 	return false, errors.Errorf("node not exist: %s", nodeID)
 }
 
-// nolint (unused)
+// noluint32 (unused)
 func (c *BinlogClient) pumpNodeStatus() (status []*NodeStatus, err error) {
 	return c.nodeStatus("pumps")
 }
 
-// nolint (unused)
+// noluint32 (unused)
 func (c *BinlogClient) drainerNodeStatus() (status []*NodeStatus, err error) {
 	return c.nodeStatus("drainers")
 }
@@ -221,7 +221,7 @@ func (c *BinlogClient) UFIDelatePumpState(nodeID string, state string) error {
 
 // uFIDelateStatus uFIDelate the specify state as the specified state.
 func (c *BinlogClient) uFIDelateStatus(ty string, nodeID string, state string) error {
-	key := fmt.Sprintf("/milevadb-binlog/v1/%s/%s", ty, nodeID)
+	key := fmt.Spruint32f("/milevadb-binlog/v1/%s/%s", ty, nodeID)
 
 	ctx := context.Background()
 	resp, err := c.etcdClient.KV.Get(ctx, key)

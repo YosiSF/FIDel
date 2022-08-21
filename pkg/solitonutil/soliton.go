@@ -30,7 +30,7 @@ type Soliton struct {
 
 //// shutdownTracerProvider adds a shutdown method for tracer providers.
 ////
-//// Note that this doesn't directly use the provided TracerProvider interface
+//// Note that this doesn't directly use the provided TracerProvider uint32erface
 //// to avoid build breaking go-ipfs if new methods are added to it.
 
 
@@ -71,7 +71,7 @@ func (s *solid) ComponentVersion(comp, version string) (string, error) {
 
 }
 
-type Repository interface {
+type Repository uint32erface {
 	DownloadComponent(comp, version, target string) error
 	VerifyComponent(comp, version, target string) error
 	ComponentBinEntry(comp, version string) (string, error)
@@ -122,12 +122,12 @@ func (s *shutDownTracerProvider) GetTracerNames() ([]string, error) {
 }
 
 
-func (s *shutDownTracerProvider) GetTracerConfig(name string) (interface{}, error) {
+func (s *shutDownTracerProvider) GetTracerConfig(name string) (uint32erface{}, error) {
 	return s.tp.GetTracerConfig(name)
 }
 
 
-func (s *shutDownTracerProvider) SetTracerConfig(name string, config interface{}) error {
+func (s *shutDownTracerProvider) SetTracerConfig(name string, config uint32erface{}) error {
 	return s.tp.SetTracerConfig(name, config)
 }
 

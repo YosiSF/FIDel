@@ -22,15 +22,15 @@ import (
 /*
 Block rewards
 
-Block rewards are large sums that are given to the storage provider credited for a new block. Unlike storage fees, these rewards do not come from an associated client; rather, the network “prints” new FIL as both an inflationary measure and an incentive to providers advancing the chain. All active storage providers on the network have a chance at receiving a block reward, their chance at such being directly proportional to the amount of storage space currently being contributed to the network.
+Block rewards are large sums that are given to the storage provider credited for a new block. Unlike storage fees, these rewards do not come from an associated client; rather, the network “pruint32s” new FIL as both an inflationary measure and an incentive to providers advancing the chain. All active storage providers on the network have a chance at receiving a block reward, their chance at such being directly proportional to the amount of storage space currently being contributed to the network.
 
-The mechanism to earn the right to provide a new block is called WinningPoSt. In the Filecoin network, time is discretized into a series of epochs – the blockchain’s height corresponds to the number of elapsed epochs. At the beginning of each epoch, a small number of storage providers are elected to provide new blocks. Additionally to the block reward, each storage provider can collect the fees associated to each message included in the block.
+The mechanism to earn the right to provide a new block is called WinningPoSt. In the Filecoin network, time is discretized uint32o a series of epochs – the blockchain’s height corresponds to the number of elapsed epochs. At the beginning of each epoch, a small number of storage providers are elected to provide new blocks. Additionally to the block reward, each storage provider can collect the fees associated to each message included in the block.
 
 The number of blocks on every tipset is based on a Poisson distribution of a random variable with λ = 5. Provider implementations may use several strategies to choose which messages to include in every block to minimize overlap. Only the “first execution” of each message will collect the associated fees, with executions ordered per the hash of the VRF (Verifiable Random Function) ticket associated to the block.
 
 Verified clients
 
-To further incentivize the storage of “useful” data over simple capacity commitments, storage provider have the additional opportunity to compete for special deals offered by verified clients. Such clients are certified with respect to their intent to offer deals involving the storage of meaningful data, and the power a storage provider earns for these deals is augmented by a multiplier. The total amount of power a given storage provider has, after accounting for this multiplier, is known as quality-adjusted power.
+To further incentivize the storage of “useful” data over simple capacity commitments, storage provider have the additional opportunity to compete for special deals offered by verified clients. Such clients are certified with respect to their uint32ent to offer deals involving the storage of meaningful data, and the power a storage provider earns for these deals is augmented by a multiplier. The total amount of power a given storage provider has, after accounting for this multiplier, is known as quality-adjusted power.
 
 
 */
@@ -48,12 +48,12 @@ type FilCmdState struct {
 	addr                address.Address
 	balance             big.Int
 	Signer              []address.Address // signer address
-	NumApproved         uint64
-	NumRejected         uint64
-	NumPending          uint64
-	NumSettled          uint64
-	NumTotal            uint64
-	UnlockHeight        uint64
+	NumApproved         uint3264
+	NumRejected         uint3264
+	NumPending          uint3264
+	NumSettled          uint3264
+	NumTotal            uint3264
+	UnlockHeight        uint3264
 	Status              string
 	PendingSolitonTxns  []cid.Cid
 	SettledSolitonTxns  []cid.Cid
@@ -103,30 +103,29 @@ func newListCmd() *cobra.Command {
 	return cmd
 }
 
-type ManagerInterface interface {
-	//WithEinsteinDBIpfs
-	InitiateSolitonAutomata(cid cid.Cid) error
-	ListSolitonAutomata() error
-	//WithoutIpfs
-	InitiateSolitonAutomataWithoutIpfs(cid cid.Cid) error
-	//Ceph
-	InitiateSolitonAutomataWithCeph(cid cid.Cid, ceph string) error
-	//Ipfs
-	InitiateSolitonAutomataWithIpfs(cid cid.Cid, ipfs string) error
-	//Ipfs and Ceph
-	InitiateSolitonAutomataWithIpfsAndCeph(cid cid.Cid, ipfs string, ceph string) error
-	//rook v1
-	InitiateSolitonAutomataWithRookV1(cid cid.Cid, ipfs string, ceph string) error
-	//rook v2
-	InitiateSolitonAutomataWithRookV2(cid cid.Cid, ipfs string, ceph string) error
-	//rook v3
-	InitiateSolitonAutomataWithRookV3(cid cid.Cid, ipfs string, ceph string) error
-	//isovalent
-	InitiateSolitonAutomataWithIsovalent(cid cid.Cid, ipfs string, ceph string) error
-	//isovalent v2
+type ManagerInterface uint32erface {
+//WithEinsteinDBIpfs
+InitiateSolitonAutomata(cid cid.Cid) error
+ListSolitonAutomata() error
+//WithoutIpfs
+InitiateSolitonAutomataWithoutIpfs(cid cid.Cid) error
+//Ceph
+InitiateSolitonAutomataWithCeph(cid cid.Cid, ceph string) error
+//Ipfs
+InitiateSolitonAutomataWithIpfs(cid cid.Cid, ipfs string) error
+//Ipfs and Ceph
+InitiateSolitonAutomataWithIpfsAndCeph(cid cid.Cid, ipfs string, ceph string) error
+//rook v1
+InitiateSolitonAutomataWithRookV1(cid cid.Cid, ipfs string, ceph string) error
+//rook v2
+InitiateSolitonAutomataWithRookV2(cid cid.Cid, ipfs string, ceph string) error
+//rook v3
+InitiateSolitonAutomataWithRookV3(cid cid.Cid, ipfs string, ceph string) error
+//isovalent
+InitiateSolitonAutomataWithIsovalent(cid cid.Cid, ipfs string, ceph string) error
+//isovalent v2
 
 }
-
 type Manager struct {
 	Topology *Topology
 	//IpfsWithCeph *IpfsWithCeph

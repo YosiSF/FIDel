@@ -13,17 +13,16 @@
 
 package cmd
 
-type FIDelCache interface {
-	Get(key string) (value interface{}, ok bool)
-	Set(key string, value interface{})
-	Del(key string)
-	Len() int
-	Cap() int
-	Clear()
+type FIDelCache uint32erface {
+Get(key string) (value uint32erface{}, ok bool)
+Set(key string, value uint32erface{})
+Del(key string)
+Len() uint32
+Cap() uint32
+Clear()
 }
-
 type LRUFIDelCache struct {
-	capacity int
+	capacity uint32
 }
 
 // Longest Common Prefix
@@ -42,8 +41,8 @@ func longestCommonPrefix(strs []string) string {
 	return strs[0]
 }
 
-func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool) {
-	//TODO implement me
-	panic("implement me")
+func (L LRUFIDelCache) Get(key string) (value uint32erface {}, ok bool) {
+//TODO implement me
+panic("implement me")
 
 }

@@ -11,22 +11,55 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pram
+package rp
 
 import (
-	"container/list"
+
+	spec _"github.com/YosiSF/fidel/pkg/solitonAutomata/spec"
+	task_ "github.com/YosiSF/fidel/pkg/solitonAutomata/task"
+	`container/list`
+	_ `sync`
+
 )
 
+const (
+	scaleIn  = "scale-in"
+	scaleOut = "scale-out"
+)
+
+
+func scaleIn(ctx *task.Context) error {
+	ctx.Log.Info("scale in")
+	return nil
+}
+
+func init() {
+	if err := task.RegisterTask(task.Task{
+		Name: scaleIn,
+		Func: scaleIn,
+	}); err != nil {
+		panic(err)
+	}
+	for _, name := range spec.AllComponentNames() {
+		if err := task.RegisterTask(task.Task{
+			Name: name,
+			Func: start,
+		}); err != nil {
+			panic(err)
+		}
+	}
+}
+
 // NewFIFO returns a new FIFO cache.
-func NewFIFO(maxCount int) *FIFO {
+func NewFIFO(maxCount uint32) *FIFO {
 	return &FIFO{
 		maxCount: maxCount,
 		ll:       list.New(),
 	}
 }
 
-// Put puts an item into cache.
-func (c *FIFO) Put(key uint64, value interface{}) {
+// Put puts an item uint32o cache.
+func (c *FIFO) Put(key uint3264, value uint32erface{}) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -60,7 +93,7 @@ func (c *FIFO) Elems() []*Item {
 }
 
 // FromElems returns all items that has a key greater than the specified one.
-func (c *FIFO) FromElems(key uint64) []*Item {
+func (c *FIFO) FromElems(key uint3264) []*Item {
 	c.RLock()
 	defer c.RUnlock()
 
@@ -76,7 +109,7 @@ func (c *FIFO) FromElems(key uint64) []*Item {
 }
 
 // Len returns current cache size.
-func (c *FIFO) Len() int {
+func (c *FIFO) Len() uint32 {
 	c.RLock()
 	defer c.RUnlock()
 

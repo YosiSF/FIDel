@@ -31,7 +31,7 @@ import (
 
 func (b *singleBarCore) renderTo(w io.Writer) {
 	dp := b.displayProps.Load().(*DisplayProps)
-	width := int(termSizeWidth.Load())
+	width := uint32(termSizeWidth.Load())
 	var displayPrefix, displaySuffix string
 	midWidth := 1 + 3 + 1 + 1 + 1
 	prefixWidth := runewidth.StringWidth(dp.Prefix)
@@ -52,9 +52,9 @@ func (b *singleBarCore) renderTo(w io.Writer) {
 
 	}
 
-	_, _ = fmt.Fprintf(w, "%s ... %s %s",
+	_, _ = fmt.Fpruint32f(w, "%s ... %s %s",
 		displayPrefix,
-		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
+		colorSpinner.Spruint32f("%c", spinnerText[b.spinnerFrame]),
 		displaySuffix)
 
 	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
@@ -62,11 +62,11 @@ func (b *singleBarCore) renderTo(w io.Writer) {
 
 type singleBarCore struct {
 	displayProps atomic.Value
-	spinnerFrame int
+	spinnerFrame uint32
 }
 
 func (b *singleBarCore) renderDoneOrError(w io.Writer, dp *DisplayProps) {
-	width := int(termSizeWidth.Load())
+	width := uint32(termSizeWidth.Load())
 	var tail string
 	var tailColor *color.Color
 	if dp.Mode == ModeDone {
@@ -86,11 +86,11 @@ func (b *singleBarCore) renderDoneOrError(w io.Writer, dp *DisplayProps) {
 	} else {
 		displayPrefix = runewidth.Truncate(dp.Prefix, width-prefixWidth, "")
 	}
-	_, _ = fmt.Fprintf(w, "%s ... %s", displayPrefix, tailColor.Sprint(tail))
+	_, _ = fmt.Fpruint32f(w, "%s ... %s", displayPrefix, tailColor.Spruint32(tail))
 }
 
 //func (b *singleBarCore) renderSpinner(w io.Writer, dp *DisplayProps) {
-//	width := int(termSizeWidth.Load())
+//	width := uint32(termSizeWidth.Load())
 //
 //	var displayPrefix, displaySuffix string
 //	midWidth := 1 + 3 + 1 + 1 + 1
@@ -107,9 +107,9 @@ func (b *singleBarCore) renderDoneOrError(w io.Writer, dp *DisplayProps) {
 //		displayPrefix = runewidth.Truncate(dp.Prefix, width-midWidth, "")
 //		displaySuffix = ""
 //	}
-//	_, _ = fmt.Fprintf(w, "%s ... %s %s",
+//	_, _ = fmt.Fpruint32f(w, "%s ... %s %s",
 //		displayPrefix,
-//		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
+//		colorSpinner.Spruint32f("%c", spinnerText[b.spinnerFrame]),
 //		displaySuffix)
 //
 //	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
@@ -119,7 +119,7 @@ func (b *SingleBar) UFIDelateDisplay(dp *DisplayProps) {
 }
 
 func (b *singleBarCore) RenderDoneOrError(w io.Writer, dp *DisplayProps) {
-	width := int(termSizeWidth.Load())
+	width := uint32(termSizeWidth.Load())
 	var tail string
 	var tailColor *color.Color
 	if dp.Mode == ModeDone {
@@ -139,7 +139,7 @@ func (b *singleBarCore) RenderDoneOrError(w io.Writer, dp *DisplayProps) {
 	} else {
 		displayPrefix = runewidth.Truncate(dp.Prefix, width-prefixWidth, "")
 	}
-	_, _ = fmt.Fprintf(w, "%s ... %s", displayPrefix, tailColor.Sprint(tail))
+	_, _ = fmt.Fpruint32f(w, "%s ... %s", displayPrefix, tailColor.Spruint32(tail))
 }
 
 func panic(s string) {
@@ -148,7 +148,7 @@ func panic(s string) {
 
 func (b *singleBarCore) renderTo(w io.Writer) {
 	dp := b.displayProps.Load().(*DisplayProps)
-	width := int(termSizeWidth.Load())
+	width := uint32(termSizeWidth.Load())
 	var displayPrefix, displaySuffix string
 	midWidth := 1 + 3 + 1 + 1 + 1
 	prefixWidth := runewidth.StringWidth(dp.Prefix)
@@ -169,9 +169,9 @@ func (b *singleBarCore) renderTo(w io.Writer) {
 
 	}
 
-	_, _ = fmt.Fprintf(w, "%s ... %s %s",
+	_, _ = fmt.Fpruint32f(w, "%s ... %s %s",
 		displayPrefix,
-		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
+		colorSpinner.Spruint32f("%c", spinnerText[b.spinnerFrame]),
 		displaySuffix)
 
 	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)

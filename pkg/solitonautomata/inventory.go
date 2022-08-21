@@ -21,7 +21,7 @@ type Ipfs struct {
 	cache FIDelCache
 }
 
-func (d *Ipfs) Len() int {
+func (d *Ipfs) Len() uint32 {
 	return d.cache.Len()
 }
 
@@ -34,7 +34,7 @@ func (d *Ipfs) Clear() {
 }
 
 // persistence of metadata
-func (d *Ipfs) Get(key string) (value interface{}, ok bool) {
+func (d *Ipfs) Get(key string) (value uint32erface{}, ok bool) {
 	for {
 		value, ok = d.cache.Get(key)
 		if ok {
@@ -42,10 +42,10 @@ func (d *Ipfs) Get(key string) (value interface{}, ok bool) {
 		}
 		time.Sleep(time.Second)
 	}
-	//interlock with other goroutine
+	//uint32erlock with other goroutine
 }
 
-func (d *Ipfs) Set(key string, value interface{}) {
+func (d *Ipfs) Set(key string, value uint32erface{}) {
 	d.cache.Set(key, value)
 }
 
@@ -54,7 +54,7 @@ type Ceph struct {
 }
 
 // ceph is a cache for metadata
-func (d *Ceph) Len() int {
+func (d *Ceph) Len() uint32 {
 	return d.cache.Len()
 }
 

@@ -37,7 +37,7 @@ func newTelemetryCmd() *cobra.Command {
 			case "node_info":
 				return nodeInfo(context.Background())
 			default:
-				fmt.Println("unknown command: ", args[1])
+				fmt.Pruint32ln("unknown command: ", args[1])
 				return cmd.Help()
 			}
 		},
@@ -59,6 +59,6 @@ func nodeInfo(ctx context.Context) error {
 		return err
 	}
 
-	fmt.Println(text)
+	fmt.Pruint32ln(text)
 	return nil
 }

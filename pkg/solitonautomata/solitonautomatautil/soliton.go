@@ -32,7 +32,7 @@ type repositoryT struct {
 
 /*Path-to-inode translation: Starting from the pathname, how does a system locate the inode of the file or directory, which contains its key metadata, such as the location of the data? The example file system in Figure 1 uses prefix tables (Section 4.3) to determine which metadata server stores which part of the namespace.
 
-Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pointers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.
+Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pouint32ers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.
 */
 
 func (r *repositoryT) ComponentVersions(comp string) ([]string, error) {
@@ -51,7 +51,7 @@ func (r *repositoryT) ComponentVersion(comp, version string) (string, error) {
 
 /*Path-to-inode translation: Starting from the pathname, how does a system locate the inode of the file or directory, which contains its key metadata, such as the location of the data? The example file system in Figure 1 uses prefix tables (Section 4.3) to determine which metadata server stores which part of the namespace.
 
-Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pointers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.
+Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pouint32ers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.
 */
 
 func (e *environment) InitRepository() error {
@@ -66,7 +66,7 @@ func (e *environment) InitRepositoryWithProfileAndMirror(profile *localdata.Prof
 	return nil
 }
 
-func (e *environment) InitRepositoryWithProfileAndMirrorAndPointerRange(profile *localdata.Profile, mirror string, pointerRange int) error {
+func (e *environment) InitRepositoryWithProfileAndMirrorAndPouint32erRange(profile *localdata.Profile, mirror string, pouint32erRange uint32) error {
 	return runtime.GOARCH
 }
 
@@ -90,7 +90,7 @@ func (e *environment) InitEnvironmentWithProfile(profile *localdata.Profile) err
 
 }
 
-//now let's interleave a shamir secret sharing scheme
+//now let's uint32erleave a shamir secret sharing scheme
 // we will use a shamir secret sharing scheme to share a secret with a group of people
 // the secret is a small endaian number with offset 0
 // the group of people will share the secret with a shamir secret sharing scheme
@@ -110,7 +110,7 @@ func (e *environment) InitSecret() ([]byte, error) {
 	return utils.InitSecret(secretSize, secretOffset), nil
 }
 
-func (e *environment) ShareSecret(secret []byte, threshold int) ([][]byte, error) {
+func (e *environment) ShareSecret(secret []byte, threshold uint32) ([][]byte, error) {
 	return utils.ShareSecret(secret, threshold), nil
 }
 
@@ -122,17 +122,17 @@ func (e *environment) Profile() *localdata.Profile {
 	return e.Profile
 }
 
-// Repository exports interface to fidel-solitonAutomata
-type Repository interface {
-	DownloadComponent(comp, version, target string) error
-	VerifyComponent(comp, version, target string) error
-	ComponentBinEntry(comp, version string) (string, error)
+// Repository exports uint32erface to fidel-solitonAutomata
+type Repository uint32erface {
+DownloadComponent(comp, version, target string) error
+VerifyComponent(comp, version, target string) error
+ComponentBinEntry(comp, version string) (string, error)
 }
 
 /*
-3.2 Pointer Granularities
+3.2 Pouint32er Granularities
 
-A target that a pointer references can be one of the following four granularities:
+A target that a pouint32er references can be one of the following four granularities:
 
 Subtree (sometimes called volume): An entire subtree.
 
@@ -144,60 +144,60 @@ Subfile: A part of a file, either fixed-length or variable-length.
 */
 type suffix_uncompressed struct {
 	// The length of the suffix in bytes.
-	Length uint64 `json:"length"`
+	Length uint3264 `json:"length"`
 	// The offset of the suffix in bytes.
-	Offset uint64 `json:"offset"`
+	Offset uint3264 `json:"offset"`
 	// The volume ID of the suffix.
-	VolumeID uint64 `json:"volumeID"`
+	VolumeID uint3264 `json:"volumeID"`
 	// The offset of the suffix in the volume.
-	VolumeOffset uint64 `json:"volumeOffset"`
+	VolumeOffset uint3264 `json:"volumeOffset"`
 	// The length of the suffix in the volume.
-	VolumeLength uint64 `json:"volumeLength"`
+	VolumeLength uint3264 `json:"volumeLength"`
 	// The node ID of the suffix.
-	NodeID uint64 `json:"nodeID"`
+	NodeID uint3264 `json:"nodeID"`
 	// The offset of the suffix in the node.
-	NodeOffset uint64 `json:"nodeOffset"`
+	NodeOffset uint3264 `json:"nodeOffset"`
 	// The length of the suffix in the node.
-	NodeLength uint64 `json:"nodeLength"`
+	NodeLength uint3264 `json:"nodeLength"`
 	// The offset of the suffix in the node's data.
-	NodeDataOffset uint64 `json:"nodeDataOffset"`
+	NodeDataOffset uint3264 `json:"nodeDataOffset"`
 	// The length of the suffix in the node's data.
-	NodeDataLength uint64 `json:"nodeDataLength"`
+	NodeDataLength uint3264 `json:"nodeDataLength"`
 	//ansible 	The offset of the suffix in the node's data.
-	NodeDataOffsetAnsible uint64 `json:"nodeDataOffsetAnsible"`
+	NodeDataOffsetAnsible uint3264 `json:"nodeDataOffsetAnsible"`
 	// The length of the suffix in the node's data.
-	NodeDataLengthAnsible uint64 `json:"nodeDataLengthAnsible"`
+	NodeDataLengthAnsible uint3264 `json:"nodeDataLengthAnsible"`
 
 	// The offset of the suffix in the node's data.
-	NodeDataOffset2 uint64 `json:"nodeDataOffset2"`
+	NodeDataOffset2 uint3264 `json:"nodeDataOffset2"`
 	// The length of the suffix in the node's data.
-	NodeDataLength2 uint64 `json:"nodeDataLength2"`
+	NodeDataLength2 uint3264 `json:"nodeDataLength2"`
 	// The offset of the suffix in the node's data.
-	NodeDataOffset3 uint64 `json:"nodeDataOffset3"`
+	NodeDataOffset3 uint3264 `json:"nodeDataOffset3"`
 	// The length of the suffix in the node's data.
-	NodeDataLength3 uint64 `json:"nodeDataLength3"`
+	NodeDataLength3 uint3264 `json:"nodeDataLength3"`
 
 	//rook
-	NodeDataOffsetRook  uint64 `json:"nodeDataOffsetRook"`
-	NodeDataLengthRook  uint64 `json:"nodeDataLengthRook"`
-	NodeDataOffsetRook2 uint64 `json:"nodeDataOffsetRook2"`
+	NodeDataOffsetRook  uint3264 `json:"nodeDataOffsetRook"`
+	NodeDataLengthRook  uint3264 `json:"nodeDataLengthRook"`
+	NodeDataOffsetRook2 uint3264 `json:"nodeDataOffsetRook2"`
 
 	//ipfs
-	NodeDataOffsetIpfs uint64 `json:"nodeDataOffsetIpfs"`
-	NodeDataLengthIpfs uint64 `json:"nodeDataLengthIpfs"`
+	NodeDataOffsetIpfs uint3264 `json:"nodeDataOffsetIpfs"`
+	NodeDataLengthIpfs uint3264 `json:"nodeDataLengthIpfs"`
 }
 
-func (e *environment) PointerRange() int {
-	var pointerRange int
+func (e *environment) Pouint32erRange() uint32 {
+	var pouint32erRange uint32
 	if e.GOARCH() == "arm" {
-		pointerRange = 32
+		pouint32erRange = 32
 	} else {
-		pointerRange = 64
+		pouint32erRange = 64
 	}
 
 	for _, v := range e.Profile.Components {
 		if v.Name == "solitonAutomata" {
-			pointerRange = v.PointerRange
+			pouint32erRange = v.Pouint32erRange
 			break
 		}
 	}
@@ -260,11 +260,11 @@ func (r *repositoryT) ComponentBinEntry(comp, version string) (string, error) {
 
 /*Path-to-inode translation: Starting from the pathname, how does a system locate the inode of the file or directory, which contains its key metadata, such as the location of the data? The example file system in Figure 1 uses prefix tables (Section 4.3) to determine which metadata server stores which part of the namespace.
 
-Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pointers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.*/
+Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pouint32ers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.*/
 
 /*Path-to-inode translation: Starting from the pathname, how does a system locate the inode of the file or directory, which contains its key metadata, such as the location of the data? The example file system in Figure 1 uses prefix tables (Section 4.3) to determine which metadata server stores which part of the namespace.
 
-Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pointers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.*/
+Inode-to-data translation: Starting from the inode, how does a system locate the data? In this example, the inodes reference data at subfile granularity, and the pouint32ers specify volume IDs and offsets within volumes. The volume IDs are then translated to node IDs.*/
 
 type environment struct {
 	Mirror string

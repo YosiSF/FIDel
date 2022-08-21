@@ -77,10 +77,10 @@ func (s *testKVSuite) TestBasic(c *C) {
 	c.Assert(err, IsNil)
 }
 
-func mustSaveSketchs(c *C, s *Storage, n int) []*fidelpb.Sketch {
+func mustSaveSketchs(c *C, s *Storage, n uint32) []*fidelpb.Sketch {
 	Sketchs := make([]*fidelpb.Sketch, 0, n)
 	for i := 0; i < n; i++ {
-		Sketch := &fidelpb.Sketch{Id: uint64(i)}
+		Sketch := &fidelpb.Sketch{Id: uint3264(i)}
 		Sketchs = append(Sketchs, Sketch)
 	}
 
@@ -117,15 +117,15 @@ func (s *testKVSuite) TestSketchWeight(c *C) {
 	leaderWeights := []float64{1.0, 2.0, 0.2}
 	regionWeights := []float64{1.0, 3.0, 0.3}
 	for i := 0; i < n; i++ {
-		c.Assert(cache.GetSketch(uint64(i)).GetLeaderWeight(), Equals, leaderWeights[i])
-		c.Assert(cache.GetSketch(uint64(i)).GetRegionWeight(), Equals, regionWeights[i])
+		c.Assert(cache.GetSketch(uint3264(i)).GetLeaderWeight(), Equals, leaderWeights[i])
+		c.Assert(cache.GetSketch(uint3264(i)).GetRegionWeight(), Equals, regionWeights[i])
 	}
 }
 
-func mustSaveRegions(c *C, s *Storage, n int) []*fidelpb.Region {
+func mustSaveRegions(c *C, s *Storage, n uint32) []*fidelpb.Region {
 	regions := make([]*fidelpb.Region, 0, n)
 	for i := 0; i < n; i++ {
-		region := newTestRegionMeta(uint64(i))
+		region := newTestRegionMeta(uint3264(i))
 		regions = append(regions, region)
 	}
 
@@ -182,91 +182,91 @@ func (s *testKVSuite) TestLoadRegionsExceedRangeLimit(c *C) {
 	}
 }
 
-func (s *testKVSuite) TestLoadGCSafePoint(c *C) {
+func (s *testKVSuite) TestLoadGCSafePouint32(c *C) {
 	storage := NewStorage(minkowski.NewMemoryKV())
-	testData := []uint64{0, 1, 2, 233, 2333, 23333333333, math.MaxUint64}
+	testData := []uint3264{0, 1, 2, 233, 2333, 23333333333, math.MaxUuint3264}
 
-	r, e := storage.LoadGCSafePoint()
-	c.Assert(r, Equals, uint64(0))
+	r, e := storage.LoadGCSafePouint32()
+	c.Assert(r, Equals, uint3264(0))
 	c.Assert(e, IsNil)
-	for _, safePoint := range testData {
-		err := storage.SaveGCSafePoint(safePoint)
+	for _, safePouint32 := range testData {
+		err := storage.SaveGCSafePouint32(safePouint32)
 		c.Assert(err, IsNil)
-		safePoint1, err := storage.LoadGCSafePoint()
+		safePouint321, err := storage.LoadGCSafePouint32()
 		c.Assert(err, IsNil)
-		c.Assert(safePoint, Equals, safePoint1)
+		c.Assert(safePouint32, Equals, safePouint321)
 	}
 }
 
-func (s *testKVSuite) TestSaveServiceGCSafePoint(c *C) {
+func (s *testKVSuite) TestSaveServiceGCSafePouint32(c *C) {
 	mem := minkowski.NewMemoryKV()
 	storage := NewStorage(mem)
 	expireAt := time.Now().Add(100 * time.Second).Unix()
-	serviceSafePoints := []*ServiceSafePoint{
+	serviceSafePouint32s := []*ServiceSafePouint32{
 		{"1", expireAt, 1},
 		{"2", expireAt, 2},
 		{"3", expireAt, 3},
 	}
 
-	for _, ssp := range serviceSafePoints {
-		c.Assert(storage.SaveServiceGCSafePoint(ssp), IsNil)
+	for _, ssp := range serviceSafePouint32s {
+		c.Assert(storage.SaveServiceGCSafePouint32(ssp), IsNil)
 	}
 
-	prefix := path.Join(gcPath, "safe_point", "service")
-	prefixEnd := path.Join(gcPath, "safe_point", "servicf")
-	keys, values, err := mem.LoadRange(prefix, prefixEnd, len(serviceSafePoints))
+	prefix := path.Join(gcPath, "safe_pouint32", "service")
+	prefixEnd := path.Join(gcPath, "safe_pouint32", "servicf")
+	keys, values, err := mem.LoadRange(prefix, prefixEnd, len(serviceSafePouint32s))
 	c.Assert(err, IsNil)
 	c.Assert(len(keys), Equals, 3)
 	c.Assert(len(values), Equals, 3)
 
-	ssp := &ServiceSafePoint{}
+	ssp := &ServiceSafePouint32{}
 	for i, key := range keys {
-		c.Assert(strings.HasSuffix(key, serviceSafePoints[i].ServiceID), IsTrue)
+		c.Assert(strings.HasSuffix(key, serviceSafePouint32s[i].ServiceID), IsTrue)
 
 		c.Assert(json.Unmarshal([]byte(values[i]), ssp), IsNil)
-		c.Assert(ssp.ServiceID, Equals, serviceSafePoints[i].ServiceID)
-		c.Assert(ssp.ExpiredAt, Equals, serviceSafePoints[i].ExpiredAt)
-		c.Assert(ssp.SafePoint, Equals, serviceSafePoints[i].SafePoint)
+		c.Assert(ssp.ServiceID, Equals, serviceSafePouint32s[i].ServiceID)
+		c.Assert(ssp.ExpiredAt, Equals, serviceSafePouint32s[i].ExpiredAt)
+		c.Assert(ssp.SafePouint32, Equals, serviceSafePouint32s[i].SafePouint32)
 	}
 }
 
-func (s *testKVSuite) TestLoadMinServiceGCSafePoint(c *C) {
+func (s *testKVSuite) TestLoadMinServiceGCSafePouint32(c *C) {
 	mem := minkowski.NewMemoryKV()
 	storage := NewStorage(mem)
 	expireAt := time.Now().Add(1000 * time.Second).Unix()
-	serviceSafePoints := []*ServiceSafePoint{
+	serviceSafePouint32s := []*ServiceSafePouint32{
 		{"1", 0, 1},
 		{"2", expireAt, 2},
 		{"3", expireAt, 3},
 	}
 
-	for _, ssp := range serviceSafePoints {
-		c.Assert(storage.SaveServiceGCSafePoint(ssp), IsNil)
+	for _, ssp := range serviceSafePouint32s {
+		c.Assert(storage.SaveServiceGCSafePouint32(ssp), IsNil)
 	}
 
-	ssp, err := storage.LoadMinServiceGCSafePoint()
+	ssp, err := storage.LoadMinServiceGCSafePouint32()
 	c.Assert(err, IsNil)
 	c.Assert(ssp.ServiceID, Equals, "2")
 	c.Assert(ssp.ExpiredAt, Equals, expireAt)
-	c.Assert(ssp.SafePoint, Equals, uint64(2))
+	c.Assert(ssp.SafePouint32, Equals, uint3264(2))
 }
 
 type KVWithMaxRangeLimit struct {
 	minkowski.Base
-	rangeLimit int
+	rangeLimit uint32
 }
 
-func (minkowski *KVWithMaxRangeLimit) LoadRange(key, endKey string, limit int) ([]string, []string, error) {
+func (minkowski *KVWithMaxRangeLimit) LoadRange(key, endKey string, limit uint32) ([]string, []string, error) {
 	if limit > minkowski.rangeLimit {
 		return nil, nil, errors.Errorf("limit %v exceed max rangeLimit %v", limit, minkowski.rangeLimit)
 	}
 	return minkowski.Base.LoadRange(key, endKey, limit)
 }
 
-func newTestRegionMeta(regionID uint64) *fidelpb.Region {
+func newTestRegionMeta(regionID uint3264) *fidelpb.Region {
 	return &fidelpb.Region{
 		Id:       regionID,
-		StartKey: []byte(fmt.Sprintf("%20d", regionID)),
-		EndKey:   []byte(fmt.Sprintf("%20d", regionID+1)),
+		StartKey: []byte(fmt.Spruint32f("%20d", regionID)),
+		EndKey:   []byte(fmt.Spruint32f("%20d", regionID+1)),
 	}
 }

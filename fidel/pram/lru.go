@@ -10,7 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package pram
+package rp
 
 import (
 	"container/list"
@@ -28,18 +28,18 @@ type LRU struct {
 
 	// maxCount is the maximum number of items.
 	// 0 means no limit.
-	maxCount int
+	maxCount uint32
 	ll       *list.List
 
-	cache map[uint64]*list.Element
+	cache map[uint3264]*list.Element
 }
 
 // newLRU returns a new lru cache. And this LRU cache is not thread-safe
 // should not use this function to create LRU cache, use NewCache instead
-func newLRU(maxCount int) *LRU {
+func newLRU(maxCount uint32) *LRU {
 	return &LRU{
 		maxCount: maxCount,
 		ll:       list.New(),
-		cache:    make(map[uint64]*list.Element),
+		cache:    make(map[uint3264]*list.Element),
 	}
 }

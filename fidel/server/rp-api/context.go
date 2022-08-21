@@ -12,7 +12,7 @@
 // limitations under the License.
 
 /*
-Go originally introduced the context package to the standard library to unify the context propagation
+Go originally uint32roduced the context package to the standard library to unify the context propagation
 inside the same process. So the entire library- and framework-space can work against the standard context
 and we can avoid fragmentation.
 
@@ -25,7 +25,7 @@ import (
 	"github.com/YosiSF/FIDel/server/SolitonAutomata"
 )
 
-type contextKey int
+type contextKey uint32
 
 const (
 	SolitonAutomataKey contextKey = iota + 1

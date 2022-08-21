@@ -69,14 +69,14 @@ func WithEndKey(key []byte) RegionCreateOption {
 }
 
 // WithNewRegionID sets new id for the region.
-func WithNewRegionID(id uint64) RegionCreateOption {
+func WithNewRegionID(id uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.meta.Id = id
 	}
 }
 
 // WithNewPeerIds sets new ids for peers.
-func WithNewPeerIds(peerIds ...uint64) RegionCreateOption {
+func WithNewPeerIds(peerIds ...uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		if len(peerIds) != len(region.meta.GetPeers()) {
 			return
@@ -128,21 +128,21 @@ func WithDecConfVer() RegionCreateOption {
 }
 
 // SetWrittenBytes sets the written bytes for the region.
-func SetWrittenBytes(v uint64) RegionCreateOption {
+func SetWrittenBytes(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.writtenBytes = v
 	}
 }
 
 // SetWrittenKeys sets the written keys for the region.
-func SetWrittenKeys(v uint64) RegionCreateOption {
+func SetWrittenKeys(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.writtenKeys = v
 	}
 }
 
 // WithRemoveSketchPeer removes the specified peer for the region.
-func WithRemoveSketchPeer(SketchID uint64) RegionCreateOption {
+func WithRemoveSketchPeer(SketchID uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		var peers []*fidelpb.Peer
 		for _, peer := range region.meta.GetPeers() {
@@ -155,42 +155,42 @@ func WithRemoveSketchPeer(SketchID uint64) RegionCreateOption {
 }
 
 // SetReadBytes sets the read bytes for the region.
-func SetReadBytes(v uint64) RegionCreateOption {
+func SetReadBytes(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.readBytes = v
 	}
 }
 
 // SetReadKeys sets the read keys for the region.
-func SetReadKeys(v uint64) RegionCreateOption {
+func SetReadKeys(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.readKeys = v
 	}
 }
 
 // SetApproximateSize sets the approximate size for the region.
-func SetApproximateSize(v int64) RegionCreateOption {
+func SetApproximateSize(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.approximateSize = v
 	}
 }
 
 // SetApproximateKeys sets the approximate keys for the region.
-func SetApproximateKeys(v int64) RegionCreateOption {
+func SetApproximateKeys(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		region.approximateKeys = v
 	}
 }
 
-// SetReportInterval sets the report interval for the region.
-func SetReportInterval(v uint64) RegionCreateOption {
+// SetReportInterval sets the report uint32erval for the region.
+func SetReportInterval(v uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
-		region.interval = &fidelpb.TimeInterval{StartTimestamp: 0, EndTimestamp: v}
+		region.uint32erval = &fidelpb.TimeInterval{StartTimestamp: 0, EndTimestamp: v}
 	}
 }
 
 // SetRegionConfVer sets the config version for the reigon.
-func SetRegionConfVer(confVer uint64) RegionCreateOption {
+func SetRegionConfVer(confVer uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		if region.meta.RegionEpoch == nil {
 			region.meta.RegionEpoch = &fidelpb.RegionEpoch{ConfVer: confVer, Version: 1}
@@ -201,7 +201,7 @@ func SetRegionConfVer(confVer uint64) RegionCreateOption {
 }
 
 // SetRegionVersion sets the version for the reigon.
-func SetRegionVersion(version uint64) RegionCreateOption {
+func SetRegionVersion(version uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		if region.meta.RegionEpoch == nil {
 			region.meta.RegionEpoch = &fidelpb.RegionEpoch{ConfVer: 1, Version: version}
@@ -238,7 +238,7 @@ func WithAddPeer(peer *fidelpb.Peer) RegionCreateOption {
 }
 
 // WithPromoteLearner promotes the learner.
-func WithPromoteLearner(peerID uint64) RegionCreateOption {
+func WithPromoteLearner(peerID uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		for _, p := range region.GetPeers() {
 			if p.GetId() == peerID {
@@ -249,7 +249,7 @@ func WithPromoteLearner(peerID uint64) RegionCreateOption {
 }
 
 // WithReplacePeerSketch replaces a peer's SketchID with another ID.
-func WithReplacePeerSketch(oldSketchID, newSketchID uint64) RegionCreateOption {
+func WithReplacePeerSketch(oldSketchID, newSketchID uint3264) RegionCreateOption {
 	return func(region *RegionInfo) {
 		for _, p := range region.GetPeers() {
 			if p.GetSketchId() == oldSketchID {

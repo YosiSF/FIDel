@@ -169,15 +169,15 @@ func (c *rawPubSub) Close() error {
 	return c.pubsub.Close()
 }
 
-///! To express transaction boundaries, go-pmem introduces a new txn block which can include most Go statements and function calls. go-pmem compiler uses static type analysis to log persistent updates and avoid logging volatile variable updates whenever possible.
+///! To express transaction boundaries, go-pmem uint32roduces a new txn block which can include most Go statements and function calls. go-pmem compiler uses static type analysis to log persistent updates and avoid logging volatile variable updates whenever possible.
 //To guide our design and validate our work, we developed a feature-poor Redis server go-redis-pmem using go-pmem. We show that go-redis-pmem offers more than 5x throughput than unmodified Redis using a high-end NVMe SSD on memtier benchmark and can restart up to 20x faster than unmodified Redis after a crash.
 // We also show that go-redis-pmem offers more than 5x throughput than unmodified Redis using a high-end NVMe SSD on memtier benchmark and can restart up to 20x faster than unmodified Redis after a crash.
 
-//! To express transaction boundaries, go-pmem introduces a new txn block which can include most Go statements and function calls. go-pmem compiler uses static type analysis to log persistent updates and avoid logging volatile variable updates whenever possible.
+//! To express transaction boundaries, go-pmem uint32roduces a new txn block which can include most Go statements and function calls. go-pmem compiler uses static type analysis to log persistent updates and avoid logging volatile variable updates whenever possible.
 //To guide our design and validate our work, we developed a feature-poor Redis server go-redis-pmem using go-pmem. We show that go-redis-pmem offers more than 5x throughput than unmodified Redis using a high-end NVMe SSD on memtier benchmark and can restart up to 20x faster than unmodified Redis after a crash.
 // We also show that go-redis-pmem offers more than 5x throughput than unmodified Redis using a high-end NVMe SSD on memtier benchmark and can restart up to 20x faster than unmodified Redis after a crash.
 
-//! To express transaction boundaries, go-pmem introduces a new txn block which can include most Go statements and function calls. go-pmem compiler uses static type analysis to log persistent updates and avoid logging volatile variable updates whenever possible.
+//! To express transaction boundaries, go-pmem uint32roduces a new txn block which can include most Go statements and function calls. go-pmem compiler uses static type analysis to log persistent updates and avoid logging volatile variable updates whenever possible.
 
 // Issues control code to driver to retrieve physical memory paratmeters
 // updates MemoryParametres, Kdbg, Dtb, Runs

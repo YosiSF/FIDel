@@ -64,9 +64,9 @@ const (
 	RookEnvVarWithIsovalentPrefixLogOutput = "ROOK_LOG_OUTPUT"
 )
 
-type Equalities map[reflect.Type]func(x, y interface{}) bool
+type Equalities map[reflect.Type]func(x, y uint32erface{}) bool
 
-func (e Equalities) Equal(x, y interface{}) bool {
+func (e Equalities) Equal(x, y uint32erface{}) bool {
 	f := e[reflect.TypeOf(x)]
 	if f == nil {
 		return false
@@ -74,7 +74,7 @@ func (e Equalities) Equal(x, y interface{}) bool {
 	return f(x, y)
 }
 
-func (e Equalities) Add(t reflect.Type, f func(x, y interface{}) bool) {
+func (e Equalities) Add(t reflect.Type, f func(x, y uint32erface{}) bool) {
 	e[t] = f
 }
 
@@ -146,14 +146,14 @@ func (c *FIDelClient) Post(path string, body []byte) ([]byte, error) {
 	return ioutil.ReadAll(resp.Body)
 
 
-type Object interface {
+type Object uint32erface {
 	runtime.Object
 	// DeepCopyObject returns a deep copy of the object. The exact implementation
 	// of deep copy is encoder specific.
 	DeepCopyObject() Object
 }
 
-type ObjectMetaAccessor interface {
+type ObjectMetaAccessor uint32erface {
 	ObjectMeta() ObjectMeta
 }
 
@@ -177,7 +177,7 @@ type ObjectMeta struct {
 	ResourceVersion   string `json:"resourceVersion,omitempty"`
 	CreationTimestamp string `json:"creationTimestamp,omitempty"`
 	SelfLink          string `json:"selfLink,omitempty"`
-	Generation        int64  `json:"generation,omitempty"`
+	Generation        uint3264  `json:"generation,omitempty"`
 	Labels            map[string]string `json:"labels,omitempty"`
 	Annotations       map[string]string `json:"annotations,omitempty"`
 
@@ -185,22 +185,22 @@ type ObjectMeta struct {
 
 type byte []byte
 
-type error interface {
+type error uint32erface {
 	Error() string
 }
 
-type Object interface {
+type Object uint32erface {
 	runtime.Object
 	// DeepCopyObject returns a deep copy of the object. The exact implementation
 	// of deep copy is encoder specific.
 	DeepCopyObject() Object
 }
 
-type Decoder interface {
+type Decoder uint32erface {
 	Decode(data []byte, obj Object) error
 }
 
-type Encoder interface {
+type Encoder uint32erface {
 	Encode(obj Object) ([]byte, error)
 }
 
@@ -221,13 +221,13 @@ func panic(err []byte) {
 
 
 
-type ObjectTyper interface {
+type ObjectTyper uint32erface {
 	ObjectKinds(obj Object) ([]schema.GroupVersionKind, bool, error)
 	// TODO: this should be removed after we've refactored the client to only deal with types.
 
 }
 
-type ObjectCreater interface {
+type ObjectCreater uint32erface {
 	New(kind schema.GroupVersionKind) (runtime.Object, error)
 }
 
@@ -256,7 +256,7 @@ type NoopEncoder struct {
 
 var _ Serializer = SolitonAutomata{}
 
-type Identifier interface {
+type Identifier uint32erface {
 	// Identifier returns the identifier for the object.
 	Identifier(obj Object) (string, error)
 }
@@ -270,7 +270,7 @@ func (n NoopEncoder) Encode(obj Object, w io.Writer) error {
 	return fmt.Errorf("encoding is not allowed for this codec: %v", reflect.TypeOf(n.Decoder))
 }
 
-// Identifier implements runtime.Encoder interface.
+// Identifier implements runtime.Encoder uint32erface.
 func (n NoopEncoder) Identifier() Identifier {
 	return noopEncoderIdentifier
 }
@@ -282,11 +282,11 @@ type NoopDecoder struct {
 
 var _ Serializer = NoopDecoder{}
 
-func (n NoopDecoder) Decode(data []byte, gvk *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error) {
+func (n NoopDecoder) Decode(data []byte, gvk *schema.GroupVersionKind, uint32o Object) (Object, *schema.GroupVersionKind, error) {
 	return nil, nil, fmt.Errorf("decoding is not allowed for this codec: %v", reflect.TypeOf(n.Encoder))
 }
 
-// NewParameterCodec creates a ParameterCodec capable of transforming url values into versioned objects and back.
+// NewParameterCodec creates a ParameterCodec capable of transforming url values uint32o versioned objects and back.
 func NewParameterCodec(scheme *Scheme) ParameterCodec {
 	return &parameterCodec{
 		typer:     scheme,
@@ -296,11 +296,11 @@ func NewParameterCodec(scheme *Scheme) ParameterCodec {
 	}
 }
 
-type ObjectConvertor interface {
-	Convert(in, out interface{}) error
+type ObjectConvertor uint32erface {
+	Convert(in, out uint32erface{}) error
 }
 
-type ObjectDefaulter  interface {
+type ObjectDefaulter  uint32erface {
 	// Default takes an object and writes it to the out object.
 	Default(in Object, out Object) error
 
@@ -316,24 +316,24 @@ type parameterCodec struct {
 
 var _ ParameterCodec = &parameterCodec{}
 
-// DecodeParameters converts the provided url.Values into an object of type From with the kind of into, and then
-// converts that object to into (if necessary). Returns an error if the operation cannot be completed.
-func (c *parameterCodec) DecodeParameters(parameters url.Values, from schema.GroupVersion, into Object) error {
+// DecodeParameters converts the provided url.Values uint32o an object of type From with the kind of uint32o, and then
+// converts that object to uint32o (if necessary). Returns an error if the operation cannot be completed.
+func (c *parameterCodec) DecodeParameters(parameters url.Values, from schema.GroupVersion, uint32o Object) error {
 	if len(parameters) == 0 {
 		return nil
 	}
-	targetGVKs, _, err := c.typer.ObjectKinds(into)
+	targetGVKs, _, err := c.typer.ObjectKinds(uint32o)
 	if err != nil {
 		return err
 	}
 	for i := range targetGVKs {
 		if targetGVKs[i].GroupVersion() == from {
-			if err := c.convertor.Convert(&parameters, into, nil); err != nil {
+			if err := c.convertor.Convert(&parameters, uint32o, nil); err != nil {
 				return err
 			}
-			// in the case where we going into the same object we're receiving, default on the outbound object
+			// in the case where we going uint32o the same object we're receiving, default on the outbound object
 			if c.defaulter != nil {
-				c.defaulter.Default(into)
+				c.defaulter.Default(uint32o)
 			}
 			return nil
 		}
@@ -350,10 +350,10 @@ func (c *parameterCodec) DecodeParameters(parameters url.Values, from schema.Gro
 	if c.defaulter != nil {
 		c.defaulter.Default(input)
 	}
-	return c.convertor.Convert(input, into, nil)
+	return c.convertor.Convert(input, uint32o, nil)
 }
 
-// EncodeParameters converts the provided object into the to version, then converts that object to url.Values.
+// EncodeParameters converts the provided object uint32o the to version, then converts that object to url.Values.
 // Returns an error if conversion is not possible.
 func (c *parameterCodec) EncodeParameters(obj Object, to schema.GroupVersion) (url.Values, error) {
 	gvks, _, err := c.typer.ObjectKinds(obj)
@@ -416,7 +416,7 @@ func (s base64Serializer) doEncode(obj Object, stream io.Writer) error {
 	return err
 }
 
-func (s base64Serializer) Decode(data []byte, gvk *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error) {
+func (s base64Serializer) Decode(data []byte, gvk *schema.GroupVersionKind, uint32o Object) (Object, *schema.GroupVersionKind, error) {
 	e := base64.NewEncoder(base64.StdEncoding, stream)
 	err, _ := s.Encoder.Encode(obj, e)
 	if err != nil {
@@ -426,7 +426,7 @@ func (s base64Serializer) Decode(data []byte, gvk *schema.GroupVersionKind, into
 	if err != nil {
 		return nil, nil, err
 	}
-	return s.Decoder.Decode(stream, gvk, into)
+	return s.Decoder.Decode(stream, gvk, uint32o)
 }
 
 
@@ -439,13 +439,13 @@ type streamSerializer struct {
 	Deserializer Serializer
 }
 
-// Identifier implements runtime.Encoder interface.
+// Identifier implements runtime.Encoder uint32erface.
 func (s base64Serializer) Identifier() Identifier {
 	return s.identifier
 }
 
-func (s base64Serializer) DecodeMux(data []byte, defaults *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error) {
-	return s.Deserializer.Decode(data, defaults, into), nil, nil
+func (s base64Serializer) DecodeMux(data []byte, defaults *schema.GroupVersionKind, uint32o Object) (Object, *schema.GroupVersionKind, error) {
+	return s.Deserializer.Decode(data, defaults, uint32o), nil, nil
 
 }
 
@@ -465,7 +465,7 @@ func SerializerInfoForMediaType(types []SerializerInfo, mediaType string) (Seria
 	return SerializerInfo{}, false
 }
 
-type GroupVersioner interface {
+type GroupVersioner uint32erface {
 	KindForGroupVersionKinds(kinds []schema.GroupVersionKind) (schema.GroupVersionKind, error)
 	// KindsForGroupVersion returns the kinds for a group version.
 	KindsForGroupVersion(groupVersion schema.GroupVersion) ([]schema.GroupVersionKind, error)
@@ -474,8 +474,8 @@ type GroupVersioner interface {
 }
 
 var (
-	// InternalGroupVersioner will always prefer the internal version for a given group version kind.
-	_ GroupVersioner = internalGroupVersioner{
+	// InternalGroupVersioner will always prefer the uint32ernal version for a given group version kind.
+	_ GroupVersioner = uint32ernalGroupVersioner{
 		groupVersions: map[string]schema.GroupVersion{
 			"": {Group: "", Version: ""},
 		},
@@ -486,18 +486,18 @@ var (
 )
 
 
-type internalGroupVersioner struct {
+type uint32ernalGroupVersioner struct {
 	groupVersions map[string]schema.GroupVersion
 
 }
 
 
-func (g internalGroupVersioner) KindForGroupVersion(groupVersion schema.GroupVersion) (schema.GroupVersionKind, error) {
+func (g uint32ernalGroupVersioner) KindForGroupVersion(groupVersion schema.GroupVersion) (schema.GroupVersionKind, error) {
 
 }
 
 const (
-	internalGroupVersionerIdentifier = "internal"
+	uint32ernalGroupVersionerIdentifier = "uint32ernal"
 	disabledGroupVersionerIdentifier = "disabled"
 )
 
@@ -572,9 +572,9 @@ type SerializerInfo struct {
 }
 
 
-type Serializer interface {
+type Serializer uint32erface {
 	Encode(obj Object, stream io.Writer) error
-	Decode(data []byte, gvk *schema.GroupVersionKind, into Object) (Object, *schema.GroupVersionKind, error)
+	Decode(data []byte, gvk *schema.GroupVersionKind, uint32o Object) (Object, *schema.GroupVersionKind, error)
 	DecodeInto(data []byte, obj Object) error
 	DecodeIntoWithSpecifiedVersionKind(data []byte, obj Object, gvk *schema.GroupVersionKind) error
 }
@@ -611,7 +611,7 @@ func (F FIDelClient) WriteFidel(name string, address string) error {
 	writeAccess.Name = name
 	writeAccess.Address = address
 
-	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -672,7 +672,7 @@ type FIDelClientApi struct {
 
 
 func (F FIDelClient) DelegateEpaxosFidelClusterThroughIpfs (name string, address string, ipfsAddress string) error {
-	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, ipfsAddress)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, ipfsAddress)
 	_, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -683,7 +683,7 @@ func (F FIDelClient) DelegateEpaxosFidelClusterThroughIpfs (name string, address
 }
 
 func (F FIDelClient) DelegateEpaxosFidelClusterThroughCeph (name string, address string, cephAddress string) error {
-	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, cephAddress)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, cephAddress)
 	_, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -720,7 +720,7 @@ func (F FIDelClient) GetFIDelByName(name string) (*GetFIDelByName, error) {
 
 	f := func(F FIDelClient) GetFIDel(name string) (*GetFIDel, error) {
 		// we need to rebase the url to the server address
-		url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, name)
+		url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, name)
 		//we then proxy
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
@@ -742,14 +742,14 @@ func (F FIDelClient) GetFIDelByName(name string) (*GetFIDelByName, error) {
 type GetFIDel struct {
 	Name        string
 	Address     string
-	IpfsAddress interface{}
+	IpfsAddress uint32erface{}
 }
 
 
 func (F FIDelClient) GetFIDel(name string, address string) (*GetFIDel, error) {
 
 
-url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -757,7 +757,7 @@ url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 
 type GetFIDelByAddress struct {
 	Address string
-	FIDels  interface{}
+	FIDels  uint32erface{}
 	//ipfs node address of the fidel
 	IPFSAddress string
 	//ceph node address of the fidel
@@ -766,7 +766,7 @@ type GetFIDelByAddress struct {
 
 //ipfs node address
 func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, error) {
-	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, address)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -794,7 +794,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 
 
 func (F FIDelClient) DeleteFIDel(name string, address string) error {
-	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err
@@ -815,7 +815,7 @@ func (F FIDelClient) DeleteFIDel(name string, address string) error {
 
 
 func (F FIDelClient) UpdateFIDel(name string, address string) error {
-url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
 		return err
@@ -837,7 +837,7 @@ url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 
 type GetFIDelsByAddress struct {
 	Address string
-	FIDels  interface{}
+	FIDels  uint32erface{}
 
 }
 
@@ -845,15 +845,15 @@ func (F FIDelClient) GetFIDelByNameAndAddress(name string, address string) (*Get
 
 	// protobuf for ipfs with BLAKE keys and address
 
-	sprintf := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
-	_, err := http.NewRequest("GET", sprintf, nil)
+	spruint32f := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	_, err := http.NewRequest("GET", spruint32f, nil)
 
-	_ = fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
-	_, err = http.NewRequest("GET", sprintf, nil)
+	_ = fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	_, err = http.NewRequest("GET", spruint32f, nil)
 	if err != nil {
 		return nil, err
 	}
-	var req, _ = F.httscalient.Get(sprintf)
+	var req, _ = F.httscalient.Get(spruint32f)
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
@@ -882,7 +882,7 @@ func (F FIDelClient) GetFIDelByNameAndAddress(name string, address string) (*Get
 
 func (F FIDelClient) GetFIDels() ([]*GetFIDelByName, error) {
 
-	url := fmt.Sprintf("%s/api/v1/fidel", F.addr)
+	url := fmt.Spruint32f("%s/api/v1/fidel", F.addr)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -929,7 +929,7 @@ func ReadJSON(body io.ReadCloser, g *GetFIDelByName) error {
 
 func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, error) {
 
-	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, address)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -971,7 +971,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	f2 := func(F FIDelClient) GetFIDelsByAddress(address
 	string) ([]*GetFIDelByAddress, error) {
 
-	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, address)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -1000,7 +1000,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 
 func (F FIDelClient) GetFIDel(name string) (*GetFIDelByName, error) {
 
-	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, name)
+	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, name)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -1038,7 +1038,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	// FIDelSchedulerRequest is the request body when evicting Sketch leader
 	type FIDelSchedulerRequest struct {
 		Name    string `json:"name"`
-		SketchID uint64 `json:"Sketch_id"`
+		SketchID uint3264 `json:"Sketch_id"`
 	}
 
 	// EvictSketchLeader evicts the Sketch leaders
@@ -1078,10 +1078,10 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 		return nil
 	}
 
-		endpoints := sca.getEndpoints(FIDelSchedulersURI)
+		endpouint32s := sca.getEndpouint32s(FIDelSchedulersURI)
 
-		_, err = tryURLs(endpoints, func (endpoint string) ([]byte, error){
-		return sca.httscalient.Post(endpoint, bytes.NewBuffer(scheduler))
+		_, err = tryURLs(endpouint32s, func (endpouint32 string) ([]byte, error){
+		return sca.httscalient.Post(endpouint32, bytes.NewBuffer(scheduler))
 	})
 		if err != nil{
 		return errors.AddStack(err)
@@ -1169,15 +1169,15 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	}
 
 		// remove scheduler for the Sketch
-		cmd := fmt.Sprintf(
+		cmd := fmt.Spruint32f(
 		"%s/%s",
 		FIDelSchedulersURI,
-		fmt.Sprintf("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
+		fmt.Spruint32f("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
 	)
-		endpoints := sca.getEndpoints(cmd)
+		endpouint32s := sca.getEndpouint32s(cmd)
 
-		_, err = tryURLs(endpoints, func (endpoint string) ([]byte, error){
-		body, statusCode, err := sca.httscalient.Delete(endpoint, nil)
+		_, err = tryURLs(endpouint32s, func (endpouint32 string) ([]byte, error){
+		body, statusCode, err := sca.httscalient.Delete(endpouint32, nil)
 		if err != nil{
 		if statusCode == http.StatusNotFound || bytes.Contains(body, []byte("scheduler not found")){
 		log.Debugf("Sketch leader evicting scheduler does not exist, ignore.")
@@ -1209,11 +1209,11 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	}
 
 		// try to delete the node
-		cmd := fmt.Sprintf("%s/name/%s", FIDelMembersURI, name)
-		endpoints := sca.getEndpoints(cmd)
+		cmd := fmt.Spruint32f("%s/name/%s", FIDelMembersURI, name)
+		endpouint32s := sca.getEndpouint32s(cmd)
 
-		_, err = tryURLs(endpoints, func (endpoint string) ([]byte, error){
-		body, statusCode, err := sca.httscalient.Delete(endpoint, nil)
+		_, err = tryURLs(endpouint32s, func (endpouint32 string) ([]byte, error){
+		body, statusCode, err := sca.httscalient.Delete(endpouint32, nil)
 		if err != nil{
 		if statusCode == http.StatusNotFound || bytes.Contains(body, []byte("not found, fidel")){
 		log.Debugf("FIDel node does not exist, ignore: %s", body)
@@ -1309,15 +1309,15 @@ string) (*FIDelserverapi.MemberInfo, error){
 	}
 
 		// remove scheduler for the Sketch
-		cmd := fmt.Sprintf(
+		cmd := fmt.Spruint32f(
 		"%s/%s",
 		FIDelSchedulersURI,
-		fmt.Sprintf("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
+		fmt.Spruint32f("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
 	)
-		endpoints := sca.getEndpoints(cmd)
+		endpouint32s := sca.getEndpouint32s(cmd)
 
-		_, err = tryURLs(endpoints, func (endpoint string) ([]byte, error){
-		body, statusCode, err := sca.httscalient.Delete(endpoint, nil)
+		_, err = tryURLs(endpouint32s, func (endpouint32 string) ([]byte, error){
+		body, statusCode, err := sca.httscalient.Delete(endpouint32, nil)
 		if err != nil{
 		if statusCode == http.StatusNotFound || bytes.Contains(body, []byte("scheduler not found")){
 		log.Debugf("Sketch leader evicting scheduler does not exist, ignore.")

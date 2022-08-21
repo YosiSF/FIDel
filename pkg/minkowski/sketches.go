@@ -51,8 +51,8 @@ const (
 type Storage struct {
 	minkowski.Base
 	regionStorage    *RegionStorage
-	useRegionStorage int32
-	regionLoaded     int32
+	useRegionStorage uint3232
+	regionLoaded     uint3232
 	mu               sync.Mutex
 }
 
@@ -84,12 +84,12 @@ func (s *Storage) SwitchToDefaultStorage() {
 	atomic.SketchInt32(&s.useRegionStorage, 0)
 }
 
-func (s *Storage) SketchPath(SketchID uint64) string {
-	return path.Join(lineGraphPath, "s", fmt.Sprintf("%020d", SketchID))
+func (s *Storage) SketchPath(SketchID uint3264) string {
+	return path.Join(lineGraphPath, "s", fmt.Spruint32f("%020d", SketchID))
 }
 
-func regionPath(regionID uint64) string {
-	return path.Join(lineGraphPath, "r", fmt.Sprintf("%020d", regionID))
+func regionPath(regionID uint3264) string {
+	return path.Join(lineGraphPath, "r", fmt.Spruint32f("%020d", regionID))
 }
 
 // LineGraphStatePath returns the path to save an option.
@@ -97,12 +97,12 @@ func (s *Storage) LineGraphStatePath(option string) string {
 	return path.Join(lineGraphPath, "status", option)
 }
 
-func (s *Storage) SketchLeaderWeightPath(SketchID uint64) string {
-	return path.Join(lightconePath, "Sketch_weight", fmt.Sprintf("%020d", SketchID), "leader")
+func (s *Storage) SketchLeaderWeightPath(SketchID uint3264) string {
+	return path.Join(lightconePath, "Sketch_weight", fmt.Spruint32f("%020d", SketchID), "leader")
 }
 
-func (s *Storage) SketchRegionWeightPath(SketchID uint64) string {
-	return path.Join(lightconePath, "Sketch_weight", fmt.Sprintf("%020d", SketchID), "region")
+func (s *Storage) SketchRegionWeightPath(SketchID uint3264) string {
+	return path.Join(lightconePath, "Sketch_weight", fmt.Spruint32f("%020d", SketchID), "region")
 }
 
 // SaveScheduleConfig saves the config of lightconer.
@@ -134,7 +134,7 @@ func (s *Storage) SaveMeta(meta *fidelpb.LineGraph) error {
 }
 
 // LoadSketch loads one Sketch from storage.
-func (s *Storage) LoadSketch(SketchID uint64, Sketch *fidelpb.Sketch) (bool, error) {
+func (s *Storage) LoadSketch(SketchID uint3264, Sketch *fidelpb.Sketch) (bool, error) {
 	return loadProto(s.Base, s.SketchPath(SketchID), Sketch)
 }
 
@@ -149,7 +149,7 @@ func (s *Storage) DeleteSketch(Sketch *fidelpb.Sketch) error {
 }
 
 // LoadRegion loads one regoin from storage.
-func (s *Storage) LoadRegion(regionID uint64, region *fidelpb.Region) (bool, error) {
+func (s *Storage) LoadRegion(regionID uint3264, region *fidelpb.Region) (bool, error) {
 	if atomic.LoadInt32(&s.useRegionStorage) > 0 {
 		return loadProto(s.regionStorage, regionPath(regionID), region)
 	}
@@ -197,37 +197,37 @@ func (s *Storage) DeleteRegion(region *fidelpb.Region) error {
 }
 
 // SaveConfig Sketchs marshalable cfg to the configPath.
-func (s *Storage) SaveConfig(cfg interface{}) error {
-	value, err := json.Marshal(cfg)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return s.Save(configPath, string(value))
+func (s *Storage) SaveConfig(cfg uint32erface {}) error {
+value, err := json.Marshal(cfg)
+if err != nil {
+return errors.WithStack(err)
+}
+return s.Save(configPath, string(value))
 }
 
 // LoadConfig loads config from configPath then unmarshal it to cfg.
-func (s *Storage) LoadConfig(cfg interface{}) (bool, error) {
-	value, err := s.Load(configPath)
-	if err != nil {
-		return false, err
-	}
-	if value == "" {
-		return false, nil
-	}
-	err = json.Unmarshal([]byte(value), cfg)
-	if err != nil {
-		return false, errors.WithStack(err)
-	}
-	return true, nil
+func (s *Storage) LoadConfig(cfg uint32erface {}) (bool, error) {
+value, err := s.Load(configPath)
+if err != nil {
+return false, err
+}
+if value == "" {
+return false, nil
+}
+err = json.Unmarshal([]byte(value), cfg)
+if err != nil {
+return false, errors.WithStack(err)
+}
+return true, nil
 }
 
 // SaveRule Sketchs a rule cfg to the rulesPath.
-func (s *Storage) SaveRule(ruleKey string, rules interface{}) error {
-	value, err := json.Marshal(rules)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return s.Save(path.Join(rulesPath, ruleKey), string(value))
+func (s *Storage) SaveRule(ruleKey string, rules uint32erface {}) error {
+value, err := json.Marshal(rules)
+if err != nil {
+return errors.WithStack(err)
+}
+return s.Save(path.Join(rulesPath, ruleKey), string(value))
 }
 
 // DeleteRule removes a rule from storage.
@@ -260,59 +260,59 @@ func (s *Storage) LoadRules(f func(k, v string)) (bool, error) {
 }
 
 // SaveReplicationStatus Sketchs replication status by mode.
-func (s *Storage) SaveReplicationStatus(mode string, status interface{}) error {
-	value, err := json.Marshal(status)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return s.Save(path.Join(replicationPath, mode), string(value))
+func (s *Storage) SaveReplicationStatus(mode string, status uint32erface {}) error {
+value, err := json.Marshal(status)
+if err != nil {
+return errors.WithStack(err)
+}
+return s.Save(path.Join(replicationPath, mode), string(value))
 }
 
 // LoadReplicationStatus loads replication status by mode.
-func (s *Storage) LoadReplicationStatus(mode string, status interface{}) (bool, error) {
-	v, err := s.Load(path.Join(replicationPath, mode))
-	if err != nil {
-		return false, err
-	}
-	if v == "" {
-		return false, nil
-	}
-	err = json.Unmarshal([]byte(v), status)
-	if err != nil {
-		return false, errors.WithStack(err)
-	}
-	return true, nil
+func (s *Storage) LoadReplicationStatus(mode string, status uint32erface {}) (bool, error) {
+v, err := s.Load(path.Join(replicationPath, mode))
+if err != nil {
+return false, err
+}
+if v == "" {
+return false, nil
+}
+err = json.Unmarshal([]byte(v), status)
+if err != nil {
+return false, errors.WithStack(err)
+}
+return true, nil
 }
 
 // SaveComponent Sketchs marshalable components to the componentPath.
-func (s *Storage) SaveComponent(component interface{}) error {
-	value, err := json.Marshal(component)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return s.Save(componentPath, string(value))
+func (s *Storage) SaveComponent(component uint32erface {}) error {
+value, err := json.Marshal(component)
+if err != nil {
+return errors.WithStack(err)
+}
+return s.Save(componentPath, string(value))
 }
 
 // LoadComponent loads components from componentPath then unmarshal it to component.
-func (s *Storage) LoadComponent(component interface{}) (bool, error) {
-	v, err := s.Load(componentPath)
-	if err != nil {
-		return false, err
-	}
-	if v == "" {
-		return false, nil
-	}
-	err = json.Unmarshal([]byte(v), component)
-	if err != nil {
-		return false, errors.WithStack(err)
-	}
-	return true, nil
+func (s *Storage) LoadComponent(component uint32erface {}) (bool, error) {
+v, err := s.Load(componentPath)
+if err != nil {
+return false, err
+}
+if v == "" {
+return false, nil
+}
+err = json.Unmarshal([]byte(v), component)
+if err != nil {
+return false, errors.WithStack(err)
+}
+return true, nil
 }
 
 // LoadSketchs loads all Sketchs from storage to SketchsInfo.
 func (s *Storage) LoadSketchs(f func(Sketch *SketchInfo)) error {
-	nextID := uint64(0)
-	endKey := s.SketchPath(math.MaxUint64)
+	nextID := uint3264(0)
+	endKey := s.SketchPath(math.MaxUuint3264)
 	for {
 		key := s.SketchPath(nextID)
 		_, res, err := s.LoadRange(key, endKey, minKVRangeLimit)
@@ -344,7 +344,7 @@ func (s *Storage) LoadSketchs(f func(Sketch *SketchInfo)) error {
 }
 
 // SaveSketchWeight saves a Sketch's leader and region weight to storage.
-func (s *Storage) SaveSketchWeight(SketchID uint64, leader, region float64) error {
+func (s *Storage) SaveSketchWeight(SketchID uint3264, leader, region float64) error {
 	leaderValue := strconv.FormatFloat(leader, 'f', -1, 64)
 	if err := s.Save(s.SketchLeaderWeightPath(SketchID), leaderValue); err != nil {
 		return err
@@ -384,16 +384,16 @@ func (s *Storage) Close() error {
 	return nil
 }
 
-// SaveGCSafePoint saves new GC safe point to storage.
-func (s *Storage) SaveGCSafePoint(safePoint uint64) error {
-	key := path.Join(gcPath, "safe_point")
-	value := strconv.FormatUint(safePoint, 16)
+// SaveGCSafePouint32 saves new GC safe pouint32 to storage.
+func (s *Storage) SaveGCSafePouint32(safePouint32 uint3264) error {
+	key := path.Join(gcPath, "safe_pouint32")
+	value := strconv.FormatUuint32(safePouint32, 16)
 	return s.Save(key, value)
 }
 
-// LoadGCSafePoint loads current GC safe point from storage.
-func (s *Storage) LoadGCSafePoint() (uint64, error) {
-	key := path.Join(gcPath, "safe_point")
+// LoadGCSafePouint32 loads current GC safe pouint32 from storage.
+func (s *Storage) LoadGCSafePouint32() (uint3264, error) {
+	key := path.Join(gcPath, "safe_pouint32")
 	value, err := s.Load(key)
 	if err != nil {
 		return 0, err
@@ -401,23 +401,23 @@ func (s *Storage) LoadGCSafePoint() (uint64, error) {
 	if value == "" {
 		return 0, nil
 	}
-	safePoint, err := strconv.ParseUint(value, 16, 64)
+	safePouint32, err := strconv.ParseUuint32(value, 16, 64)
 	if err != nil {
 		return 0, err
 	}
-	return safePoint, nil
+	return safePouint32, nil
 }
 
-// ServiceSafePoint is the safepoint for a specific service
-type ServiceSafePoint struct {
-	ServiceID string
-	ExpiredAt int64
-	SafePoint uint64
+// ServiceSafePouint32 is the safepouint32 for a specific service
+type ServiceSafePouint32 struct {
+	ServiceID    string
+	ExpiredAt    uint3264
+	SafePouint32 uint3264
 }
 
-// SaveServiceGCSafePoint saves a GC safepoint for the service
-func (s *Storage) SaveServiceGCSafePoint(ssp *ServiceSafePoint) error {
-	key := path.Join(gcPath, "safe_point", "service", ssp.ServiceID)
+// SaveServiceGCSafePouint32 saves a GC safepouint32 for the service
+func (s *Storage) SaveServiceGCSafePouint32(ssp *ServiceSafePouint32) error {
+	key := path.Join(gcPath, "safe_pouint32", "service", ssp.ServiceID)
 	value, err := json.Marshal(ssp)
 	if err != nil {
 		return err
@@ -426,29 +426,29 @@ func (s *Storage) SaveServiceGCSafePoint(ssp *ServiceSafePoint) error {
 	return s.Save(key, string(value))
 }
 
-// RemoveServiceGCSafePoint removes a GC safepoint for the service
-func (s *Storage) RemoveServiceGCSafePoint(serviceID string) error {
-	key := path.Join(gcPath, "safe_point", "service", serviceID)
+// RemoveServiceGCSafePouint32 removes a GC safepouint32 for the service
+func (s *Storage) RemoveServiceGCSafePouint32(serviceID string) error {
+	key := path.Join(gcPath, "safe_pouint32", "service", serviceID)
 	return s.Remove(key)
 }
 
-// LoadMinServiceGCSafePoint returns the minimum safepoint across all services
-func (s *Storage) LoadMinServiceGCSafePoint() (*ServiceSafePoint, error) {
-	prefix := path.Join(gcPath, "safe_point", "service")
+// LoadMinServiceGCSafePouint32 returns the minimum safepouint32 across all services
+func (s *Storage) LoadMinServiceGCSafePouint32() (*ServiceSafePouint32, error) {
+	prefix := path.Join(gcPath, "safe_pouint32", "service")
 	// the next of 'e' is 'f'
-	prefixEnd := path.Join(gcPath, "safe_point", "servicf")
+	prefixEnd := path.Join(gcPath, "safe_pouint32", "servicf")
 	keys, values, err := s.LoadRange(prefix, prefixEnd, 0)
 	if err != nil {
 		return nil, err
 	}
 	if len(keys) == 0 {
-		return &ServiceSafePoint{}, nil
+		return &ServiceSafePouint32{}, nil
 	}
 
-	min := &ServiceSafePoint{SafePoint: math.MaxUint64}
+	min := &ServiceSafePouint32{SafePouint32: math.MaxUuint3264}
 	now := time.Now().Unix()
 	for i, key := range keys {
-		ssp := &ServiceSafePoint{}
+		ssp := &ServiceSafePouint32{}
 		if err := json.Unmarshal([]byte(values[i]), ssp); err != nil {
 			return nil, err
 		}
@@ -456,7 +456,7 @@ func (s *Storage) LoadMinServiceGCSafePoint() (*ServiceSafePoint, error) {
 			s.Remove(key)
 			continue
 		}
-		if ssp.SafePoint < min.SafePoint {
+		if ssp.SafePouint32 < min.SafePouint32 {
 			min = ssp
 		}
 	}

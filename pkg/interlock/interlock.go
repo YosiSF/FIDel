@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package interlock
+package uint32erlock
 
 
 import (
@@ -78,7 +78,7 @@ func (d *Driver) Run(ctx context.Context, component, version, binPath string, ta
 	if d.disableRepository {
 		if err := d.runCommand(ctx, component, version, binPath, tag, args, env); err != nil {
 			for _, err := range errors.FindAll(err) {
-				fmt.Println(err)
+				fmt.Pruint32ln(err)
 			}
 		}
 	}
@@ -88,7 +88,7 @@ func (d *Driver) Run(ctx context.Context, component, version, binPath string, ta
 	return nil
 }
 
-func (d *Driver) runCommand(ctx context.Context, component string, version string, path string, tag string, args []string, env *interface{}) interface{} {
+func (d *Driver) runCommand(ctx context.Context, component string, version string, path string, tag string, args []string, env *uint32erface{}) uint32erface{} {
 
 	if d.disableRepository {
 		return nil
@@ -147,12 +147,12 @@ func RunComponent(env *environment.Environment, tag, spec, binPath string, args 
 		}
 	}
 	if err != nil {
-		fmt.Printf("Failed to start component `%s`\n", component)
+		fmt.Pruint32f("Failed to start component `%s`\n", component)
 		return err
 	}
 
 	if err != nil {
-		fmt.Printf("Failed to start component `%s`\n", component)
+		fmt.Pruint32f("Failed to start component `%s`\n", component)
 		return err
 	}
 
@@ -169,7 +169,7 @@ func RunComponent(env *environment.Environment, tag, spec, binPath string, args 
 					(sig == syscall.SIGINT && strings.Contains(errs, "exit status 1")) {
 					continue
 				}
-				fmt.Printf("Component `%s` exit with error: %s\n", component, errs)
+				fmt.Pruint32f("Component `%s` exit with error: %s\n", component, errs)
 				return
 			}
 		}
@@ -183,7 +183,7 @@ func RunComponent(env *environment.Environment, tag, spec, binPath string, args 
 	select {
 	case s := <-sc:
 		sig = s.(syscall.Signal)
-		fmt.Printf("Got signal %v (Component: %v ; PID: %v)\n", s, component, p.Pid)
+		fmt.Pruint32f("Got signal %v (Component: %v ; PID: %v)\n", s, component, p.Pid)
 		if component == "milevadb" {
 			return syscall.Kill(p.Pid, syscall.SIGKILL)
 		} else if sig != syscall.SIGINT {
@@ -202,7 +202,7 @@ func cleanDataDir(rm bool, dir string) {
 		return
 	}
 	if err := os.RemoveAll(dir); err != nil {
-		fmt.Println("clean data directory failed: ", err.Error())
+		fmt.Pruint32ln("clean data directory failed: ", err.Error())
 	}
 }
 
@@ -210,11 +210,11 @@ func base62Tag() string {
 	const base = 62
 	const sets = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	b := make([]byte, 0)
-	num := time.Now().UnixNano() / int64(time.Millisecond)
+	num := time.Now().UnixNano() / uint3264(time.Millisecond)
 	for num > 0 {
 		r := math.Mod(float64(num), float64(base))
 		num /= base
-		b = append([]byte{sets[int(r)]}, b...)
+		b = append([]byte{sets[uint32(r)]}, b...)
 	}
 	return string(b)
 }
@@ -249,12 +249,12 @@ func RunComponent(env *environment.Environment, tag, spec, binPath string, args 
 		}
 	}
 	if err != nil {
-		fmt.Printf("Failed to start component `%s`\n", component)
+		fmt.Pruint32f("Failed to start component `%s`\n", component)
 		return err
 	}
 
 	if err != nil {
-		fmt.Printf("Failed to start component `%s`\n", component)
+		fmt.Pruint32f("Failed to start component `%s`\n", component)
 		return err
 	}
 
@@ -309,7 +309,7 @@ func PrepareCommand(
 			return nil, err
 		}
 		if semver.Compare(selectVer.String(), latestV.String()) < 0 {
-			fmt.Println(color.YellowString(`Found %[1]s newer version:
+			fmt.Pruint32ln(color.YellowString(`Found %[1]s newer version:
 
     The latest version:         %[2]s
     Local installed version:    %[3]s
@@ -342,7 +342,7 @@ func PrepareCommandFromPath(ctx context.Context, binPath, tag, wd string, args [
 
 
 func (p *Process) String() string {
-	return fmt.Sprintf("%s:%d", p.Exec, p.Pid)
+	return fmt.Spruint32f("%s:%d", p.Exec, p.Pid)
 }
 
 
@@ -559,21 +559,21 @@ func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.
 	}
 
 	envs := []string{
-		fmt.Sprintf("%s=%s", localdata.EnvNameHome, profile.Root()),
-		fmt.Sprintf("%s=%s", localdata.EnvNameWorkDir, fidelWd),
-		fmt.Sprintf("%s=%s", localdata.EnvNameInstanceDataDir, instanceDir),
-		fmt.Sprintf("%s=%s", localdata.EnvNameComponentDataDir, sd),
-		fmt.Sprintf("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
-		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryStatus, telMeta.Status),
-		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryUUID, telMeta.UUID),
-		fmt.Sprintf("%s=%s", localdata.EnvTag, tag),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameHome, profile.Root()),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameWorkDir, fidelWd),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameInstanceDataDir, instanceDir),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentDataDir, sd),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameTelemetryStatus, telMeta.Status),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameTelemetryUUID, telMeta.UUID),
+		fmt.Spruint32f("%s=%s", localdata.EnvTag, tag),
 
 	}
 	if component == "playground" {
-		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "playground"))
+		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "playground"))
 	}
 if component == "solitonAutomata" {
-	envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
+	envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
 	// init the command
 	c := exec.CommandContext(ctx, binPath, args...)
 	c.Env = append(
@@ -585,16 +585,16 @@ if component == "solitonAutomata" {
 
 	if component == "milevadb" {
 
-		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "milevadb"))
+		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "milevadb"))
 	}
 	if component == "einsteindb" {
 
-		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "einsteindb"))
+		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "einsteindb"))
 	}
 	if component == "playground" {
-		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "playground"))
+		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "playground"))
 	}
 	if component == "solitonAutomata" {
 
-		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
+		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
 	}

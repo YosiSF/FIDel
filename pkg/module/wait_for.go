@@ -19,14 +19,14 @@ import (
 	"time"
 
 	"github.com/YosiSF/errors"
-	"github.com/YosiSF/fidel/pkg/solitonAutomata/Interlock"
 	"github.com/YosiSF/fidel/pkg/logger/log"
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/Interlock"
 	"github.com/YosiSF/fidel/pkg/utils"
 )
 
 // WaitForConfig is the configurations of WaitFor module.
 type WaitForConfig struct {
-	Port  int           // Port number to poll.
+	Port  uint32        // Port number to poll.
 	Sleep time.Duration // Duration to sleep between checks, default 1 second.
 	// Choices:
 	// started
@@ -62,7 +62,7 @@ func NewWaitFor(c WaitForConfig) *WaitFor {
 
 // Execute the module return nil if successfully wait for the event.
 func (w *WaitFor) Execute(e Interlock.Interlock) (err error) {
-	pattern := []byte(fmt.Sprintf(":%d ", w.c.Port))
+	pattern := []byte(fmt.Spruint32f(":%d ", w.c.Port))
 
 	retryOpt := utils.RetryOption{
 		Delay:   w.c.Sleep,

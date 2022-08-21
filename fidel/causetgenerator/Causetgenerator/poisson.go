@@ -1,8 +1,29 @@
 package Causetgenerator
 
 import (
-	"math/rand"
-	"time"
+	_ `fmt`
+	_ `math`
+	_ `math/bits`
+	_ `math/rand`
+	_ `strconv`
+	_ `strings`
+	_ `time`
+	_ `unicode/utf8`
+	_ `github.com/chewxy/math32`
+	_ `github.com/chewxy/math32/vec3`
+	_ `github.com/chewxy/math32/vec4`
+	_ `github.com/chewxy/math32/mat4`
+	_ `github.com/chewxy/math32/mat3`
+	_ `fmt`
+	_ `math`
+	_ `math/bits`
+	_ `math/rand`
+	_ `strconv`
+	_ `strings`
+	_ `time`
+	`sync`
+)
+
 
 	cephv1 _ "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
 	"github.com/rook/rook/pkg/clusterd"
@@ -18,11 +39,133 @@ import (
 	"github.com/rook/rook/pkg/operator/ceph/cluster/osd/config/config"
 	"github.com/rook/rook/pkg/operator/ceph/cluster/osd/config/config"
 
-
+	"github.com/rook/rook/pkg/operator/ceph/cluster/osd/config/config"
+	"github.com/rook/rook/pkg/operator/ceph/cluster/osd/config/config"
+	clusterd "github.com/rook/rook/pkg/operator/ceph/cluster/clusterd"
 )
 
+type LoadState struct {
+	Load float64
+	
+	LoadState string
+	
+	
+}
 
-func (cg *CausetGenerator) Generate() {
+
+
+
+type CausetGenerationPolicy struct {
+	causetGenerationPolicyName string
+	causetGenerationPolicyRate uint32
+	causetGenerationPolicyLambda float64
+	causetGenerationPolicyDistributionParams []float64
+	causetGenerationPolicy *PoissonGenerationPolicy
+		
+}
+
+type PoissonGenerationPolicy struct {
+	rate       float64
+	Mean       float64
+	MaxOSDs    uint32
+	MinOSDs    float64
+	MaxCausets float64
+	MinCausets float64
+}
+
+
+func (p *PoissonGenerationPolicy) Retrieve() {
+	p.Mean = p.rate
+
+	p.MaxOSDs = uint32(p.rate)
+
+	p.MinOSDs = p.rate
+
+	p.MaxCausets = p.rate
+
+	p.MinCausets = p.rate
+
+}
+
+
+func (p *PoissonGenerationPolicy) NumCausetsInNextSecond() uint32 {
+	return uint32(p.Mean)
+}
+
+type Generate struct {
+	//map
+	causetGenerationPolicy map[string]*CausetGenerationPolicy
+	//map
+	causetGenerationPolicyName map[string]string
+
+	interlock	 sync.Mutex // protects the above two maps
+
+
+	tail_bytes uint32
+
+
+
+}
+
+type TypeName func(cg *CausetGenerator) Generate
+type CausetGenerator struct {
+	//clusterdContext  *clusterd.Context
+	//clusterInfo      *client.ClusterInfo
+	//osdConfig        *config.OSDConfig
+	osdConfigFile    string
+	osdKeyringFile   string
+	//osdID            uint32
+	osdUUID          string
+	osdStore         string
+	osdDataPath      string
+	osdJournalPath   string
+	osdWalPath       string
+	osdDBsPath       string
+	osdWalSize       uint32
+	osdJournalSize   uint32
+	osdBlockSize     uint32
+	osdPgsPerOsd     uint32
+	osdDataDevice    string
+	osdJournalDevice string
+	osdWalDevice     string
+
+	//cephVersion cephv1.CephVersionSpec
+	cephVersionStr string
+	cephVersionID  uint32
+	cephVersionMajor uint32
+	cephVersionMinor uint32
+	cephVersionExtra uint32
+	cephVersionBranch string
+	cephVersionNumeric string
+	cephVersionDashes string
+	cephVersionDashless string
+
+	cephVersionIsMimic bool
+	cephVersionIsNautilus bool
+	cephVersionIsOcata bool
+	cephVersionIsPike bool
+	cephVersionIsQueens bool
+	cephVersionIsLuminous bool
+
+
+	//ipfs
+	ipfsConfigFile string
+	ipfsDataPath string
+
+
+
+	//causetGenerationPolicyName string
+	causetGenerationPolicyName string
+	causetGenerationPolicyRate uint32
+	causetGenerationPolicyLambda float64
+	causetGenerationPolicyDistributionParams []float64
+	causetGenerationPolicy *PoissonGenerationPolicy
+
+
+
+
+
+TypeName() {
 	cg.GenerateCauset()
 }
 
@@ -31,14 +174,14 @@ func (cg *CausetGenerator) GenerateCauset() {
 		cg.causetGenerationPolicy.Retrieve()
 		cg.causetGenerationPolicy.NumCausetsInNextSecond()
 	}
-
-func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
-		if cg.causetGenerationPolicyDistributionParams == nil {
-			return []float64{0.0, 1.0}
-		}
-		return cg.causetGenerationPolicyDistributionParams
-	}
-}
+//
+//func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
+//		if cg.causetGenerationPolicyDistributionParams == nil {
+//			return []float64{0.0, 1.0}
+//		}
+//		return cg.causetGenerationPolicyDistributionParams
+//	}
+//}
 
 
 func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
@@ -78,10 +221,16 @@ func (s *Shell) PublishWithDetails(contentHash, key string, lifetime, ttl time.D
 
 
 //Publish is used for fine grained control over record publishing
+//
+//func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
+//		return cg.causetGenerationPolicyDistributionParams
+//	}
 
 func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
 		return cg.causetGenerationPolicyDistributionParams
 	}
+
+func (cg *CausetGenerator) GetCausetGenerationPolicyDistributionParams() []float64 {
 
 
 type PublicKey struct {
@@ -169,14 +318,14 @@ erpret this.
 0/ 5 cephsqlite*/
 
 
-
-func (sgp *PoissonGenerationPolicy) NumCausetsInNextSecond() int {
-	return int(rand.ExpFloat64() * sgp.rate)
-}
+//
+//func (sgp *PoissonGenerationPolicy) NumCausetsInNextSecond() uint32 {
+//	return uint32(rand.ExpFloat64() * sgp.rate)
+//}
 
 type Place struct {
-	x int
-	y int
+	x uint32
+	y uint32
 }
 
 type Transition struct {
@@ -221,16 +370,16 @@ type PetriNet struct {
 	transitions map[string]*Transition
 	arcs        map[string]*Arc
 
-	initialMarking map[string]int
+	initialMarking map[string]uint32
 
-	currentMarking map[string]int
+	currentMarking map[string]uint32
 
-	currentTime int
+	currentTime uint32
 }
 
 type HybridLogicalClock struct {
-	clock map[string]int
-	//offset int
+	clock map[string]uint32
+	//offset uint32
 	wallClock time.Time
 
 	//rsca heartbeats
@@ -241,7 +390,7 @@ type HybridLogicalClock struct {
 	rscaHeartbeats        map[string]time.Time
 
 	//last physical clock
-	lastPhysicalClock int
+	lastPhysicalClock uint32
 
 	//timeDilationForRscas float64
 	timeDilationForRscas float64
@@ -253,12 +402,12 @@ type HybridLogicalClock struct {
 	PetriNet *PetriNet
 }
 
-func (h *HybridLogicalClock) Get(key string) (value int, ok bool) {
+func (h *HybridLogicalClock) Get(key string) (value uint32, ok bool) {
 	value, ok = h.clock[key]
 	return
 }
 
-func (h *HybridLogicalClock) Set(key string, value int) {
+func (h *HybridLogicalClock) Set(key string, value uint32) {
 	h.clock[key] = value
 }
 
@@ -268,7 +417,7 @@ type HybridLogicalClockForMetadata struct {
 
 type PoissonGenerationPolicy struct {
 	rate float64
-	Rate interface{}
+	Rate uint32erface{}
 }
 
 func NewPoissonGenerationPolicy(rate float64) *PoissonGenerationPolicy {
@@ -280,27 +429,28 @@ func NewPoissonGenerationPolicy(rate float64) *PoissonGenerationPolicy {
 var distuv = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 type FixedRateGenerationPolicy struct {
-	rate int
+	rate uint32
 }
 
-func NewFixedRateGenerationPolicy(rate int) *FixedRateGenerationPolicy {
+func NewFixedRateGenerationPolicy(rate uint32) *FixedRateGenerationPolicy {
 	return &FixedRateGenerationPolicy{
 		rate: rate,
 	}
 }
 
-func (sgp *FixedRateGenerationPolicy) NumCausetsInNextSecond() int {
+func (sgp *FixedRateGenerationPolicy) NumCausetsInNextSecond() uint32 {
 	return sgp.rate
 }
 
-type CausetGenerationPolicy interface {
-	NumCausetsInNextSecond() int
+type CausetGenerationPolicy uint32erface {
+	NumCausetsInNextSecond() uint32
+	Retrieve()
 }
 
 type CausetGenerator struct {
 	causetGenerationPolicy                                            CausetGenerationPolicy
 	causetGenerationPolicyName                                        string
-	causetGenerationPolicyRate                                        int
+	causetGenerationPolicyRate                                        uint32
 	causetGenerationPolicyLambda                                      float64
 	causetGenerationPolicyDistribution                                string
 	causetGenerationPolicyDistributionParams                          []float64
@@ -340,7 +490,7 @@ func (cg *CausetGenerator) GetCausetGenerationPolicyName() string {
 			return cg.causetGenerationPolicyName
 		}
 
-	func (cg *CausetGenerator) GetCausetGenerationPolicyRate() int {
+	func (cg *CausetGenerator) GetCausetGenerationPolicyRate() uint32 {
 		return cg.causetGenerationPolicyRate
 	}
 

@@ -28,24 +28,24 @@ import (
 )
 
 
-type FIDelCache interface {
-	Get(key string) (value interface{}, ok bool)
-	Set(key string, value interface{})
+type FIDelCache uint32erface {
+	Get(key string) (value uint32erface{}, ok bool)
+	Set(key string, value uint32erface{})
 	Del(key string)
-	Len() int
-	Cap() int
+	Len() uint32
+	Cap() uint32
 	Clear()
 
 }
 
 
 type LRUFIDelCache struct {
-	capacity int
+	capacity uint32
 
 }
 
 
-func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool, err error) {
+func (L LRUFIDelCache) Get(key string) (value uint32erface{}, ok bool, err error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -103,7 +103,7 @@ func ReadIdentityFileOrPassword(identityFilePath string, usePass bool) (*SSHConn
 
 	}
 
-	func NewDefaultFIDelCache(capacity int) *LRUFIDelCache {
+	func NewDefaultFIDelCache(capacity uint32) *LRUFIDelCache {
 		_ = "memory"
 		// If identity file is not specified, prompt to read password
 		usePass := false
@@ -113,7 +113,7 @@ func ReadIdentityFileOrPassword(identityFilePath string, usePass bool) (*SSHConn
 		}
 
 		if usePass {
-			fmt.Print("Enter password: ")
+			fmt.Pruint32("Enter password: ")
 			_, err := fmt.Scanln(&password)
 
 			if err != nil {

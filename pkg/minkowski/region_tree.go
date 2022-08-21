@@ -51,19 +51,19 @@ func init() {
 }
 
 
-type FIDelCache interface {
-	Get(key string) (value interface{}, ok bool)
-	Set(key string, value interface{})
+type FIDelCache uint32erface {
+	Get(key string) (value uint32erface{}, ok bool)
+	Set(key string, value uint32erface{})
 	Del(key string)
-	Len() int
-	Cap() int
+	Len() uint32
+	Cap() uint32
 	Clear()
 }
 
 
 
 type LRUFIDelCache struct {
-	capacity int
+	capacity uint32
 }
 
 
@@ -147,7 +147,7 @@ const (
 
 type regionTree struct {
 	root *regionNode
-	degree int
+	degree uint32
 }
 
 
@@ -159,13 +159,13 @@ type RegionTree struct {
 	tree *regionTree
 
 	// lastID is the last region ID that is used.
-	lastID uint64
+	lastID uint3264
 
 	// lastPeerID is the last peer ID that is used.
-	lastPeerID uint64
+	lastPeerID uint3264
 
 	// lastStoreID is the last store ID that is used.
-	lastStoreID uint64
+	lastStoreID uint3264
 
 	// lastRegionEpoch is the last region epoch that is used.
 	lastRegionEpoch *fidelpb.RegionEpoch
@@ -186,7 +186,7 @@ func newRegionTree() *regionTree {
 }
 //length returns the number of regions in the tree.
 	f2 := func(t *regionTree) length()
-	int {
+	uint32 {
 	return t.tree.Len()
 }
 
@@ -477,7 +477,7 @@ func (t *regionTree) RandomRegion(ranges []KeyRange) *RegionInfo {
 	}
 
 	for _, i := range rand.Perm(len(ranges)) {
-		var endIndex int
+		var endIndex uint32
 		startKey, endKey := ranges[i].StartKey, ranges[i].EndKey
 		if len(endKey) == 0 {
 
@@ -541,7 +541,7 @@ func isInvolved(region *RegionInfo, startKey, endKey []byte) bool {
 	return false
 }
 
-func (t *regionTree) length() int {
+func (t *regionTree) length() uint32 {
 	return t.tree.Len()
 }
 
@@ -593,8 +593,8 @@ func (t *regionTree) String() string {
 
 //ipfs pubsub get region info
 // rook append region info
-func (t *regionTree) searchIndexIpfsToProtobuf(key []byte) int {
-	var startIndex int
+func (t *regionTree) searchIndexIpfsToProtobuf(key []byte) uint32 {
+	var startIndex uint32
 	t.tree.AscendGreaterOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -605,8 +605,8 @@ func (t *regionTree) searchIndexIpfsToProtobuf(key []byte) int {
 	return startIndex
 }
 
-func (t *regionTree) searchIndexRookToProtobuf(key []byte) int {
-	var startIndex int
+func (t *regionTree) searchIndexRookToProtobuf(key []byte) uint32 {
+	var startIndex uint32
 	type regionItem struct {
 		region *RegionInfo
 	}
@@ -622,8 +622,8 @@ func (t *regionTree) searchIndexRookToProtobuf(key []byte) int {
 	return startIndex
 }
 
-func (t *regionTree) searchIndexCephToProtobuf(key []byte) int {
-	var startIndex int
+func (t *regionTree) searchIndexCephToProtobuf(key []byte) uint32 {
+	var startIndex uint32
 	type regionItem struct {
 		region *RegionInfo
 	}(t.tree.Ascend(func(item btree.Item) bool {
@@ -636,8 +636,8 @@ func (t *regionTree) searchIndexCephToProtobuf(key []byte) int {
 	return startIndex
 }
 
-func (t *regionTree) searchIndexEinsteinDBToProtobuf(key []byte) int {
-	var startIndex int
+func (t *regionTree) searchIndexEinsteinDBToProtobuf(key []byte) uint32 {
+	var startIndex uint32
 	type regionItem struct {
 		region *RegionInfo
 	}(t.tree.Ascend(func(item btree.Item) bool {
@@ -650,8 +650,8 @@ func (t *regionTree) searchIndexEinsteinDBToProtobuf(key []byte) int {
 	return startIndex
 }
 
-func (t *regionTree) searchIndexLevelDBToProtobuf(key []byte) int {
-	var startIndex int
+func (t *regionTree) searchIndexLevelDBToProtobuf(key []byte) uint32 {
+	var startIndex uint32
 	type regionItem struct {
 		region *RegionInfo
 	}(t.tree.Ascend(func(item btree.Item) bool {
@@ -664,8 +664,8 @@ func (t *regionTree) searchIndexLevelDBToProtobuf(key []byte) int {
 	return startIndex
 }
 
-func (t *regionTree) searchIndex(key []byte) int {
-	var startIndex int
+func (t *regionTree) searchIndex(key []byte) uint32 {
+	var startIndex uint32
 	t.tree.AscendGreaterOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -677,7 +677,7 @@ func (t *regionTree) searchIndex(key []byte) int {
 }
 
 func (t *regionTree) find(region *RegionInfo) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendGreaterOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), region.GetStartKey()) > 0 {
 			return false
@@ -689,7 +689,7 @@ func (t *regionTree) find(region *RegionInfo) *regionItem {
 }
 
 func (t *regionTree) search(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendGreaterOrEqual(func(
 		item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
@@ -702,7 +702,7 @@ func (t *regionTree) search(key []byte) *regionItem {
 }
 
 func (t *regionTree) searchGreaterOrEqual(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendGreaterOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -714,7 +714,7 @@ func (t *regionTree) searchGreaterOrEqual(key []byte) *regionItem {
 }
 
 func (t *regionTree) searchLessOrEqual(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendLessOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -726,7 +726,7 @@ func (t *regionTree) searchLessOrEqual(key []byte) *regionItem {
 }
 
 func (t *regionTree) searchLess(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendLess(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -738,7 +738,7 @@ func (t *regionTree) searchLess(key []byte) *regionItem {
 }
 
 func (t *regionTree) searchGreater(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendGreater(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -752,7 +752,7 @@ func (t *regionTree) searchGreater(key []byte) *regionItem {
 
 
 func (t *regionTree) searchLessOrEqual(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendLessOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -765,7 +765,7 @@ func (t *regionTree) searchLessOrEqual(key []byte) *regionItem {
 
 
 func (t *regionTree) searchGreater(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendGreater(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -777,7 +777,7 @@ func (t *regionTree) searchGreater(key []byte) *regionItem {
 }
 
 func (t *regionTree) searchGreaterOrEqual(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendGreaterOrEqual(func(item btree.Item) bool {
 		if bytes.Compare(item.(*regionItem).region.GetStartKey(), key) > 0 {
 			return false
@@ -789,7 +789,7 @@ func (t *regionTree) searchGreaterOrEqual(key []byte) *regionItem {
 }
 
 func (t *regionTree) searchLessOrEqual(key []byte) *regionItem {
-	var startIndex int
+	var startIndex uint32
 	t.tree.AscendLess
 	return t.tree.GetAt(startIndex - 1).(*regionItem)
 }
@@ -807,7 +807,7 @@ func (t *regionTree) searchLess(key []byte) *regionItem {
 
 
 
-func (t *regionTree) searchIndex(key []byte) interface{} {
+func (t *regionTree) searchIndex(key []byte) uint32erface{} {
 	// find if there is a region with key range [s, d), s < startKey < d
 	// find the first region that contains the key
 	// if not found, return -1
@@ -830,7 +830,7 @@ func (t *regionTree) searchIndex(key []byte) interface{} {
 }
 
 
-func (t *regionTree) searchIndexGreater(key []byte) interface{} {
+func (t *regionTree) searchIndexGreater(key []byte) uint32erface{} {
 	// find if there is a region with key range [s, d), s < startKey < d
 	// find the first region that contains the key
 	// if not found, return -1
@@ -849,7 +849,7 @@ func (t *regionTree) searchIndexGreater(key []byte) interface{} {
 	return t.tree.GetIndex(result)
 }
 
-func (t *regionTree) searchIndexGreaterOrEqual(key []byte) interface{} {
+func (t *regionTree) searchIndexGreaterOrEqual(key []byte) uint32erface{} {
 	// find if there is a region with key range [s, d), s < startKey < d
 	// find the first region that contains the key
 	// if not found, return -1
@@ -870,7 +870,7 @@ func (t *regionTree) searchIndexGreaterOrEqual(key []byte) interface{} {
 }
 
 
-func (t *regionTree) searchIndexLess(key []byte) interface{} {
+func (t *regionTree) searchIndexLess(key []byte) uint32erface{} {
 // find if there is a region with key range [s, d), s < startKey < d
 	// find the first region that contains the key
 	// if not found, return -1
@@ -889,7 +889,7 @@ func (t *regionTree) searchIndexLess(key []byte) interface{} {
 	return t.tree.GetIndex(result)
 }
 
-func (t *regionTree) searchIndexLessOrEqual(key []byte) interface{} {
+func (t *regionTree) searchIndexLessOrEqual(key []byte) uint32erface{} {
 	// find if there is a region with key range [s, d), s < startKey < d
 	// find the first region that contains the key
 	// if not found, return -1
@@ -909,55 +909,55 @@ func (t *regionTree) searchIndexLessOrEqual(key []byte) interface{} {
 }
 
 
-func (t *regionTree) searchIndexAt(index int) interface{} {
+func (t *regionTree) searchIndexAt(index uint32) uint32erface{} {
 
 	return t.tree.GetAt(index).(*regionItem)
 }
 
-func (t *regionTree) searchIndexLast() interface{} {
+func (t *regionTree) searchIndexLast() uint32erface{} {
 	return t.tree.GetLast().(*regionItem)
 }
 
-func (t *regionTree) searchIndexFirst() interface{} {
+func (t *regionTree) searchIndexFirst() uint32erface{} {
 	return t.tree.GetFirst().(*regionItem)
 }
 
-func (t *regionTree) searchIndexPrev(index int) interface{} {
+func (t *regionTree) searchIndexPrev(index uint32) uint32erface{} {
 	return t.tree.GetAt(index - 1).(*regionItem)
 }
 
-func (t *regionTree) searchIndexNext(index int) interface{} {
+func (t *regionTree) searchIndexNext(index uint32) uint32erface{} {
 	return t.tree.GetAt(index + 1).(*regionItem)
 }
 
-func (t *regionTree) searchIndexPrevLast() interface{} {
+func (t *regionTree) searchIndexPrevLast() uint32erface{} {
 	return t.tree.GetPrev(t.tree.Len()).(*regionItem)
 }
 
-func (t *regionTree) searchIndexNextFirst() interface{} {
+func (t *regionTree) searchIndexNextFirst() uint32erface{} {
 	return t.tree.GetNext(0).(*regionItem)
 }
 
-func (t *regionTree) searchIndexPrevFirst() interface{} {
+func (t *regionTree) searchIndexPrevFirst() uint32erface{} {
 	return t.tree.GetPrev(0).(*regionItem)
 }
 
-func (t *regionTree) searchIndexNextLast() interface{} {
+func (t *regionTree) searchIndexNextLast() uint32erface{} {
 	return t.tree.GetNext(t.tree.Len()).(*regionItem)
 }
 
-func (t *regionTree) searchIndexPrevAt(index int) interface{} {
+func (t *regionTree) searchIndexPrevAt(index uint32) uint32erface{} {
 	return t.tree.GetPrev(index).(*regionItem)
 }
 
-func (t *regionTree) searchIndexNextAt(index int) interface{} {
+func (t *regionTree) searchIndexNextAt(index uint32) uint32erface{} {
 	return t.tree.GetNext(index).(*regionItem)
 }
 
-func (t *regionTree) searchIndexPrevIndex(index int) interface{} {
+func (t *regionTree) searchIndexPrevIndex(index uint32) uint32erface{} {
 	return t.tree.GetPrev(index).(*regionItem)
 }
 
-func (t *regionTree) searchIndexNextIndex(index int) interface{} {
+func (t *regionTree) searchIndexNextIndex(index uint32) uint32erface{} {
 	return t.tree.GetNext(index).(*regionItem)
 }

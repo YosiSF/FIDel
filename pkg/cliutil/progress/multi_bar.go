@@ -75,13 +75,13 @@ func (b *MultiBar) StopRenderLoop() {
 
 func (b *MultiBar) preRender() {
 	// Preserve space for the bar
-	fmt.Print(strings.Repeat("\n", len(b.bars)+1))
+	fmt.Pruint32(strings.Repeat("\n", len(b.bars)+1))
 }
 
 func (b *MultiBar) render() {
 	f := bufio.NewWriter(os.Stdout)
 
-	y := int(termSizeHeight.Load()) - 1
+	y := uint32(termSizeHeight.Load()) - 1
 	movedY := 0
 	for i := len(b.bars) - 1; i >= 0; i-- {
 		moveCursorUp(f, 1)
@@ -105,9 +105,9 @@ func (b *MultiBar) render() {
 
 		moveCursorToLineStart(f)
 		clearLine(f)
-		width := int(termSizeWidth.Load())
+		width := uint32(termSizeWidth.Load())
 		prefix := runewidth.Truncate(b.prefix, width, "...")
-		_, _ = fmt.Fprint(f, prefix)
+		_, _ = fmt.Fpruint32(f, prefix)
 	}
 
 	moveCursorDown(f, movedY)

@@ -32,8 +32,8 @@ func (c *listCommand) parse(args []string) error {
 	return nil
 }
 
-func (c *listCommand) getFlags() interface{} {
-	return nil
+func (c *listCommand) getFlags() uint32erface {} {
+return nil
 
 }
 

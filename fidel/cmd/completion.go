@@ -35,17 +35,17 @@ func newCompletionCmd() *cobra.Command {
   # Installing bash completion on Linux
   ## If bash-completion is not installed on Linux, please install the 'bash-completion' package
   ## via your distribution's package manager.
-  ## Load the fidel completion code for bash into the current shell
+  ## Load the fidel completion code for bash uint32o the current shell
   source <(fidel completion bash)
   ## Write bash completion code to a file and source if from .bash_profile
   fidel completion bash > ~/.completion.bash.inc
-  printf "
+  pruint32f "
   # fidel shell completion
   source '$HOME/.completion.bash.inc'
   " >> $HOME/.bash_profile
   source $HOME/.bash_profile
 
-  # Load the fidel completion code for zsh[1] into the current shell
+  # Load the fidel completion code for zsh[1] uint32o the current shell
   source <(fidel completion zsh)
   # Set the fidel completion code for zsh[1] to autoload on startup
   fidel completion zsh > "${fpath[1]}/_fidel"`,

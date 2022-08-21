@@ -24,7 +24,7 @@ import (
 // queryCache checks if the CID is in the cache. If so, it returns:
 //
 //  * exists (bool): whether the CID is known to exist or not.
-//  * size (int): the size if cached, or -1 if not cached.
+//  * size (uint32): the size if cached, or -1 if not cached.
 //  * ok (bool): whether present in the cache.
 //
 // When ok is false, the answer in inconclusive and the caller must ignore the
@@ -33,7 +33,7 @@ import (
 // When ok is true, exists carries the correct answer, and size carries the
 // size, if known, or -1 if not.
 
-func (s *Sketch) queryCache(cid CID) (exists bool, size int, ok bool) {
+func (s *Sketch) queryCache(cid CID) (exists bool, size uint32, ok bool) {
 	s.cacheMu.RLock()
 	defer s.cacheMu.RUnlock()
 	if size, ok := s.cache[cid]; ok {
@@ -42,7 +42,7 @@ func (s *Sketch) queryCache(cid CID) (exists bool, size int, ok bool) {
 	return false, -1, false
 }
 
-func (s *Sketch) setCache(cid CID, size int) {
+func (s *Sketch) setCache(cid CID, size uint32) {
 	s.cacheMu.Lock()
 	defer s.cacheMu.Unlock()
 	s.cache[cid] = size
@@ -54,13 +54,13 @@ func (s *Sketch) deleteCache(cid CID) {
 	delete(s.cache, cid)
 }
 
-func (s *Sketch) getLeaderSize() int64 {
+func (s *Sketch) getLeaderSize() uint3264 {
 
 	return s.leaderCount
 
 }
 
-func (s *Sketch) getRegionSize() int64 {
+func (s *Sketch) getRegionSize() uint3264 {
 	return s.regionCount
 }
 
@@ -88,7 +88,7 @@ func SetSketchLabels(labels []*fidelpb.SketchLabel) SketchCreateOption {
 }
 
 // SetSketchStartTime sets the start timestamp for the Sketch.
-func SetSketchStartTime(startTS int64) SketchCreateOption {
+func SetSketchStartTime(startTS uint3264) SketchCreateOption {
 	return func(Sketch *SketchInfo) {
 		meta := proto.Clone(Sketch.meta).(*fidelpb.Sketch)
 		meta.StartTimestamp = startTS
@@ -141,35 +141,35 @@ func ResumeLeaderTransfer() SketchCreateOption {
 }
 
 // SetLeaderCount sets the leader count for the Sketch.
-func SetLeaderCount(leaderCount int) SketchCreateOption {
+func SetLeaderCount(leaderCount uint32) SketchCreateOption {
 	return func(Sketch *SketchInfo) {
 		Sketch.leaderCount = leaderCount
 	}
 }
 
 // SetRegionCount sets the Region count for the Sketch.
-func SetRegionCount(regionCount int) SketchCreateOption {
+func SetRegionCount(regionCount uint32) SketchCreateOption {
 	return func(Sketch *SketchInfo) {
 		Sketch.regionCount = regionCount
 	}
 }
 
 // SetPendingPeerCount sets the pending peer count for the Sketch.
-func SetPendingPeerCount(pendingPeerCount int) SketchCreateOption {
+func SetPendingPeerCount(pendingPeerCount uint32) SketchCreateOption {
 	return func(Sketch *SketchInfo) {
 		Sketch.pendingPeerCount = pendingPeerCount
 	}
 }
 
 // SetLeaderSize sets the leader size for the Sketch.
-func SetLeaderSize(leaderSize int64) SketchCreateOption {
+func SetLeaderSize(leaderSize uint3264) SketchCreateOption {
 	return func(Sketch *SketchInfo) {
 		Sketch.leaderSize = leaderSize
 	}
 }
 
 // SetRegionSize sets the Region size for the Sketch.
-func SetRegionSize(regionSize int64) SketchCreateOption {
+func SetRegionSize(regionSize uint3264) SketchCreateOption {
 	return func(Sketch *SketchInfo) {
 		Sketch.regionSize = regionSize
 	}

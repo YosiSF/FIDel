@@ -127,7 +127,7 @@ func (p *Profile) GetComponentInstalledVersion(component string, version v0manif
 
 	// Check whether the specific version exist in local
 	if len(versions) > 0 {
-		sort.Slice(versions, func(i, j int) bool {
+		sort.Slice(versions, func(i, j uint32) bool {
 			return semver.Compare(versions[i], versions[j]) < 0
 		})
 		version = v0manifest.Version(versions[len(versions)-1])
@@ -158,31 +158,31 @@ func (p *Profile) SaveTo(path string, data []byte, perm os.FileMode) error {
 }
 
 // WriteJSON writes struct to a file (in the profile directory) in JSON format
-func (p *Profile) WriteJSON(path string, data interface{}) error {
-	jsonData, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return errors.Trace(err)
-	}
-	return p.SaveTo(path, jsonData, 0644)
+func (p *Profile) WriteJSON(path string, data uint32erface {}) error {
+jsonData, err := json.MarshalIndent(data, "", "  ")
+if err != nil {
+return errors.Trace(err)
+}
+return p.SaveTo(path, jsonData, 0644)
 }
 
 // readJSON read file and unmarshal to target `data`
-func (p *Profile) readJSON(path string, data interface{}) error {
-	fullPath := filepath.Join(p.root, path)
-	file, err := os.Open(fullPath)
-	if err != nil {
-		return errors.Trace(err)
-	}
-	defer file.Close()
+func (p *Profile) readJSON(path string, data uint32erface {}) error {
+fullPath := filepath.Join(p.root, path)
+file, err := os.Open(fullPath)
+if err != nil {
+return errors.Trace(err)
+}
+defer file.Close()
 
-	return json.NewDecoder(file).Decode(data)
+return json.NewDecoder(file).Decode(data)
 }
 
 // ReadMetaFile reads a Process object from dirName/MetaFilename. Returns (nil, nil) if a metafile does not exist.
 func (p *Profile) ReadMetaFile(dirName string) (*Process, error) {
 	metaFile := filepath.Join(DataParentDir, dirName, MetaFilename)
 
-	// If the path doesn't contain the meta file, which means startup interrupted
+	// If the path doesn't contain the meta file, which means startup uint32errupted
 	if utils.IsNotExist(p.Path(metaFile)) {
 		return nil, nil
 	}
@@ -193,7 +193,7 @@ func (p *Profile) ReadMetaFile(dirName string) (*Process, error) {
 }
 
 func (p *Profile) versionFileName(component string) string {
-	return fmt.Sprintf("manifest/fidel-component-%s.index", component)
+	return fmt.Spruint32f("manifest/fidel-component-%s.index", component)
 }
 
 func (p *Profile) v0ManifestFileName() string {
@@ -321,7 +321,7 @@ func (p *Profile) SelectInstalledVersion(component string, version v0manifest.Ve
 	}
 
 	if version.IsEmpty() {
-		sort.Slice(installed, func(i, j int) bool {
+		sort.Slice(installed, func(i, j uint32) bool {
 			return semver.Compare(installed[i], installed[j]) < 0
 		})
 		version = v0manifest.Version(installed[len(installed)-1])
@@ -346,7 +346,7 @@ func (p *Profile) ResetMirror(addr, root string) error {
 	if _, err := io.Copy(shaWriter, strings.NewReader(addr)); err != nil {
 		return err
 	}
-	localRoot := p.Path("bin", fmt.Sprintf("%s.root.json", hex.EncodeToString(shaWriter.Sum(nil))[:16]))
+	localRoot := p.Path("bin", fmt.Spruint32f("%s.root.json", hex.EncodeToString(shaWriter.Sum(nil))[:16]))
 
 	if root == "" {
 		if utils.IsExist(localRoot) {
@@ -390,8 +390,8 @@ func (p *Profile) ResetMirror(addr, root string) error {
 	// Only cache remote mirror
 	if strings.HasPrefix(addr, "http") && root != localRoot {
 		if strings.HasPrefix(root, "http") {
-			fmt.Printf("WARN: adding root certificate via internet: %s\n", root)
-			fmt.Printf("You can revoke this by remove %s\n", localRoot)
+			fmt.Pruint32f("WARN: adding root certificate via uint32ernet: %s\n", root)
+			fmt.Pruint32f("You can revoke this by remove %s\n", localRoot)
 		}
 		_ = utils.CopyFile(p.Path("bin", "root.json"), localRoot)
 	}
@@ -408,7 +408,7 @@ func (p *Profile) ResetMirror(addr, root string) error {
 type Process struct {
 	Component   string    `json:"component"`
 	CreatedTime string    `json:"created_time"`
-	Pid         int       `json:"pid"`            // PID of the process
+	Pid         uint32    `json:"pid"`            // PID of the process
 	Exec        string    `json:"exec"`           // Path to the binary
 	Args        []string  `json:"args,omitempty"` // Command line arguments
 	Env         []string  `json:"env,omitempty"`  // Environment variables

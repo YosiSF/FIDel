@@ -79,7 +79,7 @@ func SetUpGrpcsServer(ctx context.Context, addr string, tlsCfg *tls.Config) (*ca
 	return capnproto.NewServer(cc), nil
 }
 
-func GetServerConn(ctx context.Context, addr string, cfg *tls.Config) (interface{}, interface{}) {
+func GetServerConn(ctx context.Context, addr string, cfg *tls.Config) (uint32erface{}, uint32erface{}) {
 	//failover
 	if cfg == nil {
 		return capnproto.DialContext(ctx, addr, capnproto.WithBlock(), capnproto.WithInsecure()), nil
@@ -126,7 +126,7 @@ import (
 const serialCookieNoRunContainer = 12346 // only arrays and bitmaps
 const serialCookie = 12347               // runs, arrays, and bitmaps
 
-// Bitmap represents a compressed bitmap where you can add integers.
+// Bitmap represents a compressed bitmap where you can add uint32egers.
 type Bitmap struct {
 	highlowcontainer roaringArray64
 }
@@ -140,7 +140,7 @@ func (rb *Bitmap) ToBase64() (string, error) {
 }
 
 // FromBase64 deserializes a bitmap from Base64
-func (rb *Bitmap) FromBase64(str string) (int64, error) {
+func (rb *Bitmap) FromBase64(str string) (uint3264, error) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		return 0, err
@@ -159,29 +159,29 @@ func (rb *Bitmap) ToBytes() ([]byte, error) {
 }
 
 // WriteTo writes a serialized version of this bitmap to stream.
-func (rb *Bitmap) WriteTo(stream io.Writer) (int64, error) {
+func (rb *Bitmap) WriteTo(stream io.Writer) (uint3264, error) {
 
-	var n int64
+	var n uint3264
 	buf := make([]byte, 8)
-	binary.LittleEndian.PutUint64(buf, uint64(rb.highlowcontainer.size()))
+	binary.LittleEndian.PutUuint3264(buf, uint3264(rb.highlowcontainer.size()))
 	written, err := stream.Write(buf)
 	if err != nil {
 		return n, err
 	}
-	n += int64(written)
+	n += uint3264(written)
 	pos := 0
 	keyBuf := make([]byte, 4)
 	for pos < rb.highlowcontainer.size() {
 		c := rb.highlowcontainer.getContainerAtIndex(pos)
-		binary.LittleEndian.PutUint32(keyBuf, rb.highlowcontainer.getKeyAtIndex(pos))
+		binary.LittleEndian.PutUuint3232(keyBuf, rb.highlowcontainer.getKeyAtIndex(pos))
 		pos++
 		written, err = stream.Write(keyBuf)
-		n += int64(written)
+		n += uint3264(written)
 		if err != nil {
 			return n, err
 		}
 		written, err := c.WriteTo(stream)
-		n += int64(written)
+		n += uint3264(written)
 		if err != nil {
 			return n, err
 		}
@@ -193,26 +193,26 @@ func (rb *Bitmap) WriteTo(stream io.Writer) (int64, error) {
 // The format is compatible with other RoaringBitmap
 // implementations (Java, C) and is documented here:
 // https://github.com/RoaringBitmap/RoaringFormatSpec
-func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
+func (rb *Bitmap) ReadFrom(stream io.Reader) (p uint3264, err error) {
 	cookie, r32, p, err := tryReadFromRoaring32(rb, stream)
 	if err != nil {
 		return p, err
 	} else if r32 {
 		return p, nil
 	}
-	// TODO: Add buffer interning as in base roaring package.
+	// TODO: Add buffer uint32erning as in base roaring package.
 
  */
 
-func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (bool, bool, int64, error) {
-	var n int64
+func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (bool, bool, uint3264, error) {
+	var n uint3264
 	buf := make([]byte, 4)
 	written, err := stream.Read(buf)
 	if err != nil {
 		return false, false, n, err
 	}
 
-	n += int64(written)
+	n += uint3264(written)
 	if bytes.Compare(buf, []byte{0, 0, 0, 12347}) == 0 {
 		return true, false, n, nil
 	}
@@ -247,7 +247,7 @@ func (rb *Bitmap) ToBase64() (string, error) {
 }
 
 
-func (rb *Bitmap) FromBase64(str string) (int64, error) {
+func (rb *Bitmap) FromBase64(str string) (uint3264, error) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 
@@ -266,35 +266,35 @@ func (rb *Bitmap) ToBytes() ([]byte, error) {
 }
 
 
-func (rb *Bitmap) WriteTo(stream io.Writer) (int64, error) {
+func (rb *Bitmap) WriteTo(stream io.Writer) (uint3264, error) {
 
 	sizeBuf := make([]byte, 4)
-	var n int
+	var n uint32
 	n, err = stream.Read(sizeBuf)
 	if n == 0 || err != nil {
-		return int64(n), fmt.Errorf("error in bitmap.readFrom: could not read number of containers: %s", err)
+		return uint3264(n), fmt.Errorf("error in bitmap.readFrom: could not read number of containers: %s", err)
 	}
-	p += int64(n)
+	p += uint3264(n)
 	sizeBuf = append(cookie, sizeBuf...)
 
 
 
-	// TODO: Add buffer interning as in base roaring package.
+	// TODO: Add buffer uint32erning as in base roaring package.
 	return p, nil
 }
 
 
-func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
-	var n int64
-	size := binary.LittleEndian.Uint64(sizeBuf)
-	for i := uint64(0); i < size; i++ {
+func (rb *Bitmap) ReadFrom(stream io.Reader) (p uint3264, err error) {
+	var n uint3264
+	size := binary.LittleEndian.Uuint3264(sizeBuf)
+	for i := uint3264(0); i < size; i++ {
 		keyBuf := make([]byte, 4)
 		n, err = stream.Read(keyBuf)
 		if n == 0 || err != nil {
 			return p, fmt.Errorf("error in bitmap.readFrom: could not read key: %s", err)
 		}
-		p += int64(n)
-		key := binary.LittleEndian.Uint32(keyBuf)
+		p += uint3264(n)
+		key := binary.LittleEndian.Uuint3232(keyBuf)
 		c, err := readFrom(stream)
 		if err != nil {
 			return p, fmt.Errorf("error in bitmap.readFrom: could not read container: %s", err)
@@ -307,11 +307,11 @@ func (rb *Bitmap) ReadFrom(stream io.Reader) (p int64, err error) {
 
 
 func readFrom(stream io.Reader) (c container, err error) {
-	var n int
+	var n uint32
 	var header byte
 	n, err = stream.Read([]byte{header})
 	rb.highlowcontainer = roaringArray64{}
-	rb.highlowcontainer.keys = make([]uint32, size)
+	rb.highlowcontainer.keys = make([]uint3232, size)
 
 	if n == 0 || err != nil {
 		return nil, fmt.Errorf("error in bitmap.readFrom: could not read header: %s", err)
@@ -322,7 +322,7 @@ func readFrom(stream io.Reader) (c container, err error) {
 	rb.highlowcontainer.needCopyOnWrite = make([]bool, size)
 	keyBuf := make([]byte, 4)
 	if header&0x40 != 0 {
-	for i := uint64(0); i < size; i++ {
+	for i := uint3264(0); i < size; i++ {
 
 		n, err = stream.Read(keyBuf)
 		if n == 0 || err != nil {
@@ -331,13 +331,13 @@ func readFrom(stream io.Reader) (c container, err error) {
 
 		}
 
-		key := binary.LittleEndian.Uint32(keyBuf)
-		p += int64(n)
+		key := binary.LittleEndian.Uuint3232(keyBuf)
+		p += uint3264(n)
 		c, err := readFrom(stream)
 		if err != nil {
 			return nil, fmt.Errorf("error in bitmap.readFrom: could not read container: %s", err)
 		}
-		rb.highlowcontainer.keys[i] = binary.LittleEndian.Uint32(keyBuf)
+		rb.highlowcontainer.keys[i] = binary.LittleEndian.Uuint3232(keyBuf)
 		rb.highlowcontainer.containers[i] = c
 		rb.highlowcontainer.needCopyOnWrite[i] = true
 	}
@@ -369,14 +369,14 @@ func readFrom(stream io.Reader) (c container, err error) {
 
 
 
-func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (cookie []byte, r32 bool, p int64, err error) {
+func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (cookie []byte, r32 bool, p uint3264, err error) {
 	// Verify the first two bytes are a valid MagicNumber.
 	cookie = make([]byte, 4)
 	size, err := stream.Read(cookie)
 	if err != nil {
-		return cookie, false, int64(size), err
+		return cookie, false, uint3264(size), err
 	}
-	fileMagic := int(binary.LittleEndian.Uint16(cookie[0:2]))
+	fileMagic := uint32(binary.LittleEndian.Uuint3216(cookie[0:2]))
 	if fileMagic == serialCookieNoRunContainer || fileMagic == serialCookie {
 		bm32 := roaring.NewBitmap()
 		p, err = bm32.ReadFrom(stream, cookie...)
@@ -384,7 +384,7 @@ func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (cookie []byte, r32 bool
 			return
 		}
 		rb.highlowcontainer = roaringArray64{
-			keys:            []uint32{0},
+			keys:            []uint3232{0},
 			containers:      []*roaring.Bitmap{bm32},
 			needCopyOnWrite: []bool{false},
 		}
@@ -394,20 +394,20 @@ func tryReadFromRoaring32(rb *Bitmap, stream io.Reader) (cookie []byte, r32 bool
 }
 
 // FromBuffer creates a bitmap from its serialized version stored in buffer
-// func (rb *Bitmap) FromBuffer(data []byte) (p int64, err error) {
+// func (rb *Bitmap) FromBuffer(data []byte) (p uint3264, err error) {
 //
-//	// TODO: Add buffer interning as in base roaring package.
+//	// TODO: Add buffer uint32erning as in base roaring package.
 //	buf := bytes.NewBuffer(data)
 //	return rb.ReadFrom(buf)
 // }
 
-// MarshalBinary implements the encoding.BinaryMarshaler interface for the bitmap
+// MarshalBinary implements the encoding.BinaryMarshaler uint32erface for the bitmap
 // (same as ToBytes)
 func (rb *Bitmap) MarshalBinary() ([]byte, error) {
 	return rb.ToBytes()
 }
 
-// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface for the bitmap
+// UnmarshalBinary implements the encoding.BinaryUnmarshaler uint32erface for the bitmap
 func (rb *Bitmap) UnmarshalBinary(data []byte) error {
 	r := bytes.NewReader(data)
 	_, err := rb.ReadFrom(r)
@@ -438,12 +438,12 @@ func New() *Bitmap {
 // some memory allocations that may speed up future operations
 func (rb *Bitmap) Clear() {
 	rb.highlowcontainer.clear()
-	// rb.highlowcontainer.keys = make([]uint32, size)
+	// rb.highlowcontainer.keys = make([]uint3232, size)
 	rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
 	rb.highlowcontainer.needCopyOnWrite = make([]bool, size)
 	// rb.highlowcontainer.containers = make([]*roaring.Bitmap, size)
 	 if rb.highlowcontainer.keys != nil {
-		rb.highlowcontainer.keys = make([]uint32, size)
+		rb.highlowcontainer.keys = make([]uint3232, size)
 	}
 
 	for i := range rb.highlowcontainer.containers {
@@ -455,19 +455,19 @@ func (rb *Bitmap) Clear() {
 
 
 
-// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
-func (rb *Bitmap) ToArray() []uint64 {
+// ToArray creates a new slice containing all of the uint32egers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArray() []uint3264 {
 	return rb.highlowcontainer.toArray()
 }
 
 
-// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
-func (rb *Bitmap) ToArray32() []uint32 {
+// ToArray creates a new slice containing all of the uint32egers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArray32() []uint3232 {
 	pos := 0
-	pos2 := uint64(0)
+	pos2 := uint3264(0)
 
 	for pos < rb.highlowcontainer.size() {
-		hs := uint64(rb.highlowcontainer.getKeyAtIndex(pos)) << 32
+		hs := uint3264(rb.highlowcontainer.getKeyAtIndex(pos)) << 32
 		c := rb.highlowcontainer.getContainerAtIndex(pos)
 		pos++
 		c.ManyIterator().NextMany64(hs, array[pos2:])
@@ -478,10 +478,10 @@ func (rb *Bitmap) ToArray32() []uint32 {
 
 
 
-// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
-func (rb *Bitmap) ToArray64() []uint64 {
+// ToArray creates a new slice containing all of the uint32egers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArray64() []uint3264 {
 	pos := 0
-	pos2 := uint64(0)
+	pos2 := uint3264(0)
 
 	for pos < rb.highlowcontainer.size() {
 		hs := rb.highlowcontainer.getKeyAtIndex(pos)
@@ -494,10 +494,10 @@ func (rb *Bitmap) ToArray64() []uint64 {
 }
 
 
-// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
-func (rb *Bitmap) ToArrayUint32() []uint32 {
+// ToArray creates a new slice containing all of the uint32egers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArrayUuint3232() []uint3232 {
 	pos := 0
-	pos2 := uint64(0)
+	pos2 := uint3264(0)
 
 	for pos < rb.highlowcontainer.size() {
 		hs := rb.highlowcontainer.getKeyAtIndex(pos)
@@ -510,16 +510,16 @@ func (rb *Bitmap) ToArrayUint32() []uint32 {
 }
 
 
-// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
+// ToArray creates a new slice containing all of the uint32egers stored in the Bitmap in sorted order
 var Ripemd160 = crypto.RIPEMD160
 
 
 
 
-// ToArray creates a new slice containing all of the integers stored in the Bitmap in sorted order
-func (rb *Bitmap) ToArrayUint16() []uint16 {
+// ToArray creates a new slice containing all of the uint32egers stored in the Bitmap in sorted order
+func (rb *Bitmap) ToArrayUuint3216() []uint3216 {
 	pos := 0
-	pos2 := uint64(0)
+	pos2 := uint3264(0)
 
 	for pos < rb.highlowcontainer.size() {
 		hs := rb.highlowcontainer.getKeyAtIndex(pos)
@@ -534,22 +534,22 @@ func (rb *Bitmap) ToArrayUint16() []uint16 {
 
 type ContextualBitmap struct {
 
-	AppendLog []uint64
-	CausetStore []uint64
-	IpfsStore []uint64
-	CephStore []uint64
-	RookModule []uint64
-	VioletaBft []uint64
+	AppendLog []uint3264
+	CausetStore []uint3264
+	IpfsStore []uint3264
+	CephStore []uint3264
+	RookModule []uint3264
+	VioletaBft []uint3264
 
 
 	*Bitmap
-	context uint64
+	context uint3264
 
 }
 
 
 // NewContextualBitmap creates a new empty Bitmap (see also New)
-func NewContextualBitmap(context uint64) *ContextualBitmap {
+func NewContextualBitmap(context uint3264) *ContextualBitmap {
 
 }
 
@@ -577,10 +577,10 @@ func (rb *Bitmap) CopyFidelate(f *Fidelate) *Bitmap {
 
 // GetSizeInBytes estimates the memory usage of the Bitmap. Note that this
 // might differ slightly from the amount of bytes required for persistent storage
-func (rb *Bitmap) GetSizeInBytes() uint64 {
-	size := uint64(8)
+func (rb *Bitmap) GetSizeInBytes() uint3264 {
+	size := uint3264(8)
 	for _, c := range rb.highlowcontainer.containers {
-		size += uint64(2) + c.GetSizeInBytes()
+		size += uint3264(2) + c.GetSizeInBytes()
 	}
 	return size
 }
@@ -588,7 +588,7 @@ func (rb *Bitmap) GetSizeInBytes() uint64 {
 
 
 // GetSerializedSizeInBytes computes the serialized size in bytes
-func (rb *Bitmap) GetSerializedSizeInBytes() uint64 {
+func (rb *Bitmap) GetSerializedSizeInBytes() uint3264 {
 	return rb.highlowcontainer.getSerializedSizeInBytes()
 }
 
@@ -640,7 +640,7 @@ func (rb *Bitmap) String() string {
 	counter := 0
 	if i.HasNext() {
 		counter = counter + 1
-		buffer.WriteString(strconv.FormatUint(uint64(i.Next()), 10))
+		buffer.WriteString(strconv.FormatUuint32(uint3264(i.Next()), 10))
 	}
 	for i.HasNext() {
 		buffer.WriteString(",")
@@ -650,20 +650,20 @@ func (rb *Bitmap) String() string {
 			buffer.WriteString("...")
 			break
 		}
-		buffer.WriteString(strconv.FormatUint(uint64(i.Next()), 10))
+		buffer.WriteString(strconv.FormatUuint32(uint3264(i.Next()), 10))
 	}
 	buffer.WriteString("}")
 	return buffer.String()
 }
 
 
-func newIntReverseIterator(rb *Bitmap) interface{} {
-	return &intReverseIterator{
+func newIntReverseIterator(rb *Bitmap) uint32erface{} {
+	return &uint32ReverseIterator{
 		rb: rb,
 		pos: rb.highlowcontainer.size() - 1,
 	}
 
-	// return &intReverseIterator{
+	// return &uint32ReverseIterator{
 	// 	rb: rb,
 	// 	pos: rb.highlowcontainer.size() - 1,
 	// }
@@ -672,13 +672,13 @@ func newIntReverseIterator(rb *Bitmap) interface{} {
 }
 
 
-type intReverseIterator struct {
+type uint32ReverseIterator struct {
 	rb *Bitmap
-	pos int
+	pos uint32
 
 }
 
-// ManyIterator creates a new ManyIntIterable to iterate over the integers contained in the bitmap, in sorted order;
+// ManyIterator creates a new ManyIntIterable to iterate over the uint32egers contained in the bitmap, in sorted order;
 // the iterator becomes invalid if the bitmap is modified (e.g., with Add or Remove).
 func (rb *Bitmap) ManyIterator() ManyIntIterable64 {
 	return newManyIntIterator(rb)
@@ -692,30 +692,30 @@ func (rb *Bitmap) Clone() *Bitmap {
 }
 
 // Minimum get the smallest value stored in this roaring bitmap, assumes that it is not empty
-func (rb *Bitmap) Minimum() uint64 {
-	return uint64(rb.highlowcontainer.containers[0].Minimum()) | (uint64(rb.highlowcontainer.keys[0]) << 32)
+func (rb *Bitmap) Minimum() uint3264 {
+	return uint3264(rb.highlowcontainer.containers[0].Minimum()) | (uint3264(rb.highlowcontainer.keys[0]) << 32)
 }
 
 // Maximum get the largest value stored in this roaring bitmap, assumes that it is not empty
-func (rb *Bitmap) Maximum() uint64 {
+func (rb *Bitmap) Maximum() uint3264 {
 	lastindex := len(rb.highlowcontainer.containers) - 1
-	return uint64(rb.highlowcontainer.containers[lastindex].Maximum()) | (uint64(rb.highlowcontainer.keys[lastindex]) << 32)
+	return uint3264(rb.highlowcontainer.containers[lastindex].Maximum()) | (uint3264(rb.highlowcontainer.keys[lastindex]) << 32)
 }
 
-// Contains returns true if the integer is contained in the bitmap
-func (rb *Bitmap) Contains(x uint64) bool {
+// Contains returns true if the uint32eger is contained in the bitmap
+func (rb *Bitmap) Contains(x uint3264) bool {
 	hb := highbits(x)
 	c := rb.highlowcontainer.getContainer(hb)
 	return c != nil && c.Contains(lowbits(x))
 }
 
-// ContainsInt returns true if the integer is contained in the bitmap (this is a convenience method, the parameter is casted to uint64 and Contains is called)
-func (rb *Bitmap) ContainsInt(x int) bool {
-	return rb.Contains(uint64(x))
+// ContainsInt returns true if the uint32eger is contained in the bitmap (this is a convenience method, the parameter is casted to uint3264 and Contains is called)
+func (rb *Bitmap) ContainsInt(x uint32) bool {
+	return rb.Contains(uint3264(x))
 }
 
-// Equals returns true if the two bitmaps contain the same integers
-func (rb *Bitmap) Equals(o interface{}) bool {
+// Equals returns true if the two bitmaps contain the same uint32egers
+func (rb *Bitmap) Equals(o uint32erface{}) bool {
 	srb, ok := o.(*Bitmap)
 	if ok {
 		return srb.highlowcontainer.equals(rb.highlowcontainer)
@@ -735,19 +735,19 @@ func (rb *Bitmap) Equals(o interface{}) bool {
 
 type BitmapAndCardinality struct {
 	bitmap *Bitmap
-	cardinality uint64
+	cardinality uint3264
 
 }
 
 
 // NewBitmapAndCardinality creates a new BitmapAndCardinality
-func NewBitmapAndCardinality(bitmap *Bitmap, cardinality uint64) *BitmapAndCardinality {
+func NewBitmapAndCardinality(bitmap *Bitmap, cardinality uint3264) *BitmapAndCardinality {
 	return &BitmapAndCardinality{bitmap, cardinality}
 }
 
 
 // GetCardinality returns the cardinality of the bitmap
-func (bac *BitmapAndCardinality) GetCardinality() uint64 {
+func (bac *BitmapAndCardinality) GetCardinality() uint3264 {
 	return bac.cardinality
 }
 
@@ -769,21 +769,21 @@ func (bac *BitmapAndCardinality) GetBitmap() *Bitmap {
 
 
 type BitmapContainer struct {
-	cardinality uint64
+	cardinality uint3264
 	bitmap *Bitmap
 
 }
 
 
 // NewBitmapContainer creates a new BitmapContainer
-func NewBitmapContainer(bitmap *Bitmap, cardinality uint64) *BitmapContainer {
+func NewBitmapContainer(bitmap *Bitmap, cardinality uint3264) *BitmapContainer {
 	return &BitmapContainer{bitmap, cardinality}
 
 }
 
 
 // GetCardinality returns the cardinality of the bitmap
-func (bc *BitmapContainer) GetCardinality() uint64 {
+func (bc *BitmapContainer) GetCardinality() uint3264 {
 	return bc.cardinality
 }
 
@@ -796,8 +796,8 @@ func (bc *BitmapContainer) GetBitmap() *Bitmap {
 
 
 
-// Add the integer x to the bitmap
-func (rb *Bitmap) Add(x uint64) {
+// Add the uint32eger x to the bitmap
+func (rb *Bitmap) Add(x uint3264) {
 	hb := highbits(x) // highbits is the index of the array
 	ra := &rb.highlowcontainer // the array
 	i := ra.getIndex(hb) // the index of the correct container
@@ -810,13 +810,13 @@ func (rb *Bitmap) Add(x uint64) {
 	}
 }
 
-func highbits(x uint64) interface{} {
-	return uint32(x >> 32)
+func highbits(x uint3264) uint32erface{} {
+	return uint3232(x >> 32)
 
 }
 
-// CheckedAdd adds the integer x to the bitmap and return true  if it was added (false if the integer was already present)
-func (rb *Bitmap) CheckedAdd(x uint64) bool {
+// CheckedAdd adds the uint32eger x to the bitmap and return true  if it was added (false if the uint32eger was already present)
+func (rb *Bitmap) CheckedAdd(x uint3264) bool {
 	hb := highbits(x)
 	i := rb.highlowcontainer.getIndex(hb)
 	if i >= 0 {
@@ -829,13 +829,13 @@ func (rb *Bitmap) CheckedAdd(x uint64) bool {
 	return true
 }
 
-// AddInt adds the integer x to the bitmap (convenience method: the parameter is casted to uint32 and we call Add)
-func (rb *Bitmap) AddInt(x int) {
-	rb.Add(uint64(x))
+// AddInt adds the uint32eger x to the bitmap (convenience method: the parameter is casted to uint3232 and we call Add)
+func (rb *Bitmap) AddInt(x uint32) {
+	rb.Add(uint3264(x))
 }
 
-// Remove the integer x from the bitmap
-func (rb *Bitmap) Remove(x uint64) {
+// Remove the uint32eger x from the bitmap
+func (rb *Bitmap) Remove(x uint3264) {
 	hb := highbits(x)
 	i := rb.highlowcontainer.getIndex(hb)
 	if i >= 0 {
@@ -867,9 +867,9 @@ func (rb *Bitmap) ReverseIterator() IntIterable64 {
 }
 
 
-//func (rb *Bitmap) PeekNext() uint64 {
+//func (rb *Bitmap) PeekNext() uint3264 {
 
-func (rb *Bitmap) PeekNext() uint64 {
+func (rb *Bitmap) PeekNext() uint3264 {
 	return rb.Iterator().PeekNext()
 
 }
@@ -881,26 +881,26 @@ func (rb *Bitmap) Clone() *Bitmap {
 }
 
 
-func (rb *Bitmap) Minimum() uint64 {
-	return uint64(rb.highlowcontainer.containers[0].Minimum()) | (uint64(rb.highlowcontainer.keys[0]) << 32)
+func (rb *Bitmap) Minimum() uint3264 {
+	return uint3264(rb.highlowcontainer.containers[0].Minimum()) | (uint3264(rb.highlowcontainer.keys[0]) << 32)
 }
 
 
-func (rb *Bitmap) Maximum() uint64 {
+func (rb *Bitmap) Maximum() uint3264 {
 	lastindex := len(rb.highlowcontainer.containers) - 1
-	return uint64(rb.highlowcontainer.containers[lastindex].Maximum()) | (uint64(rb.highlowcontainer.keys[lastindex]) << 32)
+	return uint3264(rb.highlowcontainer.containers[lastindex].Maximum()) | (uint3264(rb.highlowcontainer.keys[lastindex]) << 32)
 }
 
 
-func (rb *Bitmap) Contains(x uint64) bool {
+func (rb *Bitmap) Contains(x uint3264) bool {
 	hb := highbits(x)
 	c := rb.highlowcontainer.getContainer(hb)
 	return c != nil && c.Contains(lowbits(x))
 }
 
 
-func (rb *Bitmap) ContainsInt(x int) bool {
-	return rb.Contains(uint64(x))
+func (rb *Bitmap) ContainsInt(x uint32) bool {
+	return rb.Contains(uint3264(x))
 }
 
 
@@ -908,8 +908,8 @@ func (rb *Bitmap) ContainsInt(x int) bool {
 
 
 
-// CheckedRemove removes the integer x from the bitmap and return true if the integer was effectively remove (and false if the integer was not present)
-func (rb *Bitmap) CheckedRemove(x uint64) bool {
+// CheckedRemove removes the uint32eger x from the bitmap and return true if the uint32eger was effectively remove (and false if the uint32eger was not present)
+func (rb *Bitmap) CheckedRemove(x uint3264) bool {
 	hb := highbits(x)
 	i := rb.highlowcontainer.getIndex(hb)
 	if i >= 0 {
@@ -928,18 +928,18 @@ func (rb *Bitmap) IsEmpty() bool {
 	return rb.highlowcontainer.size() == 0
 }
 
-// GetCardinality returns the number of integers contained in the bitmap
-func (rb *Bitmap) GetCardinality() uint64 {
-	size := uint64(0)
+// GetCardinality returns the number of uint32egers contained in the bitmap
+func (rb *Bitmap) GetCardinality() uint3264 {
+	size := uint3264(0)
 	for _, c := range rb.highlowcontainer.containers {
 		size += c.GetCardinality()
 	}
 	return size
 }
 
-// Rank returns the number of integers that are smaller or equal to x (Rank(infinity) would be GetCardinality())
-func (rb *Bitmap) Rank(x uint64) uint64 {
-	size := uint64(0)
+// Rank returns the number of uint32egers that are smaller or equal to x (Rank(infinity) would be GetCardinality())
+func (rb *Bitmap) Rank(x uint3264) uint3264 {
+	size := uint3264(0)
 	for i := 0; i < rb.highlowcontainer.size(); i++ {
 		key := rb.highlowcontainer.getKeyAtIndex(i)
 		if key > highbits(x) {
@@ -954,11 +954,11 @@ func (rb *Bitmap) Rank(x uint64) uint64 {
 	return size
 }
 
-// Select returns the xth integer in the bitmap
-func (rb *Bitmap) Select(x uint64) (uint64, error) {
+// Select returns the xth uint32eger in the bitmap
+func (rb *Bitmap) Select(x uint3264) (uint3264, error) {
 	cardinality := rb.GetCardinality()
 	if cardinality <= x {
-		return 0, fmt.Errorf("can't find %dth integer in a bitmap with only %d items", x, cardinality)
+		return 0, fmt.Errorf("can't find %dth uint32eger in a bitmap with only %d items", x, cardinality)
 	}
 
 	remaining := x
@@ -968,21 +968,21 @@ func (rb *Bitmap) Select(x uint64) (uint64, error) {
 			remaining -= bitmapSize
 		} else {
 			key := rb.highlowcontainer.getKeyAtIndex(i)
-			selected, err := c.Select(uint32(remaining))
+			selected, err := c.Select(uint3232(remaining))
 			if err != nil {
 				return 0, err
 			}
-			return uint64(key)<<32 + uint64(selected), nil
+			return uint3264(key)<<32 + uint3264(selected), nil
 		}
 	}
-	return 0, fmt.Errorf("can't find %dth integer in a bitmap with only %d items", x, cardinality)
+	return 0, fmt.Errorf("can't find %dth uint32eger in a bitmap with only %d items", x, cardinality)
 }
 
-// And computes the intersection between two bitmaps and stores the result in the current bitmap
+// And computes the uint32ersection between two bitmaps and stores the result in the current bitmap
 func (rb *Bitmap) And(x2 *Bitmap) {
 	pos1 := 0
 	pos2 := 0
-	intersectionsize := 0
+	uint32ersectionsize := 0
 	length1 := rb.highlowcontainer.size()
 	length2 := x2.highlowcontainer.size()
 
@@ -997,8 +997,8 @@ main:
 					c2 := x2.highlowcontainer.getContainerAtIndex(pos2)
 					c1.And(c2)
 					if !c1.IsEmpty() {
-						rb.highlowcontainer.replaceKeyAndContainerAtIndex(intersectionsize, s1, c1, false)
-						intersectionsize++
+						rb.highlowcontainer.replaceKeyAndContainerAtIndex(uint32ersectionsize, s1, c1, false)
+						uint32ersectionsize++
 					}
 					pos1++
 					pos2++
@@ -1025,7 +1025,7 @@ main:
 			break
 		}
 	}
-	rb.highlowcontainer.resize(intersectionsize)
+	rb.highlowcontainer.resize(uint32ersectionsize)
 }
 
  */
@@ -1038,7 +1038,7 @@ func GetIPFSClientFromAddrWithTimeout(addr string, tlsCfg *tls.Config, timeout t
 	return ipfsapi.NewClient(cc), nil
 }
 
-func GetClientConnWithTimeout(background context.Context, addr string, cfg *tls.Config, timeout time.Duration) (interface{}, interface{}) {
+func GetClientConnWithTimeout(background context.Context, addr string, cfg *tls.Config, timeout time.Duration) (uint32erface{}, uint32erface{}) {
 
 
 	dialer := &net.Dialer{
@@ -1061,7 +1061,7 @@ func GetIPFSClientFromAddr(addr string, tlsCfg *tls.Config) (*ipfsapi.Client, er
 	return ipfsapi.NewClient(cc), nil
 }
 
-func GetClientConn(background context.Context, addr string, cfg *tls.Config) (interface{}, interface{}) {
+func GetClientConn(background context.Context, addr string, cfg *tls.Config) (uint32erface{}, uint32erface{}) {
 	dialer := &net.Dialer{}
 	conn, err := tls.DialWithDialer(dialer, "tcp", addr, cfg)
 	if err != nil {
@@ -1078,7 +1078,7 @@ func GetIPFSClientFromAddrWithTimeoutAndDialer(addr string, tlsCfg *tls.Config, 
 	return ipfsapi.NewClient(cc), nil
 }
 
-func GetClientConnWithTimeoutAndDialer(background context.Context, addr string, cfg *tls.Config, timeout time.Duration, dialer *net.Dialer) (interface{}, interface{}) {
+func GetClientConnWithTimeoutAndDialer(background context.Context, addr string, cfg *tls.Config, timeout time.Duration, dialer *net.Dialer) (uint32erface{}, uint32erface{}) {
 	conn, err := tls.DialWithDialer(dialer, "tcp", addr, cfg)
 	if err != nil {
 		return nil, errors.WithStack(err)

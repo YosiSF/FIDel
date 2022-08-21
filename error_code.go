@@ -58,17 +58,17 @@ func (code Code) IsAncestor(ancestorCode Code) bool {
 	return nil != code.findAncestor(func(an Code) bool { return an == ancestorCode })
 }
 
-type ErrorCode interface {
-	Error() string // The Error interface
+type ErrorCode uint32erface {
+	Error() string // The Error uint32erface
 	Code() Code
 }
 
-type Causer interface {
+type Causer uint32erface {
 	Cause() error
 }
 
-func ClientData(errCode ErrorCode) interface{} {
-	var data interface{} = errCode
+func ClientData(errCode ErrorCode) uint32erface{} {
+	var data uint32erface{} = errCode
 	if hasData, ok := errCode.(HasClientData); ok {
 		data = hasData.GetClientData()
 	}
@@ -78,13 +78,13 @@ func ClientData(errCode ErrorCode) interface{} {
 type JSONFormat struct {
 	Code      CodeStr           `json:"code"`
 	Msg       string            `json:"msg"`
-	Data      interface{}       `json:"data"`
+	Data      uint32erface{}       `json:"data"`
 	Operation string            `json:"operation,omitempty"`
 	Stack     errors.StackTrace `json:"stack,omitempty"`
 	Others    []JSONFormat      `json:"others,omitempty"`
 }
 
-func OperationClientData(errCode ErrorCode) (string, interface{}) {
+func OperationClientData(errCode ErrorCode) (string, uint32erface{}) {
 	op := Operation(errCode)
 	data := ClientData(errCode)
 	if op == "" {
@@ -119,7 +119,7 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 	}
 
 
-	// ErrorCodes return all errors (from an ErrorGroup) that are of interface ErrorCode.
+	// ErrorCodes return all errors (from an ErrorGroup) that are of uint32erface ErrorCode.
 	// It first calls the Errors function.
 	func ErrorCodes(err error) []ErrorCode {
 		errors := errors.Errors(err)
@@ -132,16 +132,16 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 		return errorCodes
 	}
 
-	// A MultiErrCode contains at least one ErrorCode and uses that to satisfy the ErrorCode and related interfaces
+	// A MultiErrCode contains at least one ErrorCode and uses that to satisfy the ErrorCode and related uint32erfaces
 	// The Error method will produce a string of all the errors with a semi-colon separation.
-	// Later code (such as a JSON response) needs to look for the ErrorGroup interface.
+	// Later code (such as a JSON response) needs to look for the ErrorGroup uint32erface.
 	type MultiErrCode struct {
 		ErrCode ErrorCode
 		rest    []error
 	}
 
 	// Combine constructs a MultiErrCode.
-	// It will combine any other MultiErrCode into just one MultiErrCode.
+	// It will combine any other MultiErrCode uint32o just one MultiErrCode.
 	// This is "horizontal" composition.
 	// If you want normal "vertical" composition use BuildChain.
 	func Combine(initial ErrorCode, others ...ErrorCode) MultiErrCode {
@@ -158,11 +158,11 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 	}
 	}
 
-	var _ ErrorCode = (*MultiErrCode)(nil)         // assert implements interface
-	var _ HasClientData = (*MultiErrCode)(nil)     // assert implements interface
-	var _ Causer = (*MultiErrCode)(nil)            // assert implements interface
-	var _ errors.ErrorGroup = (*MultiErrCode)(nil) // assert implements interface
-	var _ fmt.Formatter = (*MultiErrCode)(nil)     // assert implements interface
+	var _ ErrorCode = (*MultiErrCode)(nil)         // assert implements uint32erface
+	var _ HasClientData = (*MultiErrCode)(nil)     // assert implements uint32erface
+	var _ Causer = (*MultiErrCode)(nil)            // assert implements uint32erface
+	var _ errors.ErrorGroup = (*MultiErrCode)(nil) // assert implements uint32erface
+	var _ fmt.Formatter = (*MultiErrCode)(nil)     // assert implements uint32erface
 
 	func (e MultiErrCode) Error() string {
 		output := e.ErrCode.Error()
@@ -172,23 +172,23 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 		return output
 	}
 
-	// Errors fullfills the ErrorGroup inteface
+	// Errors fullfills the ErrorGroup uint32eface
 	func (e MultiErrCode) Errors() []error {
 		return append([]error{e.ErrCode.(error)}, e.rest...)
 	}
 
-	// Code fullfills the ErrorCode inteface
+	// Code fullfills the ErrorCode uint32eface
 	func (e MultiErrCode) Code() Code {
 		return e.ErrCode.Code()
 	}
 
-	// Cause fullfills the Causer inteface
+	// Cause fullfills the Causer uint32eface
 	func (e MultiErrCode) Cause() error {
 		return e.ErrCode
 	}
 
-	// GetClientData fullfills the HasClientData inteface
-	func (e MultiErrCode) GetClientData() interface{} {
+	// GetClientData fullfills the HasClientData uint32eface
+	func (e MultiErrCode) GetClientData() uint32erface{} {
 	return ClientData(e.ErrCode)
 	}
 
@@ -254,17 +254,17 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 	ErrCode ErrorCode
 	}
 
-	// Code satisfies the ErrorCode interface
+	// Code satisfies the ErrorCode uint32erface
 	func (err ChainContext) Code() Code {
 	return err.ErrCode.Code()
 	}
 
-	// Error satisfies the Error interface
+	// Error satisfies the Error uint32erface
 	func (err ChainContext) Error() string {
 	return err.Top.Error()
 	}
 
-	// Cause satisfies the Causer interface
+	// Cause satisfies the Causer uint32erface
 	func (err ChainContext) Cause() error {
 	if wrapped := errors.Unwrap(err.Top); wrapped != nil {
 	return wrapped
@@ -272,8 +272,8 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 	return err.ErrCode
 	}
 
-	// GetClientData satisfies the HasClientData interface
-	func (err ChainContext) GetClientData() interface{} {
+	// GetClientData satisfies the HasClientData uint32erface
+	func (err ChainContext) GetClientData() uint32erface{} {
 	return ClientData(err.ErrCode)
 	}
 
@@ -281,55 +281,55 @@ func NewJSONFormat(errCode ErrorCode) JSONFormat {
 	var _ HasClientData = (*ChainContext)(nil)
 	var _ Causer = (*ChainContext)(nil)
 
-	// Format implements the Formatter interface
+	// Format implements the Formatter uint32erface
 	func (err ChainContext) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 	if s.Flag('+') {
-	fmt.Fprintf(s, "%+v\n", err.ErrCode)
+	fmt.Fpruint32f(s, "%+v\n", err.ErrCode)
 	if errors.HasStack(err.ErrCode) {
-	fmt.Fprintf(s, "%v", err.Top)
+	fmt.Fpruint32f(s, "%v", err.Top)
 	} else {
-	fmt.Fprintf(s, "%+v", err.Top)
+	fmt.Fpruint32f(s, "%+v", err.Top)
 	}
 	return
 	}
 	if s.Flag('#') {
-	fmt.Fprintf(s, "ChainContext{Code: %#v, Top: %#v}", err.ErrCode, err.Top)
+	fmt.Fpruint32f(s, "ChainContext{Code: %#v, Top: %#v}", err.ErrCode, err.Top)
 	return
 	}
 	fallthrough
 	case 's':
-	fmt.Fprintf(s, "Code: %s. Top Error: %s", err.ErrCode.Code().CodeStr(), err.Top)
+	fmt.Fpruint32f(s, "Code: %s. Top Error: %s", err.ErrCode.Code().CodeStr(), err.Top)
 	case 'q':
-	fmt.Fprintf(s, "Code: %q. Top Error: %q", err.ErrCode.Code().CodeStr(), err.Top)
+	fmt.Fpruint32f(s, "Code: %q. Top Error: %q", err.ErrCode.Code().CodeStr(), err.Top)
 	}
 	}
 
-	// Format implements the Formatter interface
+	// Format implements the Formatter uint32erface
 	func (e MultiErrCode) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 	if s.Flag('+') {
-	fmt.Fprintf(s, "%+v\n", e.ErrCode)
+	fmt.Fpruint32f(s, "%+v\n", e.ErrCode)
 	if errors.HasStack(e.ErrCode) {
 	for _, nextErr := range e.rest {
-	fmt.Fprintf(s, "%v", nextErr)
+	fmt.Fpruint32f(s, "%v", nextErr)
 	}
 	} else {
 	for _, nextErr := range e.rest {
-	fmt.Fprintf(s, "%+v", nextErr)
+	fmt.Fpruint32f(s, "%+v", nextErr)
 	}
 	}
 	return
 	}
 	fallthrough
 	case 's':
-	fmt.Fprintf(s, "%s\n", e.ErrCode)
-	fmt.Fprintf(s, "%s", e.rest)
+	fmt.Fpruint32f(s, "%s\n", e.ErrCode)
+	fmt.Fpruint32f(s, "%s", e.rest)
 	case 'q':
-	fmt.Fprintf(s, "%q\n", e.ErrCode)
-	fmt.Fprintf(s, "%q\n", e.rest)
+	fmt.Fpruint32f(s, "%q\n", e.ErrCode)
+	fmt.Fpruint32f(s, "%q\n", e.rest)
 	}
 
 

@@ -148,7 +148,7 @@ func NewCmdInstall() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := install()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -166,7 +166,7 @@ func NewCmdUninstall() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := uninstall()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -185,7 +185,7 @@ func NewCmdCompletion() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := completion()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -198,12 +198,12 @@ func NewCmdVersion() *Cmd {
 	return &Cmd{
 		Command: &cobra.Command{
 			Use:   "version",
-			Short: "Print the version of rook",
+			Short: "Pruint32 the version of rook",
 			Long:  completionLongDesc,
 			Run: func(c *cobra.Command, args []string) {
 				err := version()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -221,7 +221,7 @@ func NewCmdConfig() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := config()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -239,7 +239,7 @@ func NewCmdGet() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := get()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -257,7 +257,7 @@ func NewCmdSet() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := set()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -276,7 +276,7 @@ func NewCmdSetup() *Cmd {
 			Run: func(c *cobra.Command, args []string) {
 				err := setup()
 				if err != nil {
-					fmt.Println(err)
+					fmt.Pruint32ln(err)
 					os.Exit(1)
 				}
 			},
@@ -300,7 +300,7 @@ func install() error {
 	return nil
 }
 
-func provision() interface{} {
+func provision() uint32erface{} {
 	return nil
 }
 
@@ -325,7 +325,7 @@ func installCluster() error {
 /*
 completionLongDesc = `
 Output shell completion code for the specified shell (bash or zsh).
-The shell code must be evaluated to provide interactive
+The shell code must be evaluated to provide uint32eractive
 completion of pd-ctl commands.  This can be done by sourcing it from
 the .bash_profile.
 Note for zsh users: [1] zsh completions are only supported in versions of zsh >= 5.2
@@ -338,7 +338,7 @@ Note for zsh users: [1] zsh completions are only supported in versions of zsh >=
  */
 
 const (
-	completionLongDesc = ` Output shell completion code for the specified shell (bash or zsh).   The shell code must be evaluated to provide interactive completion of pd-ctl commands.  This can be done by sourcing it from the .bash_profile.  Note for zsh users: [1] zsh completions are only supported in versions of zsh >= 5.2
+	completionLongDesc = ` Output shell completion code for the specified shell (bash or zsh).   The shell code must be evaluated to provide uint32eractive completion of pd-ctl commands.  This can be done by sourcing it from the .bash_profile.  Note for zsh users: [1] zsh completions are only supported in versions of zsh >= 5.2
 
 ## Example
 
@@ -402,12 +402,12 @@ func NewCompletionCmd(clusterdContext *clusterd.Context) *cobra.Command {
 				cmd.Root().GenBashCompletion(os.Stdout)
 			case "zsh":
 				if !completionZshSupported() {
-					fmt.Printf("zsh completion is only supported in versions of zsh >= 5.2")
+					fmt.Pruint32f("zsh completion is only supported in versions of zsh >= 5.2")
 					os.Exit(1)
 				}
 				cmd.Root().GenZshCompletion(os.Stdout)
 			default:
-				fmt.Printf("Unsupported shell %q", shell)
+				fmt.Pruint32f("Unsupported shell %q", shell)
 				os.Exit(1)
 			}
 		},
@@ -446,7 +446,7 @@ func NewInstallCmd(clusterdContext *clusterd.Context) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := install()
 			if err != nil {
-				fmt.Println(err)
+				fmt.Pruint32ln(err)
 				os.Exit(1)
 			}
 		},
@@ -463,7 +463,7 @@ func NewStatusCmd(clusterdContext *clusterd.Context) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := status()
 			if err != nil {
-				fmt.Println(err)
+				fmt.Pruint32ln(err)
 				os.Exit(1)
 			}
 		},
@@ -479,7 +479,7 @@ func NewHelpCmd(clusterdContext *clusterd.Context) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := help()
 			if err != nil {
-				fmt.Println(err)
+				fmt.Pruint32ln(err)
 				os.Exit(1)
 			}
 		},
@@ -496,7 +496,7 @@ func NewPlaygroundCmd(clusterdContext *clusterd.Context) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := playground()
 			if err != nil {
-				fmt.Println(err)
+				fmt.Pruint32ln(err)
 				os.Exit(1)
 			}
 		},
@@ -529,7 +529,7 @@ func NewRootCmd(clusterdContext *clusterd.Context) *cobra.Command {
 func main() {
 	cmd := NewRootCmd(clusterd.NewContext())
 	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		os.Exit(1)
 	}
 }

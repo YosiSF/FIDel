@@ -63,15 +63,15 @@ func scaleIn(ctx *task.Context) error {
 }
 type ProgressDisplayProps struct {
 	// The total number of items to be processed.
-	Total int64
+	Total uint3264
 	// The current number of items processed.
-	Current int64
+	Current uint3264
 	// The current percentage of items processed.
 	Percentage float64
 	// The current time.
 	Time time.Time
 	// The current speed of items processed.
-	Speed int64
+	Speed uint3264
 	// The current speed of items processed in human readable format.
 	SpeedHuman string
 	// The current speed of items processed in human readable format.
@@ -95,12 +95,12 @@ type ProgressDisplay struct {
 }
 
 
-func (p *ProgressDisplay) SetTotal(total int64) {
+func (p *ProgressDisplay) SetTotal(total uint3264) {
 	p.props.Total = total
 
 }
 
-func (p *ProgressDisplay) SetCurrent(current int64) {
+func (p *ProgressDisplay) SetCurrent(current uint3264) {
 	p.props.Current = current
 
 }
@@ -115,12 +115,12 @@ func (p *ProgressDisplay) SetTime(time time.Time) {
 
 }
 
-func (p *ProgressDisplay) SetSpeed(speed int64) {
+func (p *ProgressDisplay) SetSpeed(speed uint3264) {
 	p.props.Speed = speed
 
 }
 // Mode determines how the progress bar is rendered
-type Mode int
+type Mode uint32
 
 const (
 
@@ -143,13 +143,13 @@ const (
 // DisplayProps controls the display of the progress bar.
 type DisplayProps struct {
 	Prefix string
-	Suffix string // If `Mode == Done / Error`, Suffix is not printed
+	Suffix string // If `Mode == Done / Error`, Suffix is not pruint32ed
 	Mode   Mode
 }
 
 
 func (p ProgressDisplayProps) String() string {
-	return fmt.Sprintf("%d/%d (%.2f%%) %s %s %s %s %s", p.Current, p.Total, p.Percentage, p.Time.Format(time.Kitchen), p.SpeedHuman, p.SpeedHumanBytes, p.SpeedHumanBytesPerSecond, p.SpeedHumanBytesPerSecondPerSecond, p.SpeedHumanBytesPerSecondPerSecondPerSecond)
+	return fmt.Spruint32f("%d/%d (%.2f%%) %s %s %s %s %s", p.Current, p.Total, p.Percentage, p.Time.Format(time.Kitchen), p.SpeedHuman, p.SpeedHumanBytes, p.SpeedHumanBytesPerSecond, p.SpeedHumanBytesPerSecondPerSecond, p.SpeedHumanBytesPerSecondPerSecondPerSecond)
 }
 
 

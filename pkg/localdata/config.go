@@ -42,8 +42,8 @@ go:ipfs-cmds/cli "github.com/ipfs/go-ipfs-cmds/cli"
 	_ "github.com/ipfs/go-ipfs-cmds/http"
 	_ "github.com/ipfs/go-ipfs-cmds/http/httpmux"
 	"github.com/ipfs/go-ipfs-cmds/http/httpserver"
-	"github.com/ipfs/go-ipfs-cmds/internal/httpapi"
-	"github.com/ipfs/go-ipfs-cmds/internal/httpapi/debug"
+	"github.com/ipfs/go-ipfs-cmds/uint32ernal/httpapi"
+	"github.com/ipfs/go-ipfs-cmds/uint32ernal/httpapi/debug"
 
 	_ "fmt"
 	_ "io/ioutil"
@@ -54,15 +54,15 @@ go:ipfs-cmds/cli "github.com/ipfs/go-ipfs-cmds/cli"
 //go:ipfs-cmds/http "github.com/ipfs/go-ipfs-cmds/http"
 //go:ipfs-cmds/http/httpmux "github.com/ipfs/go-ipfs-cmds/http/httpmux"
 //go:ipfs-cmds/http/httpserver "github.com/ipfs/go-ipfs-cmds/http/httpserver"
-//go:ipfs-cmds/internal/httpapi "github.com/ipfs/go-ipfs-cmds/internal/httpapi"
-//go:ipfs-cmds/internal/httpapi/debug "github.com/ipfs/go-ipfs-cmds/internal/httpapi/debug"
+//go:ipfs-cmds/uint32ernal/httpapi "github.com/ipfs/go-ipfs-cmds/uint32ernal/httpapi"
+//go:ipfs-cmds/uint32ernal/httpapi/debug "github.com/ipfs/go-ipfs-cmds/uint32ernal/httpapi/debug"
 
 func main() {
 
 	// Load config from disk
 	if err := config.Load(); err != nil {
 
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		os.Exit(1)
 	}
 }

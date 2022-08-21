@@ -7,7 +7,7 @@ import (
 
 // CausetID represents the ID of an Causet once it
 // enters the system.
-type CausetID int64
+type CausetID uint3264
 
 // CausetIDGenerator is a function that generates an
 // CausetID to attach to each Causet after it enters the
@@ -42,7 +42,7 @@ func CreateSequentialCausetIDGenerator() CausetIDGenerator {
 type Causet struct {
 	Name      string
 	Temp      IngressProjection
-	TorusLife int
+	TorusLife uint32
 	DecayRate float64
 
 	id        CausetID

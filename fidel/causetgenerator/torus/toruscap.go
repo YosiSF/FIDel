@@ -5,18 +5,50 @@ package torus
 //go:generate go run ../../../../../../../../fidel/cloudPRAMS/Causetgenerator/toruscap.go
 
 import (
+	`fmt`
+	`go/types`
+)
+import (
+	//grpc
+	grpc _ "google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	`fmt`
+	`context`
+
 	"context"
 	"fmt"
 	_ "net/http"
 	_ "time"
-	"github.com/coreos/pkg/capnslog"
-	cephv1 "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
+	cephv1 _ "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
 	"github.com/rook/rook/pkg/clusterd"
 	"github.com/rook/rook/pkg/daemon/ceph/client"
 	"github.com/rook/rook/pkg/daemon/ceph/osd"
 	oposd "github.com/rook/rook/pkg/operator/ceph/cluster/osd"
 
 )
+
+
+type misc struct {
+	causetGenerationPolicyName string
+
+
+	//we need to add the following fields to the struct
+	//causetGenerationPolicyName string
+}
+
+func (m *misc) tpccLoadRun() {
+
+	fmt.Println("tpccLoadRun")
+
+	//var cephCluster cephv1.CephCluster
+
+}
+
+
+func (m *misc) tpccLoadRunClean() {
+	fmt.Println("tpccLoadRunClean")
+}
 
 type Empty struct {
 
@@ -45,7 +77,16 @@ const (
 )
 
 //// New returns a new instance of the service.
-//func New(opts ...option.ClientOption) (EchoClient, error) {
+func New(context *clusterd.Context, namespace string, args []string) *Service {
+	return &Service{
+		context: context,
+		namespace: namespace,
+		args: args,
+	}
+
+}
+
+
 //	defaultClientConfig := options.ClientConfig{
 //		Timeout:    time.Second * 3,
 //		Keepalive:  time.Second * 3,
@@ -54,7 +95,7 @@ const (
 //	}
 //	cc := defaultClientConfig
 //	cc.Apply(opts...)
-//	conn, err := grpc.Dial(cc.Endpoint, append(cc.DialOptions, grpc.WithInsecure())...)
+//	conn, err := grpc.Dial(cc.Endpouint32, append(cc.DialOptions, grpc.WithInsecure())...)
 //	if err != nil {
 //		return nil, err
 //	}
@@ -63,7 +104,7 @@ const (
 //	cc.Retryer.RetryOptions = retryer.DefaultRetryOptions
 //	cc.Retryer.RetryOptions.MaxRetries = 3
 //	cc.Retryer.RetryOptions.MaxRetryDuration = time.Second * 3
-//	cc.Retryer.RetryOptions.Backoff = func(i int) time.Duration {
+//	cc.Retryer.RetryOptions.Backoff = func(i uint32) time.Duration {
 //		return time.Duration(i) * time.Second
 //	}
 //	cc.Retryer.RetryOptions.BackoffMultiplier = 1.5
@@ -76,7 +117,7 @@ const (
 //
 //	cc.Retryer.RetryOptions.MaxRetries = 1,
 //	cc.Retryer.RetryOptions.MaxRetryDelay = time.Second * 1
-//	cc.Retryer.RetryOptions.Backoff = func(i int) time.Duration {
+//	cc.Retryer.RetryOptions.Backoff = func(i uint32) time.Duration {
 //
 //		return time.Duration(i) * time.Second
 //	}
@@ -95,6 +136,26 @@ const (
 //
 //
 //}
+
+type Service struct {
+
+	context *clusterd.Context
+	namespace string
+	args []string
+}
+
+type error struct {
+	error string
+}
+
+func (s *Service) Run() error {
+	fmt.Println("Run")
+	nil := types.Nil{
+		Kind: types.NilKind,
+
+	}
+	return nil
+}
 
 
 
@@ -116,7 +177,7 @@ func (m *misc) getCausetGenerationPolicy() CausetGenerationPolicy {
 }
 
 func (m *misc) tpccLoad() {
-	fmt.Println("tpccLoad")
+	fmt.Println(	"tpccLoad")
 }
 
 type Content 	struct {
@@ -152,6 +213,17 @@ type EchoClient interface {
 
 }
 
+
+// NewEchoClient creates a new client for the Echo service.
+func NewEchoClient(conn *grpc.ClientConn) EchoClient {
+	return &echoClient{conn: conn}
+}
+
+
+type echoClient struct {
+	conn *grpc.ClientConn
+
+}
 //NewEchoServer creates a new Echo server.
 //An Echo server is defined by a set of services of type
 //EchoServiceServer to be made available by the server.
@@ -161,6 +233,8 @@ func NewEchoServer(s *grpc.Server, cc grpc.ClientConnInterface) EchoServer {
 }
 
 type EchoServer interface {
+	// PingPong is a mock implementation of EchoServer.PingPong.
+	PingPong(ctx context.Context, in *Empty) (*Content, error)
 	// PingPong sends a ping, and returns a pong.
 	Ping(ctx context.Context, in *Empty) (*Content, error)
 	// ReverseEcho sends a reverse echo, and returns the reverse echo.
@@ -194,14 +268,14 @@ func (s *echoServer) Reverse(ctx context.Context, in *Content) (*Content, error)
 }
 
 
-func (m *misc) getCausetGenerationPolicyName() string {
+func (m *misc) GetCausetGenerationPolicyName() string {
 	causetGenerationPolicyName := "torus"
 
 	return causetGenerationPolicyName
 }
 
 
-func (m *misc) getCausetGenerationPolicy() CausetGenerationPolicy {
+func (m *misc) GetCausetGenerationPolicy() CausetGenerationPolicy {
 	causetGenerationPolicy := CausetGenerationPolicy{}
 	causetGenerationPolicy.Name = m.getCausetGenerationPolicyName()
 	causetGenerationPolicy.CausetGenerationPolicy = m.getCausetGenerationPolicyName()
@@ -215,7 +289,7 @@ func (m *misc) benchmark() {
 }
 
 func (m *misc) tpcc() {
-	f
+	fmt.Println("tpcc")
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EchoClient interface {
 
@@ -266,7 +340,7 @@ type echoClient struct {
 // EchoServer is the server API for Echo service.
 // All implementations must embed UnimplementedEchoServer
 // for forward compatibility
-type EchoServer interface {
+type EchoServer uint32erface {
 	Ping(context.Context, *Empty) (*Content, error)
 	Reverse(context.Context, *Content) (*Content, error)
 	mustEmbedUnimplementedEchoServer()

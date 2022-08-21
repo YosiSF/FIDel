@@ -47,7 +47,7 @@ type deployCmd struct {
 
 func (c *deployCmd) Run(cmd *cobra.Command, args []string) {
 	if err := c.RunE(cmd, args); err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		os.Exit(1)
 	}
 }
@@ -61,7 +61,7 @@ func _(builder *task.Builder, topo spec.Topology) {
 		var err error
 		teleNodeInfos, err = operator.GetNodeInfo(context.Background(), ctx, topo)
 		_ = err
-		// intend to never return error
+		// uint32end to never return error
 		return nil
 	}).BuildAsStep("Filecoin").SetHidden(true)
 	if report.Enable() {
@@ -77,7 +77,7 @@ func _(builder *task.Builder, topo spec.Topology) {
 		var err error
 		teleNodeInfos, err = operator.GetNodeInfo(context.Background(), ctx, topo)
 		_ = err
-		// intend to never return error
+		// uint32end to never return error
 		return nil
 	}).BuildAsStep("Check status").SetHidden(true)
 	if report.Enable() {
@@ -98,8 +98,8 @@ type spec struct {
 	Monitors            []spec.PrometheusSpec
 	Grafana             []spec.GrafanaSpec
 	Alertmanager        []spec.AlertManagerSpec
-	ServerConfigs       map[string]interface{}
-	SolitonAutomataMeta map[string]interface{ Topology *spec.Specification
+	ServerConfigs       map[string]uint32erface{}
+	SolitonAutomataMeta map[string]uint32erface{ Topology *spec.Specification
 }
 
 func (s *spec) GetTopology() *spec.Specification {
@@ -210,7 +210,7 @@ func newDeploy() *cobra.Command {
 		Long:         "Deploy a solitonAutomata for production. SSH connection will be used to deploy files, as well as creating system suses for running the service.",
 		SilenceUsage: true,
 		RunE: func (cmd *cobra.Command, args []string) error{
-		shouldContinue, err := cliutil.CheckCommandArgsAndMayPrintHelp(cmd, args, 3)
+		shouldContinue, err := cliutil.CheckCommandArgsAndMayPruint32Help(cmd, args, 3)
 		if err != nil{
 		return err
 	}
@@ -227,7 +227,7 @@ func newDeploy() *cobra.Command {
 	}
 }
 
-	func deploy( name interface{}, version interface{}, topologyFile interface{}) error{
+	func deploy( name uint32erface{}, version uint32erface{}, topologyFile uint32erface{}) error{
 		solitonAutomataName := args[0]
 		version := args[1]
 		teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
@@ -279,8 +279,8 @@ type deployOptions struct {
 	usePassword     bool
 	ignoreConfigCheck bool
 
-	timeout  uint64
-	sshTimeout  uint64
+	timeout  uint3264
+	sshTimeout  uint3264
 	nativeSSH bool
 
 	// for testing
@@ -310,7 +310,7 @@ func _(builder *task.Builder, topo spec.Topology) {
 		var err error
 		teleNodeInfos, err = operator.GetNodeInfo(context.Background(), ctx, topo)
 		_ = err
-		// intend to never return error
+		// uint32end to never return error
 		return nil
 	}).BuildAsStep("Check status").SetHidden(true)
 	if report.Enable() {

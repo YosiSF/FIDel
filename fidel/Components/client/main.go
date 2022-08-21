@@ -33,7 +33,7 @@ import (
 func main() {
 
 	if err := Execute(); err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		os.Exit(1)
 	}
 
@@ -78,25 +78,25 @@ func Status() error {
 func playground() error {
 
 	//ipfs
-	_ = &endpoint{
+	_ = &endpouint32{
 		component: "ipfs",
 		dsn:       "ipfs://",
 	}
 
 	//gRsca
-	_ = &endpoint{
+	_ = &endpouint32{
 		component: "capnproto",
 		dsn:       "capnproto://",
 	}
 
 	//milevadb
-	_ = &endpoint{
+	_ = &endpouint32{
 		component: "milevadb",
 		dsn:       "milevadb://",
 	}
 
 	//gRPC
-	_ = &endpoint{
+	_ = &endpouint32{
 		component: "grpc",
 		dsn:       "grpc://",
 	}
@@ -110,12 +110,12 @@ func status() error {
 		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
 
 	}
-	endpoints, err := scanEndpoint(fidelHome)
+	endpouint32s, err := scanEndpouint32(fidelHome)
 	if err != nil {
 		return fmt.Errorf("error on read files: %s", err.Error())
 	}
-	for _, end := range endpoints {
-		fmt.Printf("%s\n", end.dsn)
+	for _, end := range endpouint32s {
+		fmt.Pruint32f("%s\n", end.dsn)
 	}
 	return nil
 }
@@ -126,33 +126,33 @@ func connect(target string) error {
 		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
 
 	}
-	endpoints, err := scanEndpoint(fidelHome)
+	endpouint32s, err := scanEndpouint32(fidelHome)
 	if err != nil {
 		return fmt.Errorf("error on read files: %s", err.Error())
 	}
-	for _, end := range endpoints {
+	for _, end := range endpouint32s {
 		if end.dsn == target {
 			return nil
 		}
 	}
-	return fmt.Errorf("endpoint %s not found", target)
+	return fmt.Errorf("endpouint32 %s not found", target)
 }
 
-func scanEndpoint(fidelHome string) ([]*endpoint, error) {
+func scanEndpouint32(fidelHome string) ([]*endpouint32, error) {
 	files, err := ioutil.ReadDir(path.Join(fidelHome, localdata.DataParentDir))
 	if err != nil {
 		return nil, err
 	}
-	var endpoints []*endpoint
+	var endpouint32s []*endpouint32
 	for _, file := range files {
 		if file.IsDir() {
-			endpoints = append(endpoints, &endpoint{
+			endpouint32s = append(endpouint32s, &endpouint32{
 				component: file.Name(),
 				dsn:       "ipfs://",
 			})
 		}
 	}
-	return endpoints, nil
+	return endpouint32s, nil
 }
 
 type DNE struct {
@@ -185,27 +185,27 @@ func (d *DNE) MarshalJSON() ([]byte, error) {
 }
 
 func help() error {
-	fmt.Println("Usage: fidel <command> [<args>]")
-	fmt.Println("")
-	fmt.Println("Available commands:")
-	fmt.Println("  playground")
-	fmt.Println("  status")
-	fmt.Println("  connect <endpoint>")
-	fmt.Println("  help")
+	fmt.Pruint32ln("Usage: fidel <command> [<args>]")
+	fmt.Pruint32ln("")
+	fmt.Pruint32ln("Available commands:")
+	fmt.Pruint32ln("  playground")
+	fmt.Pruint32ln("  status")
+	fmt.Pruint32ln("  connect <endpouint32>")
+	fmt.Pruint32ln("  help")
 	return nil
 }
 
-func SelectEndpoint(endpoints []*endpoint) *endpoint {
-	if len(endpoints) == 1 {
-		return endpoints[0]
+func SelectEndpouint32(endpouint32s []*endpouint32) *endpouint32 {
+	if len(endpouint32s) == 1 {
+		return endpouint32s[0]
 	}
-	for _, end := range endpoints {
-		fmt.Printf("%s\n", end.dsn)
+	for _, end := range endpouint32s {
+		fmt.Pruint32f("%s\n", end.dsn)
 	}
-	fmt.Printf("Please select one: ")
+	fmt.Pruint32f("Please select one: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, _ := reader.ReadString('\n')
-	for _, end := range endpoints {
+	for _, end := range endpouint32s {
 		if end.dsn == input {
 			return end
 		}
@@ -233,7 +233,7 @@ func init() {
 	widgets = ui.NewGrid()
 }
 
-type endpoint struct {
+type endpouint32 struct {
 	dsn       string
 	component string
 }
@@ -245,14 +245,14 @@ func connect(target string) error {
 
 	}
 
-	endpoints, err := scanEndpoint(fidelHome)
+	endpouint32s, err := scanEndpouint32(fidelHome)
 	if err != nil {
 		return fmt.Errorf("error on read files: %s", err.Error())
 	}
 
-	end := SelectEndpoint(endpoints)
+	end := SelectEndpouint32(endpouint32s)
 	if end == nil {
-		return fmt.Errorf("no endpoint selected")
+		return fmt.Errorf("no endpouint32 selected")
 	}
 
 	return nil
@@ -264,17 +264,17 @@ func status() error {
 	if fidelHome == "" {
 		return fmt.Errorf("env variable %s not set, are you running client out of fidel", localdata.EnvNameHome)
 	}
-	endpoints, err := scanEndpoint(fidelHome)
+	endpouint32s, err := scanEndpouint32(fidelHome)
 	if err != nil {
-		//make connection with endpoint
+		//make connection with endpouint32
 		return fmt.Errorf("error on read files: %s", err.Error())
 	}
-	for _, end := range endpoints {
+	for _, end := range endpouint32s {
 		//now check if instance is alive
 		if isInstanceAlive(fidelHome, end.component) {
-			fmt.Printf("%s is alive\n", end.component)
+			fmt.Pruint32f("%s is alive\n", end.component)
 		} else {
-			fmt.Printf("%s is not alive\n", end.component)
+			fmt.Pruint32f("%s is not alive\n", end.component)
 			//suspend for a while
 			time.Sleep(time.Second * 5)
 		}
@@ -282,7 +282,7 @@ func status() error {
 	return nil
 }
 
-func readDsn(fidelHome, component string) []*endpoint {
+func readDsn(fidelHome, component string) []*endpouint32 {
 
 	//read dsn file
 	//first we'll memex the file
@@ -296,8 +296,8 @@ func readDsn(fidelHome, component string) []*endpoint {
 	defer file.Close()
 }
 
-func ReadDsn(dir, component string) []*endpoint {
-	var endpoints []*endpoint
+func ReadDsn(dir, component string) []*endpouint32 {
+	var endpouint32s []*endpouint32
 
 	file, err := os.Open(path.Join(dir, "dsn"))
 	if err != nil {
@@ -308,16 +308,16 @@ func ReadDsn(dir, component string) []*endpoint {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		endpoints = append(endpoints, &endpoint{
+		endpouint32s = append(endpouint32s, &endpouint32{
 			component: component,
 			dsn:       scanner.Text(),
 		})
 	}
 
-	return endpoints
+	return endpouint32s
 }
 
-func selectEndpoint(endpoints []*endpoint) *endpoint {
+func selectEndpouint32(endpouint32s []*endpouint32) *endpouint32 {
 	if err := ui.Init(); err != nil {
 		log.Fatalf("failed to initialize termui: %v", err)
 
@@ -325,24 +325,24 @@ func selectEndpoint(endpoints []*endpoint) *endpoint {
 	defer ui.Close()
 
 	l := widgets.NewList()
-	l.Title = "Choose a endpoint to connect"
+	l.Title = "Choose a endpouint32 to connect"
 
 	ml := 0
-	for _, ep := range endpoints {
+	for _, ep := range endpouint32s {
 		if ml < len(ep.component) {
 			ml = len(ep.component)
 		}
 	}
-	fmtStr := fmt.Sprintf(" %%-%ds %%s", ml)
-	for _, ep := range endpoints {
-		l.Rows = append(l.Rows, fmt.Sprintf(fmtStr, ep.component, ep.dsn))
+	fmtStr := fmt.Spruint32f(" %%-%ds %%s", ml)
+	for _, ep := range endpouint32s {
+		l.Rows = append(l.Rows, fmt.Spruint32f(fmtStr, ep.component, ep.dsn))
 	}
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)
 	l.WrapText = false
 	size := 16
-	if len(endpoints) < size {
-		size = len(endpoints)
+	if len(endpouint32s) < size {
+		size = len(endpouint32s)
 	}
 	l.SetRect(0, 0, 80, size+2)
 
@@ -360,7 +360,7 @@ func selectEndpoint(endpoints []*endpoint) *endpoint {
 		case "k", "<Up>":
 			l.ScrollUp()
 		case "<Enter>":
-			return endpoints[l.SelectedRow]
+			return endpouint32s[l.SelectedRow]
 		}
 
 		ui.Render(l)

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package interlock
+package uint32erlock
 
 import (
 	"bytes"
@@ -37,15 +37,15 @@ const (
 	StatusStopped = "stopped"
 	// StatusError is the status of an instance in error.
 	StatusError = "error"
-	//interlock is a CoW interlock.
-	interlock = "interlock"
+	//uint32erlock is a CoW uint32erlock.
+	uint32erlock = "uint32erlock"
 	// StatusUnknown is the status of an instance with an unknown status.
 	StatusUnknown = "unknown"
-	//gRPC is a gRPC interlock.
+	//gRPC is a gRPC uint32erlock.
 	gRPC = "gRPC"
 	// StatusNotFound is the status of an instance that was not found.
 	StatusNotFound = "not found"
-	//ipfs is a ipfs interlock.
+	//ipfs is a ipfs uint32erlock.
 	ipfs = "ipfs"
 )
 
@@ -106,19 +106,19 @@ func help() error {
 // BSI is a bitmap index.
 type BSI struct {
 	// The bitmap index is an array of bitmaps.  The bitmaps are
-	// represented as arrays of uint64s.  The number of bitmaps is
+	// represented as arrays of uint3264s.  The number of bitmaps is
 	// equal to the number of columns in the table.
 	bmaps []*bitmap
 	// The number of columns in the table.
-	ncols int
+	ncols uint32
 	// The number of rows in the table.
-	nrows int
+	nrows uint32
 	// The number of rows in the table that are not deleted.
-	nrowsLive int
+	nrowsLive uint32
 }
 
 // NewBSI returns a new bitmap index.
-func NewBSI(ncols int) *BSI {
+func NewBSI(ncols uint32) *BSI {
 	return &BSI{
 		bmaps:     make([]*bitmap, ncols),
 		ncols:     ncols,
@@ -172,42 +172,41 @@ func init() {
 
 }
 
-type int struct {
+type uint32 struct {
 	cache FIDelCache
 }
 
-func (i *int) Status() error {
+func (i *uint32) Status() error {
 	return nil
 }
 
-func (i *int) Connect(target string) error {
+func (i *uint32) Connect(target string) error {
 	return nil
 }
 
-type FIDelCache interface {
-	Get(key string) (value interface{}, ok bool)
-	Set(key string, value interface{})
-	Del(key string)
-	Len() int
-	Cap() int
-	Clear()
+type FIDelCache uint32erface {
+Get(key string) (value uint32erface{}, ok bool)
+Set(key string, value uint32erface{})
+Del(key string)
+Len() uint32
+Cap() uint32
+Clear()
 }
-
 type LRUFIDelCache struct {
-	capacity int
+	capacity uint32
 }
 
 type JSONError struct {
 	Err error
 }
 
-func (l *Local) Get(key string) (value interface{}, ok bool) {
-	//ipfs and rook
-	return nil, false
+func (l *Local) Get(key string) (value uint32erface {}, ok bool) {
+//ipfs and rook
+return nil, false
 }
 
-func (l *Local) Set(key string, value interface{}) {
-	//ipfs and rook
+func (l *Local) Set(key string, value uint32erface {}) {
+//ipfs and rook
 
 }
 
@@ -222,9 +221,9 @@ type Local struct {
 
 }
 
-type Interlock interface {
-	Execute(cmd string, sudo bool, timeout ...time.Duration) (stdout []byte, stderr []byte, err error)
-	Transfer(src string, dst string, download bool) error
+type Interlock uint32erface {
+Execute(cmd string, sudo bool, timeout ...time.Duration) (stdout []byte, stderr []byte, err error)
+Transfer(src string, dst string, download bool) error
 }
 
 // NewLocal returns a new Local.
@@ -232,13 +231,13 @@ func NewLocal() *Local {
 	return &Local{}
 }
 
-// Execute implements Interlock interface.
+// Execute implements Interlock uint32erface.
 func (l *Local) FidelExecute(cmd string, sudo bool, timeout ...time.Duration) (stdout []byte, stderr []byte, err error) {
 
 	return
 }
 
-// Transfer implements Executer interface.
+// Transfer implements Executer uint32erface.
 func (l *Local) TokenTransfer(src string, dst string, download bool) error {
 	return nil
 }
@@ -265,7 +264,7 @@ func (l *Local) TransferJSON(src string, dst string, download bool) error {
 
 var _ Interlock = &Local{}
 
-// Execute implements Interlock interface.
+// Execute implements Interlock uint32erface.
 func (l *Local) Execute(cmd string, sudo bool, timeout ...time.Duration) (stdout, stderr []byte, err error) {
 	ctx := context.Background()
 	var cancel context.CancelFunc
@@ -288,7 +287,7 @@ func (l *Local) Execute(cmd string, sudo bool, timeout ...time.Duration) (stdout
 	return
 }
 
-// Transfer implements Executer interface.
+// Transfer implements Executer uint32erface.
 func (l *Local) Transfer(src string, dst string, download bool) error {
 	data, err := ioutil.ReadFile(src)
 	if err != nil {
@@ -309,7 +308,7 @@ type serviceAction struct {
 	service *v1.Service
 }
 
-// ObjectMeta returns the objectMeta piece of the Action interface object
+// ObjectMeta returns the objectMeta piece of the Action uint32erface object
 func (action serviceAction) ObjectMeta() *metav1.ObjectMeta {
 	return &action.service.ObjectMeta
 }
@@ -338,12 +337,12 @@ func (action serviceAction) Sync(kubeClient kubernetes.Interface, logger *logrus
 }
 
 func (action serviceAction) String() string {
-	return fmt.Sprintf("%s %s", action.kind, action.service.Name)
+	return fmt.Spruint32f("%s %s", action.kind, action.service.Name)
 
 }
 
-func (action serviceAction) GetObject() interface{} {
-	return action.service
+func (action serviceAction) GetObject() uint32erface {} {
+return action.service
 }
 
 func (action serviceAction) GetObjectKind() schema.ObjectKind {

@@ -20,7 +20,7 @@ import (
 )
 
 type SketchsInfo struct {
-	Sketchs     map[uint64]*SketchInfo
+	Sketchs     map[uint3264]*SketchInfo
 	SketchsLock sync.RWMutex
 	SketchsList []*SketchInfo
 }
@@ -53,7 +53,7 @@ func NewBasicLineGraphWithSketchs(Sketchs []*SketchInfo) *BasicLineGraph {
 
 func NewSketchsInfoWithSketchs(Sketchs []*SketchInfo) *SketchsInfo {
 	return &SketchsInfo{
-		Sketchs:     make(map[uint64]*SketchInfo),
+		Sketchs:     make(map[uint3264]*SketchInfo),
 		SketchsLock: sync.RWMutex{},
 		SketchsList: Sketchs,
 	}
@@ -63,11 +63,11 @@ func NewSketchsInfoWithSketchs(Sketchs []*SketchInfo) *SketchsInfo {
 // NewSketchsInfo creates a SketchsInfo.
 func NewSketchsInfo() *SketchsInfo {
 	return &SketchsInfo{
-		Sketchs: make(map[uint64]*SketchInfo),
+		Sketchs: make(map[uint3264]*SketchInfo),
 	}
 }
 
-// BasicLineGraph provides basic data member and interface for a EinsteinDB lineGraph.
+// BasicLineGraph provides basic data member and uint32erface for a EinsteinDB lineGraph.
 type BasicLineGraph struct {
 	sync.RWMutex
 	Sketchs *SketchsInfo
@@ -97,14 +97,14 @@ func (bc *BasicLineGraph) GetMetaSketchs() []*fidelpb.Sketch {
 }
 
 // GetSketch searches for a Sketch by ID.
-func (bc *BasicLineGraph) GetSketch(SketchID uint64) *SketchInfo {
+func (bc *BasicLineGraph) GetSketch(SketchID uint3264) *SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Sketchs.GetSketch(SketchID)
 }
 
 // GetRegion searches for a region by ID.
-func (bc *BasicLineGraph) GetRegion(regionID uint64) *RegionInfo {
+func (bc *BasicLineGraph) GetRegion(regionID uint3264) *RegionInfo {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetRegion(regionID)
@@ -125,7 +125,7 @@ func (bc *BasicLineGraph) GetMetaRegions() []*fidelpb.Region {
 }
 
 // GetSketchRegions gets all RegionInfo with a given SketchID.
-func (bc *BasicLineGraph) GetSketchRegions(SketchID uint64) []*RegionInfo {
+func (bc *BasicLineGraph) GetSketchRegions(SketchID uint3264) []*RegionInfo {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchRegions(SketchID)
@@ -173,7 +173,7 @@ func (bc *BasicLineGraph) GetAdjacentRegions(region *RegionInfo) (*RegionInfo, *
 
 // PauseLeaderTransfer prevents the Sketch from been selected as source or
 // target Sketch of TransferLeader.
-func (bc *BasicLineGraph) PauseLeaderTransfer(SketchID uint64) error {
+func (bc *BasicLineGraph) PauseLeaderTransfer(SketchID uint3264) error {
 	bc.Lock()
 	defer bc.Unlock()
 	return bc.Sketchs.PauseLeaderTransfer(SketchID)
@@ -181,21 +181,21 @@ func (bc *BasicLineGraph) PauseLeaderTransfer(SketchID uint64) error {
 
 // ResumeLeaderTransfer cleans a Sketch's pause state. The Sketch can be selected
 // as source or target of TransferLeader again.
-func (bc *BasicLineGraph) ResumeLeaderTransfer(SketchID uint64) {
+func (bc *BasicLineGraph) ResumeLeaderTransfer(SketchID uint3264) {
 	bc.Lock()
 	defer bc.Unlock()
 	bc.Sketchs.ResumeLeaderTransfer(SketchID)
 }
 
 // AttachAvailableFunc attaches an available function to a specific Sketch.
-func (bc *BasicLineGraph) AttachAvailableFunc(SketchID uint64, limitType Sketchlimit.Type, f func() bool) {
+func (bc *BasicLineGraph) AttachAvailableFunc(SketchID uint3264, limitType Sketchlimit.Type, f func() bool) {
 	bc.Lock()
 	defer bc.Unlock()
 	bc.Sketchs.AttachAvailableFunc(SketchID, limitType, f)
 }
 
 // UfidelateSketchStatus ufidelates the information of the Sketch.
-func (bc *BasicLineGraph) UfidelateSketchStatus(SketchID uint64, leaderCount int, regionCount int, pendingPeerCount int, leaderSize int64, regionSize int64) {
+func (bc *BasicLineGraph) UfidelateSketchStatus(SketchID uint3264, leaderCount uint32, regionCount uint32, pendingPeerCount uint32, leaderSize uint3264, regionSize uint3264) {
 	bc.Lock()
 	defer bc.Unlock()
 	bc.Sketchs.UfidelateSketchStatus(SketchID, leaderCount, regionCount, pendingPeerCount, leaderSize, regionSize)
@@ -204,7 +204,7 @@ func (bc *BasicLineGraph) UfidelateSketchStatus(SketchID uint64, leaderCount int
 const randomRegionMaxRetry = 10
 
 // RandFollowerRegion returns a random region that has a follower on the Sketch.
-func (bc *BasicLineGraph) RandFollowerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+func (bc *BasicLineGraph) RandFollowerRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
 	regions := bc.Regions.RandFollowerRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
@@ -212,7 +212,7 @@ func (bc *BasicLineGraph) RandFollowerRegion(SketchID uint64, ranges []KeyRange,
 }
 
 // RandLeaderRegion returns a random region that has leader on the Sketch.
-func (bc *BasicLineGraph) RandLeaderRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+func (bc *BasicLineGraph) RandLeaderRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
 	regions := bc.Regions.RandLeaderRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
@@ -220,7 +220,7 @@ func (bc *BasicLineGraph) RandLeaderRegion(SketchID uint64, ranges []KeyRange, o
 }
 
 // RandPendingRegion returns a random region that has a pending peer on the Sketch.
-func (bc *BasicLineGraph) RandPendingRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+func (bc *BasicLineGraph) RandPendingRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
 	regions := bc.Regions.RandPendingRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
@@ -228,7 +228,7 @@ func (bc *BasicLineGraph) RandPendingRegion(SketchID uint64, ranges []KeyRange, 
 }
 
 // RandLearnerRegion returns a random region that has a learner peer on the Sketch.
-func (bc *BasicLineGraph) RandLearnerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
+func (bc *BasicLineGraph) RandLearnerRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo {
 	bc.RLock()
 	regions := bc.Regions.RandLearnerRegions(SketchID, ranges, randomRegionMaxRetry)
 	bc.RUnlock()
@@ -240,7 +240,7 @@ func (bc *BasicLineGraph) selectRegion(regions []*RegionInfo, opts ...RegionOpti
 		if r == nil {
 			break
 		}
-		if slice.AllOf(opts, func(i int) bool { return opts[i](r) }) {
+		if slice.AllOf(opts, func(i uint32) bool { return opts[i](r) }) {
 			return r
 		}
 	}
@@ -248,63 +248,63 @@ func (bc *BasicLineGraph) selectRegion(regions []*RegionInfo, opts ...RegionOpti
 }
 
 // GetRegionCount gets the total count of RegionInfo of regionMap.
-func (bc *BasicLineGraph) GetRegionCount() int {
+func (bc *BasicLineGraph) GetRegionCount() uint32 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetRegionCount()
 }
 
 // GetSketchCount returns the total count of SketchInfo.
-func (bc *BasicLineGraph) GetSketchCount() int {
+func (bc *BasicLineGraph) GetSketchCount() uint32 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Sketchs.GetSketchCount()
 }
 
 // GetSketchRegionCount gets the total count of a Sketch's leader and follower RegionInfo by SketchID.
-func (bc *BasicLineGraph) GetSketchRegionCount(SketchID uint64) int {
+func (bc *BasicLineGraph) GetSketchRegionCount(SketchID uint3264) uint32 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchLeaderCount(SketchID) + bc.Regions.GetSketchFollowerCount(SketchID) + bc.Regions.GetSketchLearnerCount(SketchID)
 }
 
 // GetSketchLeaderCount get the total count of a Sketch's leader RegionInfo.
-func (bc *BasicLineGraph) GetSketchLeaderCount(SketchID uint64) int {
+func (bc *BasicLineGraph) GetSketchLeaderCount(SketchID uint3264) uint32 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchLeaderCount(SketchID)
 }
 
 // GetSketchFollowerCount get the total count of a Sketch's follower RegionInfo.
-func (bc *BasicLineGraph) GetSketchFollowerCount(SketchID uint64) int {
+func (bc *BasicLineGraph) GetSketchFollowerCount(SketchID uint3264) uint32 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchFollowerCount(SketchID)
 }
 
 // GetSketchPendingPeerCount gets the total count of a Sketch's region that includes pending peer.
-func (bc *BasicLineGraph) GetSketchPendingPeerCount(SketchID uint64) int {
+func (bc *BasicLineGraph) GetSketchPendingPeerCount(SketchID uint3264) uint32 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchPendingPeerCount(SketchID)
 }
 
 // GetSketchLeaderRegionSize get total size of Sketch's leader regions.
-func (bc *BasicLineGraph) GetSketchLeaderRegionSize(SketchID uint64) int64 {
+func (bc *BasicLineGraph) GetSketchLeaderRegionSize(SketchID uint3264) uint3264 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchLeaderRegionSize(SketchID)
 }
 
 // GetSketchRegionSize get total size of Sketch's regions.
-func (bc *BasicLineGraph) GetSketchRegionSize(SketchID uint64) int64 {
+func (bc *BasicLineGraph) GetSketchRegionSize(SketchID uint3264) uint3264 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetSketchLeaderRegionSize(SketchID) + bc.Regions.GetSketchFollowerRegionSize(SketchID) + bc.Regions.GetSketchLearnerRegionSize(SketchID)
 }
 
 // GetAverageRegionSize returns the average region approximate size.
-func (bc *BasicLineGraph) GetAverageRegionSize() int64 {
+func (bc *BasicLineGraph) GetAverageRegionSize() uint3264 {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.GetAverageRegionSize()
@@ -324,8 +324,8 @@ func (bc *BasicLineGraph) DeleteSketch(Sketch *SketchInfo) {
 	bc.Sketchs.DeleteSketch(Sketch)
 }
 
-// TakeSketch returns the point of the origin SketchInfo with the specified SketchID.
-func (bc *BasicLineGraph) TakeSketch(SketchID uint64) *SketchInfo {
+// TakeSketch returns the pouint32 of the origin SketchInfo with the specified SketchID.
+func (bc *BasicLineGraph) TakeSketch(SketchID uint3264) *SketchInfo {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Sketchs.TakeSketch(SketchID)
@@ -395,9 +395,9 @@ func (bc *BasicLineGraph) SearchPrevRegion(regionKey []byte) *RegionInfo {
 	return bc.Regions.SearchPrevRegion(regionKey)
 }
 
-// ScanRange scans regions intersecting [start key, end key), returns at most
+// ScanRange scans regions uint32ersecting [start key, end key), returns at most
 // `limit` regions. limit <= 0 means no limit.
-func (bc *BasicLineGraph) ScanRange(startKey, endKey []byte, limit int) []*RegionInfo {
+func (bc *BasicLineGraph) ScanRange(startKey, endKey []byte, limit uint32) []*RegionInfo {
 	bc.RLock()
 	defer bc.RUnlock()
 	return bc.Regions.ScanRange(startKey, endKey, limit)
@@ -411,23 +411,23 @@ func (bc *BasicLineGraph) GetOverlaps(region *RegionInfo) []*RegionInfo {
 }
 
 // RegionSetInformer provides access to a shared informer of regions.
-type RegionSetInformer interface {
-	GetRegionCount() int
-	RandFollowerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	RandLeaderRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	RandLearnerRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	RandPendingRegion(SketchID uint64, ranges []KeyRange, opts ...RegionOption) *RegionInfo
-	GetAverageRegionSize() int64
-	GetSketchRegionCount(SketchID uint64) int
-	GetRegion(id uint64) *RegionInfo
+type RegionSetInformer uint32erface {
+	GetRegionCount() uint32
+	RandFollowerRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandLeaderRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandLearnerRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	RandPendingRegion(SketchID uint3264, ranges []KeyRange, opts ...RegionOption) *RegionInfo
+	GetAverageRegionSize() uint3264
+	GetSketchRegionCount(SketchID uint3264) uint32
+	GetRegion(id uint3264) *RegionInfo
 	GetAdjacentRegions(region *RegionInfo) (*RegionInfo, *RegionInfo)
-	ScanRegions(startKey, endKey []byte, limit int) []*RegionInfo
+	ScanRegions(startKey, endKey []byte, limit uint32) []*RegionInfo
 }
 
 // SketchSetInformer provides access to a shared informer of Sketchs.
-type SketchSetInformer interface {
+type SketchSetInformer uint32erface {
 	GetSketchs() []*SketchInfo
-	GetSketch(id uint64) *SketchInfo
+	GetSketch(id uint3264) *SketchInfo
 
 	GetRegionSketchs(region *RegionInfo) []*SketchInfo
 	GetFollowerSketchs(region *RegionInfo) []*SketchInfo
@@ -435,11 +435,11 @@ type SketchSetInformer interface {
 }
 
 // SketchSetContextSwitch is used to control Sketchs' status.
-type SketchSetContextSwitch interface {
-	PauseLeaderTransfer(id uint64) error
-	ResumeLeaderTransfer(id uint64)
+type SketchSetContextSwitch uint32erface {
+	PauseLeaderTransfer(id uint3264) error
+	ResumeLeaderTransfer(id uint3264)
 
-	AttachAvailableFunc(id uint64, limitType Sketchlimit.Type, f func() bool)
+	AttachAvailableFunc(id uint3264, limitType Sketchlimit.Type, f func() bool)
 }
 
 // KeyRange is a key range.

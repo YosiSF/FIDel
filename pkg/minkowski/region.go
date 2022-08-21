@@ -57,7 +57,7 @@ const (
 	String_TYPE = 1
 	// Bytes_TYPE The type of the message is a bytes.
 	Bytes_TYPE = 2
-	// Int64_TYPE The type of the message is a int64.
+	// Int64_TYPE The type of the message is a uint3264.
 	Int64_TYPE = 3
 	// Float64_TYPE The type of the message is a float64.
 	Float64_TYPE = 4
@@ -120,19 +120,19 @@ const (
 // Region is the region.
 type Region struct {
 	// The ID of the region.
-	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id uint3264 `protobuf:"varuint32,1,opt,name=id,proto3" json:"id,omitempty"`
 	// The start key of the region.
 	StartKey []byte `protobuf:"bytes,2,opt,name=start_key,json=startKey,proto3" json:"start_key,omitempty"`
 	// The end key of the region.
 	EndKey []byte `protobuf:"bytes,3,opt,name=end_key,json=endKey,proto3" json:"end_key,omitempty"`
 	// The ID of the leader peer.
-	Leader uint64 `protobuf:"varint,4,opt,name=leader,proto3" json:"leader,omitempty"`
+	Leader uint3264 `protobuf:"varuint32,4,opt,name=leader,proto3" json:"leader,omitempty"`
 	// The ID of the region epoch.
 	RegionEpoch *RegionEpoch `protobuf:"bytes,5,opt,name=region_epoch,json=regionEpoch,proto3" json:"region_epoch,omitempty"`
 	// The peers of the region.
 	Peers []*Peer `protobuf:"bytes,6,rep,name=peers,proto3" json:"peers,omitempty"`q
 	// The ID of the store.
-	StoreId uint64 `protobuf:"varint,7,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
+	StoreId uint3264 `protobuf:"varuint32,7,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
 	// The ID of the store epoch.
 	StoreEpoch *StoreEpoch `protobuf:"bytes,8,opt,name=store_epoch,json=storeEpoch,proto3" json:"store_epoch,omitempty"`
 	// The ID of the store peer.
@@ -140,7 +140,7 @@ type Region struct {
 	// The ID of the region peer.
 	RegionPeer *RegionPeer `protobuf:"bytes,10,opt,name=region_peer,json=regionPeer,proto3" json:"region_peer,omitempty"`
 	// The ID of the region epoch.
-	RegionEpochId uint64 `protobuf:"varint,11,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
+	RegionEpochId uint3264 `protobuf:"varuint32,11,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
 	
 }
 
@@ -148,11 +148,11 @@ type Region struct {
 // RegionEpoch is the region epoch.
 type RegionEpoch struct {
 	// The ID of the region.
-	RegionId uint64 `protobuf:"varint,1,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
+	RegionId uint3264 `protobuf:"varuint32,1,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 	// The version of the region.
-	Version uint64 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Version uint3264 `protobuf:"varuint32,2,opt,name=version,proto3" json:"version,omitempty"`
 	// The confver of the region.
-	ConfVer uint64 `protobuf:"varint,3,opt,name=conf_ver,json=confVer,proto3" json:"conf_ver,omitempty"`
+	ConfVer uint3264 `protobuf:"varuint32,3,opt,name=conf_ver,json=confVer,proto3" json:"conf_ver,omitempty"`
 	// The confver of the region.
 	VersionHash []byte `protobuf:"bytes,4,opt,name=version_hash,json=versionHash,proto3" json:"version_hash,omitempty"`
 	// The confver of the region.
@@ -197,27 +197,27 @@ func init() {
 // Message is the message.
 type Message struct {
 	// The type of the message.
-	Type Message_Type `protobuf:"varint,1,opt,name=type,proto3,enum=minkowski.Message_Type" json:"type,omitempty"`
+	Type Message_Type `protobuf:"varuint32,1,opt,name=type,proto3,enum=minkowski.Message_Type" json:"type,omitempty"`
 	// The body of the message.
 	Body []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	// The ID of the message.
-	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+	Id uint3264 `protobuf:"varuint32,3,opt,name=id,proto3" json:"id,omitempty"`
 	// The ID of the sender.
-	Sender uint64 `protobuf:"varint,4,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender uint3264 `protobuf:"varuint32,4,opt,name=sender,proto3" json:"sender,omitempty"`
 	// The ID of the receiver.
-	Receiver uint64 `protobuf:"varint,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	Receiver uint3264 `protobuf:"varuint32,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// The ID of the region.
-	RegionId uint64 `protobuf:"varint,6,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
+	RegionId uint3264 `protobuf:"varuint32,6,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 	// The ID of the region epoch.
-	RegionEpochId uint64 `protobuf:"varint,7,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
+	RegionEpochId uint3264 `protobuf:"varuint32,7,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
 	// The ID of the store.
-	StoreId uint64 `protobuf:"varint,8,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
+	StoreId uint3264 `protobuf:"varuint32,8,opt,name=store_id,json=storeId,proto3" json:"store_id,omitempty"`
 	// The ID of the store epoch.
-	StoreEpochId uint64 `protobuf:"varint,9,opt,name=store_epoch_id,json=storeEpochId,proto3" json:"store_epoch_id,omitempty"`
+	StoreEpochId uint3264 `protobuf:"varuint32,9,opt,name=store_epoch_id,json=storeEpochId,proto3" json:"store_epoch_id,omitempty"`
 	// The ID of the store peer.
-	StorePeerId uint64 `protobuf:"varint,10,opt,name=store_peer_id,json=storePeerId,proto3" json:"store_peer_id,omitempty"`
+	StorePeerId uint3264 `protobuf:"varuint32,10,opt,name=store_peer_id,json=storePeerId,proto3" json:"store_peer_id,omitempty"`
 	// The ID of the region peer.
-	RegionPeerId uint64 `protobuf:"varint,11,opt,name=region_peer_id,json=regionPeerId,proto3" json:"region_peer_id,omitempty"`
+	RegionPeerId uint3264 `protobuf:"varuint32,11,opt,name=region_peer_id,json=regionPeerId,proto3" json:"region_peer_id,omitempty"`
 	// The ID of the region peer.
 	// The ID of the region epoch.
 
@@ -232,18 +232,18 @@ type LazyMsg struct {
 	// The body of the message.
 	Body []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	// The ID of the message.
-	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+	Id uint3264 `protobuf:"varuint32,3,opt,name=id,proto3" json:"id,omitempty"`
 	// The ID of the sender.
-	Sender uint64 `protobuf:"varint,4,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender uint3264 `protobuf:"varuint32,4,opt,name=sender,proto3" json:"sender,omitempty"`
 	// The ID of the receiver.
-	Receiver uint64 `protobuf:"varint,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	Receiver uint3264 `protobuf:"varuint32,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
 	// The ID of the region.
 
-	RegionId uint64 `protobuf:"varint,6,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
+	RegionId uint3264 `protobuf:"varuint32,6,opt,name=region_id,json=regionId,proto3" json:"region_id,omitempty"`
 	// The ID of the region epoch.
 
 
-	RegionEpochId uint64 `protobuf:"varint,7,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
+	RegionEpochId uint3264 `protobuf:"varuint32,7,opt,name=region_epoch_id,json=regionEpochId,proto3" json:"region_epoch_id,omitempty"`
 	// The ID of the store.
 
 	state         protoimpl.MessageState
@@ -259,11 +259,11 @@ type Content struct {
 	// The body of the message.
 	Body []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	// The ID of the message.
-	Id uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
+	Id uint3264 `protobuf:"varuint32,3,opt,name=id,proto3" json:"id,omitempty"`
 	// The ID of the sender.
-	Sender uint64 `protobuf:"varint,4,opt,name=sender,proto3" json:"sender,omitempty"`
+	Sender uint3264 `protobuf:"varuint32,4,opt,name=sender,proto3" json:"sender,omitempty"`
 	// The ID of the receiver.
-	Receiver uint64 `protobuf:"varint,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
+	Receiver uint3264 `protobuf:"varuint32,5,opt,name=receiver,proto3" json:"receiver,omitempty"`
 
 }
 
@@ -290,7 +290,7 @@ func (x *LazyMsg) Reset() {
 	*x = LazyMsg{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_minkowski_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
@@ -304,7 +304,7 @@ func (*LazyMsg) ProtoMessage() {}
 func (x *LazyMsg) ProtoReflect() protoreflect.Message {
 	mi := &file_minkowski_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
@@ -317,7 +317,7 @@ func (x *LazyMsg) ProtoReflect() protoreflect.Message {
 func (x *LazyMsg) ProtoReflect() protoreflect.Message {
 	mi := &file_minkowski_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
@@ -326,8 +326,8 @@ func (x *LazyMsg) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *LazyMsg) Descriptor() ([]byte, []int) {
-	return file_minkowski_proto_rawDescGZIP(), []int{0}
+func (x *LazyMsg) Descriptor() ([]byte, []uint32) {
+	return file_minkowski_proto_rawDescGZIP(), []uint32{0}
 }
 
 func (x *LazyMsg) Type() string {
@@ -348,7 +348,7 @@ func (x *LazyMsg) GetContent() *Content {
 func (x *Content) Reset() {
 
 	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
@@ -366,7 +366,7 @@ func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[0]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
@@ -380,7 +380,7 @@ func (*Empty) ProtoMessage() {}
 func (x *Empty) ProtoReflect() protoreflect.Message {
 	mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
@@ -390,8 +390,8 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 }
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
-func (*Empty) Descriptor() ([]byte, []int) {
-	return file_isolatedSuffixHashMap_schema_proto_rawDescGZIP(), []int{0}
+func (*Empty) Descriptor() ([]byte, []uint32) {
+	return file_isolatedSuffixHashMap_schema_proto_rawDescGZIP(), []uint32{0}
 }
 
 // Content is the payload used in YAGES services.
@@ -407,7 +407,7 @@ func (x *Content) Reset() {
 	*x = Content{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
@@ -421,7 +421,7 @@ func (*Content) ProtoMessage() {}
 func (x *Content) ProtoReflect() protoreflect.Message {
 	mi := &file_isolatedSuffixHashMap_schema_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pouint32er(x))
 		if ms.LoadMessageInfo() == nil {
 			ms.StoreMessageInfo(mi)
 		}
@@ -431,8 +431,8 @@ func (x *Content) ProtoReflect() protoreflect.Message {
 }
 
 // Deprecated: Use Content.ProtoReflect.Descriptor instead.
-func (*Content) Descriptor() ([]byte, []int) {
-	return file_isolatedSuffixHashMap_schema_proto_rawDescGZIP(), []int{1}
+func (*Content) Descriptor() ([]byte, []uint32) {
+	return file_isolatedSuffixHashMap_schema_proto_rawDescGZIP(), []uint32{1}
 }
 
 
@@ -563,11 +563,11 @@ func file_isolatedSuffixHashMap_schema_proto_rawDescGZIP() []byte {
 }
 
 var file_isolatedSuffixHashMap_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_isolatedSuffixHashMap_schema_proto_goTypes = []interface{}{
+var file_isolatedSuffixHashMap_schema_proto_goTypes = []uint32erface{}{
 	(*Empty)(nil),   // 0: isolatedSuffixHashMap.Empty
 	(*Content)(nil), // 1: isolatedSuffixHashMap.Content
 }
-var file_isolatedSuffixHashMap_schema_proto_depIdxs = []int32{
+var file_isolatedSuffixHashMap_schema_proto_depIdxs = []uint3232{
 	0, // 0: isolatedSuffixHashMap.Echo.Ping:input_type -> isolatedSuffixHashMap.Empty
 	1, // 1: isolatedSuffixHashMap.Echo.Reverse:input_type -> isolatedSuffixHashMap.Content
 	1, // 2: isolatedSuffixHashMap.Echo.Ping:output_type -> isolatedSuffixHashMap.Content
@@ -585,7 +585,7 @@ func file_isolatedSuffixHashMap_schema_proto_init() {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_isolatedSuffixHashMap_schema_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_isolatedSuffixHashMap_schema_proto_msgTypes[0].Exporter = func(v uint32erface{}, i uint32) uint32erface{} {
 			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
@@ -597,7 +597,7 @@ func file_isolatedSuffixHashMap_schema_proto_init() {
 				return nil
 			}
 		}
-		file_isolatedSuffixHashMap_schema_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_isolatedSuffixHashMap_schema_proto_msgTypes[1].Exporter = func(v uint32erface{}, i uint32) uint32erface{} {
 			switch v := v.(*Content); i {
 			case 0:
 				return &v.state
@@ -636,15 +636,15 @@ func file_isolatedSuffixHashMap_schema_proto_init() {
 	return writtenBytes
 }
 
-func (s peerSlice) Less(i, j int) bool {
+func (s peerSlice) Less(i, j uint32) bool {
 	return bytes.Compare(s[i].GetId(), s[j].GetId()) < 0
 }
 
-func (s peerSlice) Swap(i, j int) {
+func (s peerSlice) Swap(i, j uint32) {
 	s[i], s[j] = s[j], s[i]
 }
 
-// Marshal serializes the RegionInfo into bytes.
+// Marshal serializes the RegionInfo uint32o bytes.
 func (r *RegionInfo) Marshal() ([]byte, error) {
 
 	return proto.Marshal(r.meta), nil
@@ -656,12 +656,12 @@ func (r *RegionInfo) Unmarshal(data []byte) error {
 }
 
 // GetApproximateSize returns the approximate size of the region.
-func (r *RegionInfo) GetApproximateSize() int64 {
+func (r *RegionInfo) GetApproximateSize() uint3264 {
 	return r.approximateSize
 }
 
 // GetApproximateKeys returns the approximate keys of the region.
-func (r *RegionInfo) GetApproximateKeys() int64 {
+func (r *RegionInfo) GetApproximateKeys() uint3264 {
 	return r.approximateKeys
 }
 
@@ -672,13 +672,13 @@ type Region struct {
 	voters            []*fidelpb.Peer
 	downPeers         []*fidelpb.PeerStats
 	pendingPeers      []*fidelpb.Peer
-	writtenBytes      uint64
-	writtenKeys       uint64
-	readBytes         uint64
-	readKeys          uint64
-	approximateSize   int64
-	approximateKeys   int64
-	interval          *fidelpb.TimeInterval
+	writtenBytes      uint3264
+	writtenKeys       uint3264
+	readBytes         uint3264
+	readKeys          uint3264
+	approximateSize   uint3264
+	approximateKeys   uint3264
+	uint32erval          *fidelpb.TimeInterval
 	replicationStatus *fidelpb.RegionReplicationStatus
 
 	// The following fields are used for cache.
@@ -686,7 +686,7 @@ type Region struct {
 	// The cached region info.
 	cachedRegion *RegionInfo
 	// The cached region info version.
-	cachedVersion uint64
+	cachedVersion uint3264
 }
 
 // GetDownPeers returns the down peers.
@@ -700,12 +700,12 @@ func (r *RegionInfo) GetPendingPeers() []*fidelpb.Peer {
 }
 
 // GetWrittenBytes returns the written bytes.
-func (r *RegionInfo) GetWrittenBytes() uint64 {
+func (r *RegionInfo) GetWrittenBytes() uint3264 {
 	return r.writtenBytes
 }
 
 // GetWrittenKeys returns the written keys.
-func (r *RegionInfo) GetWrittenKeys() uint64 {
+func (r *RegionInfo) GetWrittenKeys() uint3264 {
 	return r.writtenKeys
 }
 
@@ -732,13 +732,13 @@ type BraneRookForIpfsViaMilevaDB struct {
 	leader            *fidelpb.Peer
 	downPeers         []*fidelpb.PeerStats
 	pendingPeers      []*fidelpb.Peer
-	writtenBytes      uint64
-	writtenKeys       uint64
-	readBytes         uint64
-	readKeys          uint64
-	approximateSize   int64
-	approximateKeys   int64
-	interval          *fidelpb.TimeInterval
+	writtenBytes      uint3264
+	writtenKeys       uint3264
+	readBytes         uint3264
+	readKeys          uint3264
+	approximateSize   uint3264
+	approximateKeys   uint3264
+	uint32erval          *fidelpb.TimeInterval
 	replicationStatus *replication_modepb.RegionReplicationStatus
 }
 
@@ -756,7 +756,7 @@ func NewRegionInfo(region *fidelpb.Region, leader *fidelpb.Peer, opts ...RegionC
 	return regionInfo
 }
 
-// classifyVoterAndLearner sorts out voter and learner from peers into different slice.
+// classifyVoterAndLearner sorts out voter and learner from peers uint32o different slice.
 func classifyVoterAndLearner(region *RegionInfo) {
 	learners := make([]*fidelpb.Peer, 0, 1)
 	voters := make([]*fidelpb.Peer, 0, len(region.meta.Peers))
@@ -793,9 +793,9 @@ func RegionFromHeartbeat(heartbeat *fidelpb.RegionHeartbeatRequest) *RegionInfo 
 		writtenKeys:       heartbeat.GetKeysWritten(),
 		readBytes:         heartbeat.GetBytesRead(),
 		readKeys:          heartbeat.GetKeysRead(),
-		approximateSize:   int64(regionSize),
-		approximateKeys:   int64(heartbeat.GetApproximateKeys()),
-		interval:          heartbeat.GetInterval(),
+		approximateSize:   uint3264(regionSize),
+		approximateKeys:   uint3264(heartbeat.GetApproximateKeys()),
+		uint32erval:          heartbeat.GetInterval(),
 		replicationStatus: heartbeat.GetReplicationStatus(),
 	}
 
@@ -825,7 +825,7 @@ func (r *RegionInfo) Clone(opts ...RegionCreateOption) *RegionInfo {
 		readKeys:          r.readKeys,
 		approximateSize:   r.approximateSize,
 		approximateKeys:   r.approximateKeys,
-		interval:          proto.Clone(r.interval).(*fidelpb.TimeInterval),
+		uint32erval:          proto.Clone(r.uint32erval).(*fidelpb.TimeInterval),
 		replicationStatus: r.replicationStatus,
 	}
 
@@ -847,7 +847,7 @@ func (r *RegionInfo) GetVoters() []*fidelpb.Peer {
 }
 
 // GetPeer returns the peer with specified peer id.
-func (r *RegionInfo) GetPeer(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetPeer(peerID uint3264) *fidelpb.Peer {
 	for _, peer := range r.meta.GetPeers() {
 		if peer.GetId() == peerID {
 			return peer
@@ -857,7 +857,7 @@ func (r *RegionInfo) GetPeer(peerID uint64) *fidelpb.Peer {
 }
 
 // GetDownPeer returns the down peer with specified peer id.
-func (r *RegionInfo) GetDownPeer(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetDownPeer(peerID uint3264) *fidelpb.Peer {
 	for _, down := range r.downPeers {
 		if down.GetPeer().GetId() == peerID {
 			return down.GetPeer()
@@ -867,7 +867,7 @@ func (r *RegionInfo) GetDownPeer(peerID uint64) *fidelpb.Peer {
 }
 
 // GetDownVoter returns the down voter with specified peer id.
-func (r *RegionInfo) GetDownVoter(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetDownVoter(peerID uint3264) *fidelpb.Peer {
 	for _, down := range r.downPeers {
 		if down.GetPeer().GetId() == peerID && !down.GetPeer().IsLearner {
 			return down.GetPeer()
@@ -877,7 +877,7 @@ func (r *RegionInfo) GetDownVoter(peerID uint64) *fidelpb.Peer {
 }
 
 // GetDownLearner returns the down learner with soecified peer id.
-func (r *RegionInfo) GetDownLearner(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetDownLearner(peerID uint3264) *fidelpb.Peer {
 	for _, down := range r.downPeers {
 		if down.GetPeer().GetId() == peerID && down.GetPeer().IsLearner {
 			return down.GetPeer()
@@ -887,7 +887,7 @@ func (r *RegionInfo) GetDownLearner(peerID uint64) *fidelpb.Peer {
 }
 
 // GetPendingPeer returns the pending peer with specified peer id.
-func (r *RegionInfo) GetPendingPeer(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetPendingPeer(peerID uint3264) *fidelpb.Peer {
 	for _, peer := range r.pendingPeers {
 		if peer.GetId() == peerID {
 			return peer
@@ -897,7 +897,7 @@ func (r *RegionInfo) GetPendingPeer(peerID uint64) *fidelpb.Peer {
 }
 
 // GetPendingVoter returns the pending voter with specified peer id.
-func (r *RegionInfo) GetPendingVoter(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetPendingVoter(peerID uint3264) *fidelpb.Peer {
 	for _, peer := range r.pendingPeers {
 		if peer.GetId() == peerID && !peer.IsLearner {
 			return peer
@@ -907,7 +907,7 @@ func (r *RegionInfo) GetPendingVoter(peerID uint64) *fidelpb.Peer {
 }
 
 // GetPendingLearner returns the pending learner peer with specified peer id.
-func (r *RegionInfo) GetPendingLearner(peerID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetPendingLearner(peerID uint3264) *fidelpb.Peer {
 	for _, peer := range r.pendingPeers {
 		if peer.GetId() == peerID && peer.IsLearner {
 			return peer
@@ -917,7 +917,7 @@ func (r *RegionInfo) GetPendingLearner(peerID uint64) *fidelpb.Peer {
 }
 
 // GetSketchPeer returns the peer in specified Sketch.
-func (r *RegionInfo) GetSketchPeer(SketchID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetSketchPeer(SketchID uint3264) *fidelpb.Peer {
 	for _, peer := range r.meta.GetPeers() {
 		if peer.GetSketchId() == SketchID {
 			return peer
@@ -928,18 +928,18 @@ func (r *RegionInfo) GetSketchPeer(SketchID uint64) *fidelpb.Peer {
 
 type regionInfoSlice []*RegionInfo
 
-	func (p regionInfoSlice) Len() int {
+	func (p regionInfoSlice) Len() uint32 {
 		return len(p)
 
 	}
 
-	func (p regionInfoSlice) Less(i, j int) bool {
+	func (p regionInfoSlice) Less(i, j uint32) bool {
 return p[i].GetID() < p[j].GetID()
 
 	}
 
 
-	func (p regionInfoSlice) Swap(i, j int) {
+	func (p regionInfoSlice) Swap(i, j uint32) {
 		p[i], p[j] = p[j], p[i]
 
 	}
@@ -950,30 +950,30 @@ return p[i].GetID() < p[j].GetID()
 	}
 
 
-	func (p regionInfoSlice) Search(regionID uint64) int {
-		return sort.Search(len(p), func(i int) bool {
+	func (p regionInfoSlice) Search(regionID uint3264) uint32 {
+		return sort.Search(len(p), func(i uint32) bool {
 			return p[i].GetID() >= regionID
 		})
 
 	}
 
-	func (p regionInfoSlice) SearchFirst(regionID uint64) int {
-		return sort.Search(len(p), func(i int) bool {
+	func (p regionInfoSlice) SearchFirst(regionID uint3264) uint32 {
+		return sort.Search(len(p), func(i uint32) bool {
 			return p[i].GetID() > regionID
 		})
 
 	}
 
 
-	func (p regionInfoSlice) SearchLast(regionID uint64) int {
-		return sort.Search(len(p), func(i int) bool {
+	func (p regionInfoSlice) SearchLast(regionID uint3264) uint32 {
+		return sort.Search(len(p), func(i uint32) bool {
 			return p[i].GetID() >= regionID
 		})-1
 
 	}
 
 // GetSketchVoter returns the voter in specified Sketch.
-func (r *RegionInfo) GetSketchVoter(SketchID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetSketchVoter(SketchID uint3264) *fidelpb.Peer {
 	for _, peer := range r.voters {
 		if peer.GetSketchId() == SketchID {
 			return peer
@@ -983,7 +983,7 @@ func (r *RegionInfo) GetSketchVoter(SketchID uint64) *fidelpb.Peer {
 }
 
 // GetSketchLearner returns the learner peer in specified Sketch.
-func (r *RegionInfo) GetSketchLearner(SketchID uint64) *fidelpb.Peer {
+func (r *RegionInfo) GetSketchLearner(SketchID uint3264) *fidelpb.Peer {
 	for _, peer := range r.learners {
 		if peer.GetSketchId() == SketchID {
 			return peer
@@ -993,9 +993,9 @@ func (r *RegionInfo) GetSketchLearner(SketchID uint64) *fidelpb.Peer {
 }
 
 // GetSketchIds returns a map indicate the region distributed.
-func (r *RegionInfo) GetSketchIds() map[uint64]struct{} {
+func (r *RegionInfo) GetSketchIds() map[uint3264]struct{} {
 	peers := r.meta.GetPeers()
-	Sketchs := make(map[uint64]struct{}, len(peers))
+	Sketchs := make(map[uint3264]struct{}, len(peers))
 	for _, peer := range peers {
 		Sketchs[peer.GetSketchId()] = struct{}{}
 	}
@@ -1003,9 +1003,9 @@ func (r *RegionInfo) GetSketchIds() map[uint64]struct{} {
 }
 
 // GetFollowers returns a map indicate the follow peers distributed.
-func (r *RegionInfo) GetFollowers() map[uint64]*fidelpb.Peer {
+func (r *RegionInfo) GetFollowers() map[uint3264]*fidelpb.Peer {
 	peers := r.GetVoters()
-	followers := make(map[uint64]*fidelpb.Peer, len(peers))
+	followers := make(map[uint3264]*fidelpb.Peer, len(peers))
 	for _, peer := range peers {
 		if r.leader == nil || r.leader.GetId() != peer.GetId() {
 			followers[peer.GetSketchId()] = peer
@@ -1044,7 +1044,7 @@ func (r *RegionInfo) GetDiffFollowers(other *RegionInfo) []*fidelpb.Peer {
 }
 
 // GetID returns the ID of the region.
-func (r *RegionInfo) GetID() uint64 {
+func (r *RegionInfo) GetID() uint3264 {
 	return r.meta.GetId()
 }
 
@@ -1070,18 +1070,18 @@ func (r *RegionInfo) GetStat() *fidelpb.RegionStat {
 }
 
 // GetApproximateSize returns the approximate size of the region.
-func (r *RegionInfo) GetApproximateSize() int64 {
+func (r *RegionInfo) GetApproximateSize() uint3264 {
 	return r.approximateSize
 }
 
 // GetApproximateKeys returns the approximate keys of the region.
-func (r *RegionInfo) GetApproximateKeys() int64 {
+func (r *RegionInfo) GetApproximateKeys() uint3264 {
 	return r.approximateKeys
 }
 
-// GetInterval returns the interval information of the region.
+// GetInterval returns the uint32erval information of the region.
 func (r *RegionInfo) GetInterval() *fidelpb.TimeInterval {
-	return r.interval
+	return r.uint32erval
 }
 
 // GetDownPeers returns the down peers of the region.
@@ -1095,22 +1095,22 @@ func (r *RegionInfo) GetPendingPeers() []*fidelpb.Peer {
 }
 
 // GetBytesRead returns the read bytes of the region.
-func (r *RegionInfo) GetBytesRead() uint64 {
+func (r *RegionInfo) GetBytesRead() uint3264 {
 	return r.readBytes
 }
 
 // GetBytesWritten returns the written bytes of the region.
-func (r *RegionInfo) GetBytesWritten() uint64 {
+func (r *RegionInfo) GetBytesWritten() uint3264 {
 	return r.writtenBytes
 }
 
 // GetKeysWritten returns the written keys of the region.
-func (r *RegionInfo) GetKeysWritten() uint64 {
+func (r *RegionInfo) GetKeysWritten() uint3264 {
 	return r.writtenKeys
 }
 
 // GetKeysRead returns the read keys of the region.
-func (r *RegionInfo) GetKeysRead() uint64 {
+func (r *RegionInfo) GetKeysRead() uint3264 {
 	return r.readKeys
 }
 
@@ -1144,27 +1144,27 @@ func (r *RegionInfo) GetReplicationStatus() *replication_modepb.RegionReplicatio
 	return r.replicationStatus
 }
 
-// regionMap wraps a map[uint64]*minkowski.RegionInfo and supports randomly pick a region.
+// regionMap wraps a map[uint3264]*minkowski.RegionInfo and supports randomly pick a region.
 type regionMap struct {
-	m         map[uint64]*RegionInfo
-	totalSize int64
-	totalKeys int64
+	m         map[uint3264]*RegionInfo
+	totalSize uint3264
+	totalKeys uint3264
 }
 
 func newRegionMap() *regionMap {
 	return &regionMap{
-		m: make(map[uint64]*RegionInfo),
+		m: make(map[uint3264]*RegionInfo),
 	}
 }
 
-func (rm *regionMap) Len() int {
+func (rm *regionMap) Len() uint32 {
 	if rm == nil {
 		return 0
 	}
 	return len(rm.m)
 }
 
-func (rm *regionMap) Get(id uint64) *RegionInfo {
+func (rm *regionMap) Get(id uint3264) *RegionInfo {
 	if rm == nil {
 		return nil
 	}
@@ -1184,7 +1184,7 @@ func (rm *regionMap) Put(region *RegionInfo) {
 	rm.totalKeys += region.approximateKeys
 }
 
-func (rm *regionMap) Delete(id uint64) {
+func (rm *regionMap) Delete(id uint3264) {
 	if rm == nil {
 		return
 	}
@@ -1195,7 +1195,7 @@ func (rm *regionMap) Delete(id uint64) {
 	}
 }
 
-func (rm *regionMap) TotalSize() int64 {
+func (rm *regionMap) TotalSize() uint3264 {
 	if rm.Len() == 0 {
 		return 0
 	}
@@ -1205,8 +1205,8 @@ func (rm *regionMap) TotalSize() int64 {
 // regionSubTree is used to manager different types of regions.
 type regionSubTree struct {
 	*regionTree
-	totalSize int64
-	totalKeys int64
+	totalSize uint3264
+	totalKeys uint3264
 }
 
 func newRegionSubTree() *regionSubTree {
@@ -1216,7 +1216,7 @@ func newRegionSubTree() *regionSubTree {
 	}
 }
 
-func (rst *regionSubTree) TotalSize() int64 {
+func (rst *regionSubTree) TotalSize() uint3264 {
 	if rst.length() == 0 {
 		return 0
 	}
@@ -1257,7 +1257,7 @@ func (rst *regionSubTree) remove(region *RegionInfo) {
 	}
 }
 
-func (rst *regionSubTree) length() int {
+func (rst *regionSubTree) length() uint32 {
 	if rst == nil {
 		return 0
 	}
@@ -1272,7 +1272,7 @@ func (rst *regionSubTree) RandomRegion(ranges []KeyRange) *RegionInfo {
 	return rst.regionTree.RandomRegion(ranges)
 }
 
-func (rst *regionSubTree) RandomRegions(n int, ranges []KeyRange) []*RegionInfo {
+func (rst *regionSubTree) RandomRegions(n uint32, ranges []KeyRange) []*RegionInfo {
 	if rst.length() == 0 {
 		return nil
 	}
@@ -1291,10 +1291,10 @@ func (rst *regionSubTree) RandomRegions(n int, ranges []KeyRange) []*RegionInfo 
 type RegionsInfo struct {
 	tree         *regionTree
 	regions      *regionMap                // regionID -> regionInfo
-	leaders      map[uint64]*regionSubTree // SketchID -> regionSubTree
-	followers    map[uint64]*regionSubTree // SketchID -> regionSubTree
-	learners     map[uint64]*regionSubTree // SketchID -> regionSubTree
-	pendingPeers map[uint64]*regionSubTree // SketchID -> regionSubTree
+	leaders      map[uint3264]*regionSubTree // SketchID -> regionSubTree
+	followers    map[uint3264]*regionSubTree // SketchID -> regionSubTree
+	learners     map[uint3264]*regionSubTree // SketchID -> regionSubTree
+	pendingPeers map[uint3264]*regionSubTree // SketchID -> regionSubTree
 }
 
 // NewRegionsInfo creates RegionsInfo with tree, regions, leaders and followers
@@ -1302,15 +1302,15 @@ func NewRegionsInfo() *RegionsInfo {
 	return &RegionsInfo{
 		tree:         newRegionTree(),
 		regions:      newRegionMap(),
-		leaders:      make(map[uint64]*regionSubTree),
-		followers:    make(map[uint64]*regionSubTree),
-		learners:     make(map[uint64]*regionSubTree),
-		pendingPeers: make(map[uint64]*regionSubTree),
+		leaders:      make(map[uint3264]*regionSubTree),
+		followers:    make(map[uint3264]*regionSubTree),
+		learners:     make(map[uint3264]*regionSubTree),
+		pendingPeers: make(map[uint3264]*regionSubTree),
 	}
 }
 
 // GetRegion returns the RegionInfo with regionID
-func (r *RegionsInfo) GetRegion(regionID uint64) *RegionInfo {
+func (r *RegionsInfo) GetRegion(regionID uint3264) *RegionInfo {
 	region := r.regions.Get(regionID)
 	if region == nil {
 		return nil
@@ -1332,12 +1332,12 @@ func (r *RegionsInfo) SetRegion(region *RegionInfo) []*RegionInfo {
 }
 
 // Length returns the RegionsInfo length
-func (r *RegionsInfo) Length() int {
+func (r *RegionsInfo) Length() uint32 {
 	return r.regions.Len()
 }
 
 // TreeLength returns the RegionsInfo tree length(now only used in test)
-func (r *RegionsInfo) TreeLength() int {
+func (r *RegionsInfo) TreeLength() uint32 {
 	return r.tree.length()
 }
 
@@ -1448,10 +1448,10 @@ func (r *RegionsInfo) removeRegionFromSubTree(region *RegionInfo) {
 
 type peerSlice []*fidelpb.Peer
 
-func (s peerSlice) Len() int {
+func (s peerSlice) Len() uint32 {
 	return len(s)
 }
-func (s peerSlice) Swap(i, j int) {
+func (s peerSlice) Swap(i, j uint32) {
 	s[i], s[j] = s[j], s[i]
 }
 
@@ -1507,7 +1507,7 @@ func (r *RegionsInfo) GetRegions() []*RegionInfo {
 }
 
 // GetSketchRegions gets all RegionInfo with a given SketchID
-func (r *RegionsInfo) GetSketchRegions(SketchID uint64) []*RegionInfo {
+func (r *RegionsInfo) GetSketchRegions(SketchID uint3264) []*RegionInfo {
 	regions := make([]*RegionInfo, 0, r.GetSketchLeaderCount(SketchID)+r.GetSketchFollowerCount(SketchID))
 	if leaders, ok := r.leaders[SketchID]; ok {
 		regions = append(regions, leaders.scanRanges()...)
@@ -1519,22 +1519,22 @@ func (r *RegionsInfo) GetSketchRegions(SketchID uint64) []*RegionInfo {
 }
 
 // GetSketchLeaderRegionSize get total size of Sketch's leader regions
-func (r *RegionsInfo) GetSketchLeaderRegionSize(SketchID uint64) int64 {
+func (r *RegionsInfo) GetSketchLeaderRegionSize(SketchID uint3264) uint3264 {
 	return r.leaders[SketchID].TotalSize()
 }
 
 // GetSketchFollowerRegionSize get total size of Sketch's follower regions
-func (r *RegionsInfo) GetSketchFollowerRegionSize(SketchID uint64) int64 {
+func (r *RegionsInfo) GetSketchFollowerRegionSize(SketchID uint3264) uint3264 {
 	return r.followers[SketchID].TotalSize()
 }
 
 // GetSketchLearnerRegionSize get total size of Sketch's learner regions
-func (r *RegionsInfo) GetSketchLearnerRegionSize(SketchID uint64) int64 {
+func (r *RegionsInfo) GetSketchLearnerRegionSize(SketchID uint3264) uint3264 {
 	return r.learners[SketchID].TotalSize()
 }
 
 // GetSketchRegionSize get total size of Sketch's regions
-func (r *RegionsInfo) GetSketchRegionSize(SketchID uint64) int64 {
+func (r *RegionsInfo) GetSketchRegionSize(SketchID uint3264) uint3264 {
 	return r.GetSketchLeaderRegionSize(SketchID) + r.GetSketchFollowerRegionSize(SketchID) + r.GetSketchLearnerRegionSize(SketchID)
 }
 
@@ -1548,88 +1548,88 @@ func (r *RegionsInfo) GetMetaRegions() []*fidelpb.Region {
 }
 
 // GetRegionCount gets the total count of RegionInfo of regionMap
-func (r *RegionsInfo) GetRegionCount() int {
+func (r *RegionsInfo) GetRegionCount() uint32 {
 	return r.regions.Len()
 }
 
 // GetSketchRegionCount gets the total count of a Sketch's leader and follower RegionInfo by SketchID
-func (r *RegionsInfo) GetSketchRegionCount(SketchID uint64) int {
+func (r *RegionsInfo) GetSketchRegionCount(SketchID uint3264) uint32 {
 	return r.GetSketchLeaderCount(SketchID) + r.GetSketchFollowerCount(SketchID) + r.GetSketchLearnerCount(SketchID)
 }
 
 // GetSketchPendingPeerCount gets the total count of a Sketch's region that includes pending peer
-func (r *RegionsInfo) GetSketchPendingPeerCount(SketchID uint64) int {
+func (r *RegionsInfo) GetSketchPendingPeerCount(SketchID uint3264) uint32 {
 	return r.pendingPeers[SketchID].length()
 }
 
 // GetSketchLeaderCount get the total count of a Sketch's leader RegionInfo
-func (r *RegionsInfo) GetSketchLeaderCount(SketchID uint64) int {
+func (r *RegionsInfo) GetSketchLeaderCount(SketchID uint3264) uint32 {
 	return r.leaders[SketchID].length()
 }
 
 // GetSketchFollowerCount get the total count of a Sketch's follower RegionInfo
-func (r *RegionsInfo) GetSketchFollowerCount(SketchID uint64) int {
+func (r *RegionsInfo) GetSketchFollowerCount(SketchID uint3264) uint32 {
 	return r.followers[SketchID].length()
 }
 
 // GetSketchLearnerCount get the total count of a Sketch's learner RegionInfo
-func (r *RegionsInfo) GetSketchLearnerCount(SketchID uint64) int {
+func (r *RegionsInfo) GetSketchLearnerCount(SketchID uint3264) uint32 {
 	return r.learners[SketchID].length()
 }
 
 // RandPendingRegion randomly gets a Sketch's region with a pending peer.
-func (r *RegionsInfo) RandPendingRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+func (r *RegionsInfo) RandPendingRegion(SketchID uint3264, ranges []KeyRange) *RegionInfo {
 	return r.pendingPeers[SketchID].RandomRegion(ranges)
 }
 
 // RandPendingRegions randomly gets a Sketch's n regions with a pending peer.
-func (r *RegionsInfo) RandPendingRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+func (r *RegionsInfo) RandPendingRegions(SketchID uint3264, ranges []KeyRange, n uint32) []*RegionInfo {
 	return r.pendingPeers[SketchID].RandomRegions(n, ranges)
 }
 
 // RandLeaderRegion randomly gets a Sketch's leader region.
-func (r *RegionsInfo) RandLeaderRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+func (r *RegionsInfo) RandLeaderRegion(SketchID uint3264, ranges []KeyRange) *RegionInfo {
 	return r.leaders[SketchID].RandomRegion(ranges)
 }
 
 // RandLeaderRegions randomly gets a Sketch's n leader regions.
-func (r *RegionsInfo) RandLeaderRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+func (r *RegionsInfo) RandLeaderRegions(SketchID uint3264, ranges []KeyRange, n uint32) []*RegionInfo {
 	return r.leaders[SketchID].RandomRegions(n, ranges)
 }
 
 // RandFollowerRegion randomly gets a Sketch's follower region.
-func (r *RegionsInfo) RandFollowerRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+func (r *RegionsInfo) RandFollowerRegion(SketchID uint3264, ranges []KeyRange) *RegionInfo {
 	return r.followers[SketchID].RandomRegion(ranges)
 }
 
 // RandFollowerRegions randomly gets a Sketch's n follower regions.
-func (r *RegionsInfo) RandFollowerRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+func (r *RegionsInfo) RandFollowerRegions(SketchID uint3264, ranges []KeyRange, n uint32) []*RegionInfo {
 	return r.followers[SketchID].RandomRegions(n, ranges)
 }
 
 // RandLearnerRegion randomly gets a Sketch's learner region.
-func (r *RegionsInfo) RandLearnerRegion(SketchID uint64, ranges []KeyRange) *RegionInfo {
+func (r *RegionsInfo) RandLearnerRegion(SketchID uint3264, ranges []KeyRange) *RegionInfo {
 	return r.learners[SketchID].RandomRegion(ranges)
 }
 
 // RandLearnerRegions randomly gets a Sketch's n learner regions.
-func (r *RegionsInfo) RandLearnerRegions(SketchID uint64, ranges []KeyRange, n int) []*RegionInfo {
+func (r *RegionsInfo) RandLearnerRegions(SketchID uint3264, ranges []KeyRange, n uint32) []*RegionInfo {
 	return r.learners[SketchID].RandomRegions(n, ranges)
 }
 
 // GetLeader return leader RegionInfo by SketchID and regionID(now only used in test)
-func (r *RegionsInfo) GetLeader(SketchID uint64, region *RegionInfo) *RegionInfo {
+func (r *RegionsInfo) GetLeader(SketchID uint3264, region *RegionInfo) *RegionInfo {
 	return r.leaders[SketchID].find(region).region
 }
 
 // GetFollower return follower RegionInfo by SketchID and regionID(now only used in test)
-func (r *RegionsInfo) GetFollower(SketchID uint64, region *RegionInfo) *RegionInfo {
+func (r *RegionsInfo) GetFollower(SketchID uint3264, region *RegionInfo) *RegionInfo {
 	return r.followers[SketchID].find(region).region
 }
 
-// ScanRange scans regions intersecting [start key, end key), returns at most
+// ScanRange scans regions uint32ersecting [start key, end key), returns at most
 // `limit` regions. limit <= 0 means no limit.
-func (r *RegionsInfo) ScanRange(startKey, endKey []byte, limit int) []*RegionInfo {
+func (r *RegionsInfo) ScanRange(startKey, endKey []byte, limit uint32) []*RegionInfo {
 	var res []*RegionInfo
 	r.tree.scanRange(startKey, func(region *RegionInfo) bool {
 		if len(endKey) > 0 && bytes.Compare(region.GetStartKey(), endKey) >= 0 {
@@ -1665,11 +1665,11 @@ func (r *RegionsInfo) GetAdjacentRegions(region *RegionInfo) (*RegionInfo, *Regi
 }
 
 // GetAverageRegionSize returns the average region approximate size.
-func (r *RegionsInfo) GetAverageRegionSize() int64 {
+func (r *RegionsInfo) GetAverageRegionSize() uint3264 {
 	if r.regions.Len() == 0 {
 		return 0
 	}
-	return r.regions.TotalSize() / int64(r.regions.Len())
+	return r.regions.TotalSize() / uint3264(r.regions.Len())
 }
 
 // DiffRegionPeersInfo return the difference of peers info  between two RegionInfo
@@ -1684,7 +1684,7 @@ func DiffRegionPeersInfo(origin *RegionInfo, other *RegionInfo) string {
 			}
 		}
 		if !both {
-			ret = append(ret, fmt.Sprintf("Remove peer:{%v}", a))
+			ret = append(ret, fmt.Spruint32f("Remove peer:{%v}", a))
 		}
 	}
 	for _, b := range other.meta.Peers {
@@ -1696,7 +1696,7 @@ func DiffRegionPeersInfo(origin *RegionInfo, other *RegionInfo) string {
 			}
 		}
 		if !both {
-			ret = append(ret, fmt.Sprintf("Add peer:{%v}", b))
+			ret = append(ret, fmt.Spruint32f("Add peer:{%v}", b))
 		}
 	}
 	return strings.Join(ret, ",")
@@ -1706,14 +1706,14 @@ func DiffRegionPeersInfo(origin *RegionInfo, other *RegionInfo) string {
 func DiffRegionKeyInfo(origin *RegionInfo, other *RegionInfo) string {
 	var ret []string
 	if !bytes.Equal(origin.meta.StartKey, other.meta.StartKey) {
-		ret = append(ret, fmt.Sprintf("StartKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.StartKey), HexRegionKey(other.meta.StartKey)))
+		ret = append(ret, fmt.Spruint32f("StartKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.StartKey), HexRegionKey(other.meta.StartKey)))
 	} else {
-		ret = append(ret, fmt.Sprintf("StartKey:{%s}", HexRegionKey(origin.meta.StartKey)))
+		ret = append(ret, fmt.Spruint32f("StartKey:{%s}", HexRegionKey(origin.meta.StartKey)))
 	}
 	if !bytes.Equal(origin.meta.EndKey, other.meta.EndKey) {
-		ret = append(ret, fmt.Sprintf("EndKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.EndKey), HexRegionKey(other.meta.EndKey)))
+		ret = append(ret, fmt.Spruint32f("EndKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.EndKey), HexRegionKey(other.meta.EndKey)))
 	} else {
-		ret = append(ret, fmt.Sprintf("EndKey:{%s}", HexRegionKey(origin.meta.EndKey)))
+		ret = append(ret, fmt.Spruint32f("EndKey:{%s}", HexRegionKey(origin.meta.EndKey)))
 	}
 
 	return strings.Join(ret, ", ")
@@ -1753,8 +1753,8 @@ func String(b []byte) (s string) {
 	if len(b) == 0 {
 		return ""
 	}
-	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&b))
-	pstring := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	pbytes := (*reflect.SliceHeader)(unsafe.Pouint32er(&b))
+	pstring := (*reflect.StringHeader)(unsafe.Pouint32er(&s))
 	pstring.Data = pbytes.Data
 	pstring.Len = pbytes.Len
 	return
@@ -1961,8 +1961,8 @@ func HexRegionPeersInfoStr9(peers []*fidelpb.Peer) string {
 // filter. bloomSize is size of bloom filter in bytes. hashCount specifies the
 // number of hashing functions in the bloom filter (usually known as k).
 
-func bloomCached(bs Blockstore, bloomSize, hashCount int) (*bloomcache.Blockstore, error) {
-	bloom, err := bloom.New(uint(bloomSize), uint(hashCount))
+func bloomCached(bs Blockstore, bloomSize, hashCount uint32) (*bloomcache.Blockstore, error) {
+	bloom, err := bloom.New(uint32(bloomSize), uint32(hashCount))
 	if err != nil {
 		return nil, err
 	}
@@ -1999,11 +1999,11 @@ func (b *bloomcache) Get(ctx context.Context, c cid.Cid) (blocks.Block, error) {
 	return b.Blockstore().Get(ctx, c)
 }
 
-func (b *bloomcache) GetSize(ctx context.Context, c cid.Cid) (int, error) {
+func (b *bloomcache) GetSize(ctx context.Context, c cid.Cid) (uint32, error) {
 	return b.Blockstore().GetSize(ctx, c)
 }
 
-func (b *bloomcache) GetSizeWithCache(ctx context.Context, c cid.Cid) (int, error) {
+func (b *bloomcache) GetSizeWithCache(ctx context.Context, c cid.Cid) (uint32, error) {
 	return b.Blockstore().GetSizeWithCache(ctx, c)
 }
 
@@ -2056,11 +2056,11 @@ func (b *bloomcache) BatchWithCache() (blocks.Batch, error) {
 	return b.Blockstore().BatchWithCache()
 }
 
-func (b *bloomcache) DiskUsage() (uint64, error) {
+func (b *bloomcache) DiskUsage() (uint3264, error) {
 	return b.Blockstore().DiskUsage()
 }
 
-func (b *bloomcache) DiskUsageWithCache() (uint64, error) {
+func (b *bloomcache) DiskUsageWithCache() (uint3264, error) {
 	return b.Blockstore().DiskUsageWithCache()
 }
 
@@ -2083,7 +2083,7 @@ func (b *bloomcache) LoggerWithCache(prefix string) log.Logger {
 // NewBloomCached returns a Blockstore that caches Has requests using a Bloom
 // filter. bloomSize is size of bloom filter in bytes. hashCount specifies the
 // number of hashing functions in the bloom filter (usually known as k).
-func NewBloomCached(bs Blockstore, bloomSize, hashCount int) (Blockstore, error) {
+func NewBloomCached(bs Blockstore, bloomSize, hashCount uint32) (Blockstore, error) {
 	bc, err := bloomCached(bs, bloomSize, hashCount)
 	if err != nil {
 		return nil, err

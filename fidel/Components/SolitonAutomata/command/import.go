@@ -73,16 +73,16 @@ func newImportCmd() *cobra.Command {
 				return errDeployNameDuplicate.
 					New("SolitonAutomata name '%s' is duplicated", clsName).
 					WithProperty(cliutil.SuggestionFromFormat(
-						fmt.Sprintf("Please use --rename `NAME` to specify another name (You can use `%s list` to see all solitonAutomatas)", cliutil.OsArgs0())))
+						fmt.Spruint32f("Please use --rename `NAME` to specify another name (You can use `%s list` to see all solitonAutomatas)", cliutil.OsArgs0())))
 			}
 
 			// prompt for backups
 			backuFIDelir := spec.SolitonAutomataPath(clsName, "ansible-backup")
-			backupFile := filepath.Join(ansibleDir, fmt.Sprintf("fidel-%s.bak", inventoryFileName))
-			prompt := fmt.Sprintf("The ansible directory will be moved to %s after import.", backuFIDelir)
+			backupFile := filepath.Join(ansibleDir, fmt.Spruint32f("fidel-%s.bak", inventoryFileName))
+			prompt := fmt.Spruint32f("The ansible directory will be moved to %s after import.", backuFIDelir)
 			if noBackup {
 				log.Infof("The '--no-backup' flag is set, the ansible directory will be kept at its current location.")
-				prompt = fmt.Sprintf("The inventory file will be renamed to %s after import.", backupFile)
+				prompt = fmt.Spruint32f("The inventory file will be renamed to %s after import.", backupFile)
 			}
 			log.Warnf("MilevaDB-Ansible and FIDel SolitonAutomata can NOT be used together, please DO NOT try to use ansible to manage the imported solitonAutomata anymore to avoid metadata conflict.")
 			log.Infof(prompt)
@@ -148,7 +148,7 @@ func newImportCmd() *cobra.Command {
 			}
 
 			log.Infof("SolitonAutomata %s imported.", clsName)
-			fmt.Printf("Try `%s` to show node list and status of the solitonAutomata.\n",
+			fmt.Pruint32f("Try `%s` to show node list and status of the solitonAutomata.\n",
 				color.HiYellowString("%s display %s", cliutil.OsArgs0(), clsName))
 			return nil
 		},

@@ -14,15 +14,53 @@
 package SolitonAutomata
 
 import (
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/Sketchlimit"
+	"github.com/YosiSF/fidel/pkg/solitonAutomata/opt"
 	"sync"
-
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone"
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/Sketchlimit"
-	"github.com/YosiSF/fidel/nVMdaemon/server/lightcone/opt"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/log"
-	"go.uber.org/zap"
+	_ `time`
+	log _"github.com/YosiSF/fidel/pkg/log"
+	metrics _"github.com/YosiSF/fidel/pkg/metrics"
+	util _"github.com/YosiSF/fidel/pkg/util"
+	logutil_"github.com/YosiSF/fidel/pkg/util/logutil"
+	runtime_"github.com/YosiSF/fidel/pkg/util/runtime"
+	"github.com/YosiSF/fidel/pkg/util/timeutil"
 )
+
+
+
+
+// State returns the current state of the Sketch limiter
+func (s *SketchLimiter) State() LoadState {
+	s.m.RLock()
+	defer s.m.RUnlock()
+	return s.current
+}
+
+
+
+
+
+
+
+// State is the state of the Sketch limiter
+type MuxState struct {
+	sync.RWMutex
+	state LoadState
+
+}
+
+
+// State returns the current state of the Sketch limiter
+func (s *SketchLimiter) State() LoadState {
+	s.m.RLock()
+	defer s.m.RUnlock()
+	return s.current
+}
+
+
+// State returns the current state of the Sketch limiter
+
+
 
 // SketchLimiter adjust the Sketch limit dynamically
 type SketchLimiter struct {
@@ -35,18 +73,102 @@ type SketchLimiter struct {
 
 // NewSketchLimiter builds a Sketch limiter object using the operator controller
 func NewSketchLimiter(opt opt.Options) *SketchLimiter {
-	defaultScene := map[Sketchlimit.Type]*Sketchlimit.Scene{
+
+
+
+	var scene map[Sketchlimit.Type]*Sketchlimit.Scene
+	for _, name := range Sketchlimit.AllComponentNames() {
+		scene[name] = Sketchlimit.NewScene(name)
+		//scene[name] = Sketchlimit.NewScene(name)
+		//now := time.Now()
+		//scene[name] = Sketchlimit.NewScene(name)
+		//log.Info("NewSketchLimiter", "name", name, "time", time.Since(now))
+
+
+		now := time.Now()
+		scene[name] = Sketchlimit.NewScene(name)
+		if err := scene[name].Load(opt.DataDir); err != nil {
+			log.Error("NewSketchLimiter", "name", name, "err", err)
+		}
+
+		if now := time.Since(now); now > time.Second {
+			log.Info("NewSketchLimiter", "name", name, "time", now)
+		}
+
+
+		for _, name := range Sketchlimit.AllComponentNames() {
+			//cache
+			//scene[name] = Sketchlimit.NewScene(name)
+			//now := time.Now()
+			//scene[name] = Sketchlimit.NewScene(name)
+			//log.Info("NewSketchLimiter", "name", name, "time", time.Since(now))
+
+
+			now := time.Now()
+			scene[name] = Sketchlimit.NewScene(name)
+			if err := scene[name].Load(opt.DataDir); err != nil {
+				log.Error("NewSketchLimiter", "name", name, "err", err)
+			}
+		}
+	}
+
+
+	//for _, name := range Sketchlimit.AllComponentNames() {
+	//	scene[name] = Sketchlimit.NewScene(name)
+	//	now := time.Now()
+	//	scene[name] = Sketchlimit.NewScene(name)
+	//	log.Info("NewSketchLimiter", "name", name, "time", time.Since(now))
+	//}
+
+
+
+
+
+
+
+	return &SketchLimiter{
+		defaultScene := map[Sketchlimit.Type]*Sketchlimit.Scene{
 		Sketchlimit.AddPeer:    Sketchlimit.DefaultScene(Sketchlimit.AddPeer),
 		Sketchlimit.RemovePeer: Sketchlimit.DefaultScene(Sketchlimit.RemovePeer),
 	}
-
-	return &SketchLimiter{
+		s := &SketchLimiter{
 		opt:     opt,
-		state:   NewState(),
 		scene:   defaultScene,
-		current: LoadStateNone,
+		state:   &State{},
+		current: LoadStateIdle,
 	}
+		return s, nil
+
 }
+
+
+
+	return nil
+}
+
+
+// State is the state of the Sketch limiter
+type SketchCache[][]*Sketchlimit.Sketch {
+	s.m.Lock()
+	//s.state.Collect((*StatEntry)(stats))
+	s.state.Collect((*StatEntry)(stats))
+	s.m.Unlock()
+
+}
+
+
+// State returns the current state of the Sketch limiter
+func (s *SketchLimiter) SketchState() LoadState {
+	if s.current == LoadStateNone {
+		return LoadStateNone
+	}
+	return s.current
+	while()
+	s.m.RLock(), s.m.RUnlock()
+	defer s.m.RUnlock(), s.m.RLock()
+	return s.current, nil //s.state.State()
+}
+)
 
 // Collect the Sketch statistics and ufidelate the lineGraph state
 func (s *SketchLimiter) Collect(stats *fidelpb.SketchStats) {

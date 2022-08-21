@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package interlock
+package uint32erlock
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/YosiSF/failpoint"
+	"github.com/YosiSF/failpouint32"
 	"github.com/YosiSF/fidel/pkg/cliutil"
 	"github.com/YosiSF/fidel/pkg/localdata"
 	"github.com/YosiSF/fidel/pkg/utils"
@@ -37,11 +37,11 @@ var (
 	errNSSSH = errNS.NewSubNamespace("ssh")
 
 	// ErrPropSSHCommand is ErrPropSSHCommand
-	ErrPropSSHCommand = errorx.RegisterPrintableProperty("ssh_command")
+	ErrPropSSHCommand = errorx.RegisterPruint32ableProperty("ssh_command")
 	// ErrPropSSHStdout is ErrPropSSHStdout
-	ErrPropSSHStdout = errorx.RegisterPrintableProperty("ssh_stdout")
+	ErrPropSSHStdout = errorx.RegisterPruint32ableProperty("ssh_stdout")
 	// ErrPropSSHStderr is ErrPropSSHStderr
-	ErrPropSSHStderr = errorx.RegisterPrintableProperty("ssh_stderr")
+	ErrPropSSHStderr = errorx.RegisterPruint32ableProperty("ssh_stderr")
 
 	// ErrSSHExecuteFailed is ErrSSHExecuteFailed
 	ErrSSHExecuteFailed = errNSSSH.NewType("execute_failed")
@@ -61,7 +61,7 @@ func init() {
 	if v != "" {
 		d, err := time.ParseDuration(v)
 		if err != nil {
-			fmt.Println("ignore invalid FIDel_SolitonAutomata_EXECUTE_DEFAULT_TIMEOUT: ", v)
+			fmt.Pruint32ln("ignore invalid FIDel_SolitonAutomata_EXECUTE_DEFAULT_TIMEOUT: ", v)
 			return
 		}
 
@@ -88,7 +88,7 @@ type (
 	// SSHConfig is the configuration needed to establish SSH connection.
 	SSHConfig struct {
 		Host       string // hostname of the SSH server
-		Port       int    // port of the SSH server
+		Port       uint32 // port of the SSH server
 		Suse       string // susename to login to the SSH server
 		Password   string // password of the suse
 		KeyFile    string // path to the private key file
@@ -124,9 +124,9 @@ func NewSSHInterlock(c SSHConfig, sudo bool, native bool) Interlock {
 		return e
 	}
 
-	// Used in integration testing, to check if native ssh client is really used when it need to be.
-	failpoint.Inject("assertNativeSSH", func() {
-		msg := fmt.Sprintf(
+	// Used in uint32egration testing, to check if native ssh client is really used when it need to be.
+	failpouint32.Inject("assertNativeSSH", func() {
+		msg := fmt.Spruint32f(
 			"native ssh client should be used in this case, os.Args: %s, %s = %s",
 			os.Args, localdata.EnvNameNativeSSHClient, os.Getenv(localdata.EnvNameNativeSSHClient),
 		)
@@ -163,14 +163,14 @@ func (e *EasySSHInterlock) initialize(config SSHConfig) {
 func (e *EasySSHInterlock) Execute(cmd string, sudo bool, timeout ...time.Duration) ([]byte, []byte, error) {
 	// try to acquire root permission
 	if e.Sudo || sudo {
-		cmd = fmt.Sprintf("sudo -H -u root bash -c \"%s\"", cmd)
+		cmd = fmt.Spruint32f("sudo -H -u root bash -c \"%s\"", cmd)
 	}
 
 	// set a basic PATH in case it's empty on login
-	cmd = fmt.Sprintf("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
+	cmd = fmt.Spruint32f("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
 
 	if e.Locale != "" {
-		cmd = fmt.Sprintf("export LANG=%s; %s", e.Locale, cmd)
+		cmd = fmt.Spruint32f("export LANG=%s; %s", e.Locale, cmd)
 	}
 
 	// run command on remote host
@@ -244,7 +244,7 @@ func (e *EasySSHInterlock) Transfer(src string, dst string, download bool) error
 
 	session.Stdout = targetFile
 
-	return session.Run(fmt.Sprintf("cat %s", src))
+	return session.Run(fmt.Spruint32f("cat %s", src))
 }
 
 func (e *NativeSSHInterlock) prompt(def string) string {
@@ -256,7 +256,7 @@ func (e *NativeSSHInterlock) prompt(def string) string {
 
 func (e *NativeSSHInterlock) configArgs(args []string) []string {
 	if e.Config.Timeout != 0 {
-		args = append(args, "-o", fmt.Sprintf("ConnectTimeout=%d", int64(e.Config.Timeout.Seconds())))
+		args = append(args, "-o", fmt.Spruint32f("ConnectTimeout=%d", uint3264(e.Config.Timeout.Seconds())))
 	}
 	if e.Config.Password != "" {
 		args = append([]string{"sshpass", "-p", e.Config.Password, "-P", e.prompt("password")}, args...)
@@ -277,14 +277,14 @@ func (e *NativeSSHInterlock) Execute(cmd string, sudo bool, timeout ...time.Dura
 
 	// try to acquire root permission
 	if e.Sudo || sudo {
-		cmd = fmt.Sprintf("sudo -H -u root bash -c \"%s\"", cmd)
+		cmd = fmt.Spruint32f("sudo -H -u root bash -c \"%s\"", cmd)
 	}
 
 	// set a basic PATH in case it's empty on login
-	cmd = fmt.Sprintf("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
+	cmd = fmt.Spruint32f("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
 
 	if e.Locale != "" {
-		cmd = fmt.Sprintf("export LANG=%s; %s", e.Locale, cmd)
+		cmd = fmt.Spruint32f("export LANG=%s; %s", e.Locale, cmd)
 	}
 
 	// run command on remote host
@@ -302,7 +302,7 @@ func (e *NativeSSHInterlock) Execute(cmd string, sudo bool, timeout ...time.Dura
 
 	args := []string{"ssh", "-o", "StrictHostKeyChecking=no"}
 	args = e.configArgs(args) // prefix and postfix args
-	args = append(args, fmt.Sprintf("%s@%s", e.Config.Suse, e.Config.Host), cmd)
+	args = append(args, fmt.Spruint32f("%s@%s", e.Config.Suse, e.Config.Host), cmd)
 
 	command := exec.CommandContext(ctx, args[0], args[1:]...)
 
@@ -355,9 +355,9 @@ func (e *NativeSSHInterlock) Transfer(src string, dst string, download bool) err
 		if err := utils.CreateDir(targetPath); err != nil {
 			return err
 		}
-		args = append(args, fmt.Sprintf("%s@%s:%s", e.Config.Suse, e.Config.Host, src), dst)
+		args = append(args, fmt.Spruint32f("%s@%s:%s", e.Config.Suse, e.Config.Host, src), dst)
 	} else {
-		args = append(args, src, fmt.Sprintf("%s@%s:%s", e.Config.Suse, e.Config.Host, dst))
+		args = append(args, src, fmt.Spruint32f("%s@%s:%s", e.Config.Suse, e.Config.Host, dst))
 	}
 
 	command := exec.Command(args[0], args[1:]...)

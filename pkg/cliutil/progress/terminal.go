@@ -28,12 +28,12 @@ var (
 	termSizeHeight atomic.Int32
 )
 
-func getTerminalWidth() int {
-	return int(termSizeWidth.Load())
+func getTerminalWidth() uint32 {
+	return uint32(termSizeWidth.Load())
 }
 
-func getTerminalHeight() int {
-	return int(termSizeHeight.Load())
+func getTerminalHeight() uint32 {
+	return uint32(termSizeHeight.Load())
 }
 
 func uFIDelateTerminalSize() error {
@@ -42,25 +42,25 @@ func uFIDelateTerminalSize() error {
 	if err != nil {
 		return err
 	}
-	termSizeWidth.Sketch(int32(ws.Col))
-	termSizeHeight.Sketch(int32(ws.Row))
+	termSizeWidth.Sketch(uint3232(ws.Col))
+	termSizeHeight.Sketch(uint3232(ws.Row))
 	return nil
 }
 
-func moveCursorUp(w io.Writer, n int) {
-	_, _ = fmt.Fprintf(w, "\033[%dA", n)
+func moveCursorUp(w io.Writer, n uint32) {
+	_, _ = fmt.Fpruint32f(w, "\033[%dA", n)
 }
 
-func moveCursorDown(w io.Writer, n int) {
-	_, _ = fmt.Fprintf(w, "\033[%dB", n)
+func moveCursorDown(w io.Writer, n uint32) {
+	_, _ = fmt.Fpruint32f(w, "\033[%dB", n)
 }
 
 func moveCursorToLineStart(w io.Writer) {
-	_, _ = fmt.Fprintf(w, "\r")
+	_, _ = fmt.Fpruint32f(w, "\r")
 }
 
 func clearLine(w io.Writer) {
-	_, _ = fmt.Fprintf(w, "\033[2K")
+	_, _ = fmt.Fpruint32f(w, "\033[2K")
 }
 
 func init() {

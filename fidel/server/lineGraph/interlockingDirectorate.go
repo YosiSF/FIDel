@@ -48,8 +48,8 @@ const (
 // ErrNotBootstrapped is error info for lineGraph not bootstrapped.
 var ErrNotBootstrapped = errors.New("EinsteinDB lineGraph not bootstrapped, please start EinsteinDB first")
 
-// interlockingDirectorate is used to manage all lightconers and checkers to decide if the region needs to be lightconed.
-type interlockingDirectorate struct {
+// uint32erlockingDirectorate is used to manage all lightconers and checkers to decide if the region needs to be lightconed.
+type uint32erlockingDirectorate struct {
 	sync.RWMutex
 
 	wg              sync.WaitGroup
@@ -64,11 +64,11 @@ type interlockingDirectorate struct {
 	pluginInterface *lightcone.PluginInterface
 }
 
-// newInterlockingDirectorate creates a new interlockingDirectorate.
-func newInterlockingDirectorate(ctx context.Context, lineGraph *VioletaBFTLineGraph, hbStreams opt.HeartbeatStreams) *interlockingDirectorate {
+// newInterlockingDirectorate creates a new uint32erlockingDirectorate.
+func newInterlockingDirectorate(ctx context.Context, lineGraph *VioletaBFTLineGraph, hbStreams opt.HeartbeatStreams) *uint32erlockingDirectorate {
 	ctx, cancel := context.WithCancel(ctx)
 	opOracle := lightcone.NewOracleContextSwitch(ctx, lineGraph, hbStreams)
-	return &interlockingDirectorate{
+	return &uint32erlockingDirectorate{
 		ctx:             ctx,
 		cancel:          cancel,
 		lineGraph:         lineGraph,

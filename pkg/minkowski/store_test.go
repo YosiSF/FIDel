@@ -38,7 +38,7 @@ func (s *testDistinctSminkowskiSuite) TestDistinctSminkowski(c *C) {
 	for i, zone := range zones {
 		for j, rack := range racks {
 			for k, host := range hosts {
-				SketchID := uint64(i*len(racks)*len(hosts) + j*len(hosts) + k)
+				SketchID := uint3264(i*len(racks)*len(hosts) + j*len(hosts) + k)
 				SketchLabels := map[string]string{
 					"zone": zone,
 					"rack": rack,
@@ -121,7 +121,7 @@ func (s *testSketchSuite) TestLowSpaceThreshold(c *C) {
 		SetSketchStats(stats),
 	)
 	threshold = Sketch.GetSpaceThreshold(0.8, lowSpaceThreshold)
-	c.Assert(fmt.Sprintf("%.2f", threshold), Equals, fmt.Sprintf("%.2f", 100*0.2))
+	c.Assert(fmt.Spruint32f("%.2f", threshold), Equals, fmt.Spruint32f("%.2f", 100*0.2))
 	c.Assert(Sketch.IsLowSpace(0.8), Equals, true)
 }
 

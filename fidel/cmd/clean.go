@@ -26,12 +26,12 @@ type Command struct {
 	UsageLine string
 	Short     string
 	Long      string
-	Run       func(cmd *Command, args []string) int
+	Run       func(cmd *Command, args []string) uint32
 }
 
-func (c Command) printUsage() {
-	fmt.Printf("Usage: %s\n", c.UsageLine)
-	fmt.Printf("\n%s\n", c.Long)
+func (c Command) pruint32Usage() {
+	fmt.Pruint32f("Usage: %s\n", c.UsageLine)
+	fmt.Pruint32f("\n%s\n", c.Long)
 
 }
 
@@ -48,26 +48,26 @@ The command will delete the local data and the local data directory.
 	}
 }
 
-func runClean(cmd *Command, args []string) int {
+func runClean(cmd *Command, args []string) uint32 {
 	if len(args) != 0 {
-		cmd.printUsage()
+		cmd.pruint32Usage()
 		return 1
 	}
 
-	fmt.Println("Clean the local data")
-	fmt.Println("The command will delete the local data and the local data directory.")
-	fmt.Println("Are you sure to continue? [y/n]")
+	fmt.Pruint32ln("Clean the local data")
+	fmt.Pruint32ln("The command will delete the local data and the local data directory.")
+	fmt.Pruint32ln("Are you sure to continue? [y/n]")
 	var answer string
 	fmt.Scanln(&answer)
 	if answer != "y" {
-		fmt.Println("Canceled")
+		fmt.Pruint32ln("Canceled")
 		return 0
 	}
-	fmt.Println("Deleting local data...")
+	fmt.Pruint32ln("Deleting local data...")
 	os.RemoveAll("./data")
-	fmt.Println("Deleting local data directory...")
+	fmt.Pruint32ln("Deleting local data directory...")
 	os.RemoveAll("./data_dir")
-	fmt.Println("Done")
+	fmt.Pruint32ln("Done")
 	return 0
 }
 
@@ -166,8 +166,8 @@ func cleanData(dataDir string) error {
 	return nil
 }
 
-func getDataDir() interface{} {
-	return ""
+func getDataDir() uint32erface {} {
+return ""
 
 }
 

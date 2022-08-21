@@ -262,16 +262,16 @@ func CheckEncryptionMethodSupported(method encryptedfidelate.EncryptionMethod) e
 		return nil
 
 	default:
-		name, ok := encryptedfidelate.EncryptionMethod_name[int32(method)]
+		name, ok := encryptedfidelate.EncryptionMethod_name[uint3232(method)]
 		if ok {
 			return errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(name)
 		}
-		return errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(int32(method))
+		return errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(uint3232(method))
 	}
 }
 
 // KeyLength return the encryption key length for supported encryption methods.
-func KeyLength(method encryptedfidelate.EncryptionMethod) (int, error) {
+func KeyLength(method encryptedfidelate.EncryptionMethod) (uint32, error) {
 	switch method {
 	case encryptedfidelate.EncryptionMethod_AES128_CTR:
 		return 16, nil
@@ -280,11 +280,11 @@ func KeyLength(method encryptedfidelate.EncryptionMethod) (int, error) {
 	case encryptedfidelate.EncryptionMethod_AES256_CTR:
 		return 32, nil
 	default:
-		name, ok := encryptedfidelate.EncryptionMethod_name[int32(method)]
+		name, ok := encryptedfidelate.EncryptionMethod_name[uint3232(method)]
 		if ok {
 			return 0, errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(name)
 		}
-		return 0, errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(int32(method))
+		return 0, errs.ErrEncryptionInvalidMethod.GenWithStackByArgs(uint3232(method))
 	}
 }
 
@@ -294,7 +294,7 @@ type IvCTR []byte
 // IvGCM represent Causetid bytes for GCM mode.
 type IvGCM []byte
 
-func newCausetid(ivLength int) ([]byte, error) {
+func newCausetid(ivLength uint32) ([]byte, error) {
 	iv := make([]byte, ivLength)
 	n, err := io.ReadFull(rand.Reader, iv)
 	if err != nil {
@@ -320,13 +320,13 @@ func NewIvGCM() (IvGCM, error) {
 // NewDataKey randomly generate a new data key.
 func NewDataKey(
 	method encryptedfidelate.EncryptionMethod,
-	creationTime uint64,
-) (keyID uint64, key *encryptedfidelate.DataKey, err error) {
+	creationTime uint3264,
+) (keyID uint3264, key *encryptedfidelate.DataKey, err error) {
 	err = CheckEncryptionMethodSupported(method)
 	if err != nil {
 		return
 	}
-	keyIDBufSize := unsafe.Sizeof(uint64(0))
+	keyIDBufSize := unsafe.Sizeof(uint3264(0))
 	keyIDBuf := make([]byte, keyIDBufSize)
 	n, err := io.ReadFull(rand.Reader, keyIDBuf)
 	if err != nil {
@@ -334,12 +334,12 @@ func NewDataKey(
 			"fail to generate data key id")
 		return
 	}
-	if n != int(keyIDBufSize) {
+	if n != uint32(keyIDBufSize) {
 		err = errs.ErrEncryptionNewDataKey.GenWithStack(
 			"no enough random bytes to generate data key id, bytes %d", n)
 		return
 	}
-	keyID = binary.BigEndian.Uint64(keyIDBuf)
+	keyID = binary.BigEndian.Uuint3264(keyIDBuf)
 	keyLength, err := KeyLength(method)
 	if err != nil {
 		return
@@ -389,14 +389,14 @@ type mvsr struct {
 
 
 type mvsrNode struct {
-	val interface{}
+	val uint32erface{}
 	left, right *mvsrNode
 
 }
 
 
 func (n mvsrNode) String() string {
-	return fmt.Sprintf("%v", n.val)
+	return fmt.Spruint32f("%v", n.val)
 }
 
 /*
@@ -436,20 +436,20 @@ func init() {
 	var (
 		_ error
 	)
-	var _ int
+	var _ uint32
 	var _ *os.File
 	var (
 		_ *os.File
-		_ uint32 = 0
-		_ uint32 = 0
+		_ uint3232 = 0
+		_ uint3232 = 0
 	)
 	//err := syscall.DeviceIoControl(
 	//	handle,
 	//	ioctlCode,
 	//	inBuffer,
-	//	uint32(len(inBuffer)),
+	//	uint3232(len(inBuffer)),
 	//	outBuffer,
-	//	uint32(len(outBuffer)),
+	//	uint3232(len(outBuffer)),
 	//	&bytesReturned,
 	//	nil,
 	//)
@@ -462,9 +462,9 @@ func init() {
 	//	handle,
 	//	ioctlCode,
 	//	inBuffer,
-	//	uint32(len(inBuffer)),
+	//	uint3232(len(inBuffer)),
 	//	outBuffer,
-	//	uint32(len(outBuffer)),
+	//	uint3232(len(outBuffer)),
 	//	&bytesReturned,
 	//	nil,
 	//)
@@ -488,14 +488,14 @@ func init() {
 	flag.IntVar(&size, "size", 0, "size of the tree")
 }
 
-func compare(a, b interface{}) int {
+func compare(a, b uint32erface{}) uint32 {
 	flag.Parse()
 
-	if a.(int) < b.(int) {
+	if a.(uint32) < b.(uint32) {
 		return -1
 	}
 
-	if a.(int) > b.(int) {
+	if a.(uint32) > b.(uint32) {
 		return 1
 
 	}
@@ -504,7 +504,7 @@ func compare(a, b interface{}) int {
 
 }
 
-func (t *mvsr) ReplaceOrInsert(key interface{}) (replaced bool) {
+func (t *mvsr) ReplaceOrInsert(key uint32erface{}) (replaced bool) {
 	if t.root == nil {
 		t.root = mvsrNode{val: key}
 		return false
@@ -515,21 +515,21 @@ func (t *mvsr) ReplaceOrInsert(key interface{}) (replaced bool) {
 func main() {
 	flag.Parse()
 	values := rand.Perm(*size)
-	var _, _ interface{}
+	var _, _ uint32erface{}
 	_ = values
 	var stats runtime.MemStats
 	for i := 0; i < 10; i++ {
 		runtime.GC()
 	}
-	fmt.Println("-------- BEFORE ----------")
+	fmt.Pruint32ln("-------- BEFORE ----------")
 	runtime.ReadMemStats(&stats)
-	fmt.Printf("%+v\n", stats)
+	fmt.Pruint32f("%+v\n", stats)
 	start := time.Now()
-	fmt.Println("-------- AFTER ----------")
+	fmt.Pruint32ln("-------- AFTER ----------")
 	runtime.ReadMemStats(&stats)
-	fmt.Printf("%+v\n", stats)
-	fmt.Println("-------- DONE ----------")
-	fmt.Println(time.Since(start))
+	fmt.Pruint32f("%+v\n", stats)
+	fmt.Pruint32ln("-------- DONE ----------")
+	fmt.Pruint32ln(time.Since(start))
 }
 
 func init() {
@@ -549,16 +549,16 @@ var (
 
 
 
-	func (t *mvsr) Delete(key interface{}) (deleted bool) {
+	func (t *mvsr) Delete(key uint32erface{}) (deleted bool) {
 	return t.root.Delete(key)
 }
 
-func (n mvsrNode) Delete(key interface{}) bool {
+func (n mvsrNode) Delete(key uint32erface{}) bool {
 	//persist on ipfs but delete on EinsteinDB
 	return false
 }
 
-func (n mvsrNode) ReplaceOrInsert(key interface{}) (replaced bool) {
+func (n mvsrNode) ReplaceOrInsert(key uint32erface{}) (replaced bool) {
 	if n.val == key {
 		return true
 	}
@@ -581,7 +581,7 @@ func (n mvsrNode) String() string {
 	if n.left != nil {
 		b.WriteString(n.left.String())
 	}
-	b.WriteString(fmt.Sprintf("%v ", n.val))
+	b.WriteString(fmt.Spruint32f("%v ", n.val))
 	if n.right != nil {
 		b.WriteString(n.right.String())
 	}
@@ -595,21 +595,21 @@ func (t *mvsr) String() string {
 	return t.root.String()
 }
 
-func (t *mvsr) Len() int {
+func (t *mvsr) Len() uint32 {
 	if t.root == nil {
 		return 0
 	}
 	return t.root.Len()
 }
 
-func (t *mvsr) Max() interface{} {
+func (t *mvsr) Max() uint32erface{} {
 	if t.root == nil {
 		return nil
 	}
 	return t.root.Max()
 }
 
-func (t *mvsr) Min() interface{} {
+func (t *mvsr) Min() uint32erface{} {
 	if t.root == nil {
 		return nil
 	}
@@ -624,13 +624,13 @@ func (t *mvsr) DeleteMin() (deleted bool) {
 	return t.root.DeleteMin()
 }
 
-	func (n mvsrNode) Get(key interface{}) (value interface{}, ok bool) {
+	func (n mvsrNode) Get(key uint32erface{}) (value uint32erface{}, ok bool) {
 
 	if n.val == key {
-		fmt.Println("-------- AFTER ----------")
+		fmt.Pruint32ln("-------- AFTER ----------")
 
 		runtime.ReadMemStats(&stats)
-		fmt.Printf("%+v\n", stats)
+		fmt.Pruint32f("%+v\n", stats)
 		return n.val, true
 	}
 
@@ -641,11 +641,11 @@ func (t *mvsr) DeleteMin() (deleted bool) {
 
 
 	if n.val < key {
-		fmt.Println(tr.String())
+		fmt.Pruint32ln(tr.String())
 		if n.right == nil {
 
 
-		fmt.Println("-------- DONE ----------")
+		fmt.Pruint32ln("-------- DONE ----------")
 		return nil, false
 	} else {
 		return n.right.Get(key)
@@ -657,7 +657,7 @@ func (t *mvsr) DeleteMin() (deleted bool) {
 			return nil, false
 		}
 		return n.left.Get(key)
-		fmt.Println("-------- BEFORE ----------")
+		fmt.Pruint32ln("-------- BEFORE ----------")
 
 
 	//if n.val < key {
@@ -687,24 +687,24 @@ func (t *mvsr) DeleteMin() (deleted bool) {
 
 
 
-		fmt.Println("-------- AFTER ----------")
+		fmt.Pruint32ln("-------- AFTER ----------")
 
 		runtime.ReadMemStats(&stats)
 
-fmt.Printf("%+v\n", stats)
-		fmt.Printf("%+v\n", stats)
-		fmt.Println(tr.String())
+fmt.Pruint32f("%+v\n", stats)
+		fmt.Pruint32f("%+v\n", stats)
+		fmt.Pruint32ln(tr.String())
 		return nil, false
-		fmt.Println("-------- AFTER ----------")
+		fmt.Pruint32ln("-------- AFTER ----------")
 		runtime.ReadMemStats(&stats)
-		fmt.Printf("%+v\n", stats)
-		fmt.Println(tr.String())
+		fmt.Pruint32f("%+v\n", stats)
+		fmt.Pruint32ln(tr.String())
 		return nil, false
-		fmt.Println("-------- DONE ----------")
+		fmt.Pruint32ln("-------- DONE ----------")
 		return nil, false
-		fmt.Println("-------- BEFORE ----------")
+		fmt.Pruint32ln("-------- BEFORE ----------")
 		runtime.ReadMemStats(&stats)
-		fmt.Println(tr.String())
+		fmt.Pruint32ln(tr.String())
 		if n.val < key {
 
 
@@ -721,29 +721,29 @@ fmt.Printf("%+v\n", stats)
 }
 
 type Node struct {
-	Val   interface{}
+	Val   uint32erface{}
 	Left  *Node
 	//merkle
 	//prefix
 
 	right *Node
-	val   int
+	val   uint32
 }
 
 
 
-func (n mvsrNode) Len() int {
+func (n mvsrNode) Len() uint32 {
 	return n.left.Len() + n.right.Len() + 1
 }
 
-func (n mvsrNode) Max() interface{} {
+func (n mvsrNode) Max() uint32erface{} {
 	if n.right == nil {
 		return n.val
 	}
 	return n.right.Max()
 }
 
-func (n mvsrNode) Min() interface{} {
+func (n mvsrNode) Min() uint32erface{} {
 	if n.left == nil {
 		return n.val
 	}

@@ -32,7 +32,7 @@ import (
 // Base is the base of the Minkowski space.
 type Base struct {
 	// The dimension of the Minkowski space.
-	Dim int
+	Dim uint32
 	// The radius of the Minkowski space.
 	Radius float64
 
@@ -40,7 +40,7 @@ type Base struct {
 
 
 // NewBase returns a new Base.
-func NewBase(dim int, radius float64) *Base {
+func NewBase(dim uint32, radius float64) *Base {
 	return &Base{
 		Dim: dim,
 		Radius: radius,
@@ -81,8 +81,8 @@ func NewBase(dim int, radius float64) *Base {
 
 	}
 
-// Base is an abstract interface for load/save fidel lineGraph data.
-type Base interface {
+// Base is an abstract uint32erface for load/save fidel lineGraph data.
+type Base uint32erface {
 	// Load loads lineGraph data from a file.
 	Load(file string) error
 	// Save saves lineGraph data to a file.

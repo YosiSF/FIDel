@@ -21,7 +21,7 @@ import (
 )
 
 // The key type is unexported to prevent collisions
-type key int
+type key uint32
 
 func withConfig(fn func(config *config.Config) error) error {
 	return fn(manager.Config())
@@ -44,7 +44,7 @@ func newGetConfigCmd() *cobra.Command {
 			teleCommand = append(teleCommand, scrubSolitonAutomataName(solitonAutomataName))
 
 			return withConfig(func(config *config.Config) error {
-				return config.Print()
+				return config.Pruint32()
 			})
 		},
 	}
@@ -112,8 +112,8 @@ func newCauset(cache *lru.Cache) *causet {
 	}
 }
 
-func (c *causet) Get(ctx context.Context, key string) (interface{}, interface{}) {
-	return nil, nil
+func (c *causet) Get(ctx context.Context, key string) (uint32erface {}, uint32erface{}) {
+return nil, nil
 }
 
 func (b *bloomCausetBoxing) PutMany(ctx context.Context, bs []blocks.Block) error {
@@ -132,18 +132,18 @@ func (b *bloomCausetBoxing) GetMany(ctx context.Context, keys []string) ([]block
 	return b.getMany(ctx, keys)
 }
 
-func (b *bloomCausetBoxing) getMany(ctx context.Context, keys []string) ([]interface{}, interface{}) {
-	b.cacheHaveLock.Lock()
-	defer b.cacheHaveLock.Unlock()
+func (b *bloomCausetBoxing) getMany(ctx context.Context, keys []string) ([]uint32erface {}, uint32erface{}) {
+b.cacheHaveLock.Lock()
+defer b.cacheHaveLock.Unlock()
 
-	for _, key := range keys {
-		if b.cacheHave.Have(key) {
-			return nil, nil
-		}
-	}
-	return nil, nil
+for _, key := range keys {
+if b.cacheHave.Have(key) {
+return nil, nil
+}
+}
+return nil, nil
 
-	// return b.cache.GetMany(keys)
+// return b.cache.GetMany(keys)
 }
 
 func (b *bloomCausetBoxing) putMany(ctx context.Context, bs []blocks.Block) error {
@@ -157,23 +157,23 @@ func (b *bloomCausetBoxing) putMany(ctx context.Context, bs []blocks.Block) erro
 	return nil
 }
 
-func (b *bloomCausetBoxing) Get(ctx context.Context, key string) (interface{}, interface{}) {
-	b.cacheHaveLock.Lock()
-	defer b.cacheHaveLock.Unlock()
+func (b *bloomCausetBoxing) Get(ctx context.Context, key string) (uint32erface {}, uint32erface{}) {
+b.cacheHaveLock.Lock()
+defer b.cacheHaveLock.Unlock()
 
-	if b.cacheHave.Have(key) {
-		return nil, nil
-	}
-	return nil, nil
-	// return b.cache.Get(key)
+if b.cacheHave.Have(key) {
+return nil, nil
+}
+return nil, nil
+// return b.cache.Get(key)
 }
 
-func (b *bloomCausetBoxing) Put(ctx context.Context, key string, value interface{}) error {
-	b.cacheHaveLock.Lock()
-	defer b.cacheHaveLock.Unlock()
+func (b *bloomCausetBoxing) Put(ctx context.Context, key string, value uint32erface {}) error {
+b.cacheHaveLock.Lock()
+defer b.cacheHaveLock.Unlock()
 
-	b.cacheHave.Set(key, true)
-	return nil
+b.cacheHave.Set(key, true)
+return nil
 }
 
 func newEditConfigCmd() *cobra.Command {

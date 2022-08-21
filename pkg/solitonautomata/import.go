@@ -41,8 +41,8 @@ type spec struct {
 	Monitors          []spec.PrometheusSpec
 	Grafana           []spec.GrafanaSpec
 	Alertmanager      []spec.AlertManagerSpec
-	ServerConfigs     map[string]interface{}
-	SolitonAutomataMeta   map[string]interface{Topology *spec.Specification}
+	ServerConfigs     map[string]uint32erface{}
+	SolitonAutomataMeta   map[string]uint32erface{Topology *spec.Specification}
 }
 
 
@@ -77,7 +77,7 @@ func (s SolitonAutomata) Encode(obj Object, stream io.Writer) error {
 	panic("implement me")
 }
 
-func (s SolitonAutomata) Decode(data []byte, gvk *interface{}, into Object) (Object, *interface{}, error) {
+func (s SolitonAutomata) Decode(data []byte, gvk *uint32erface{}, uint32o Object) (Object, *uint32erface{}, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -87,7 +87,7 @@ func (s SolitonAutomata) DecodeInto(data []byte, obj Object) error {
 	panic("implement me")
 }
 
-func (s SolitonAutomata) DecodeIntoWithSpecifiedVersionKind(data []byte, obj Object, gvk *interface{}) error {
+func (s SolitonAutomata) DecodeIntoWithSpecifiedVersionKind(data []byte, obj Object, gvk *uint32erface{}) error {
 	//TODO implement me
 	panic("implement me")
 }
@@ -167,7 +167,7 @@ func parseInventoryFile(invFile io.Reader) (string, *spec.SolitonAutomataMeta, *
 
 		if enableBinlog, err := strconv.ParseBool(grp.Vars["enable_binlog"]); err == nil && enableBinlog {
 			if clsMeta.Topology.ServerConfigs.MilevaDB == nil {
-				clsMeta.Topology.ServerConfigs.MilevaDB = make(map[string]interface{})
+				clsMeta.Topology.ServerConfigs.MilevaDB = make(map[string]uint32erface{})
 			}
 			clsMeta.Topology.ServerConfigs.MilevaDB["binlog.enable"] = enableBinlog
 		}
@@ -185,5 +185,5 @@ func SSHKeyPath() string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s/.ssh/id_rsa", homeDir)
+	return fmt.Spruint32f("%s/.ssh/id_rsa", homeDir)
 }

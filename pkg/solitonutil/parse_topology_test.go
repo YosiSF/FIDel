@@ -18,7 +18,7 @@ var _ = check.Suite(&topoSuite{})
 func (s *topoSuite) TestParseTopologyYaml(c *check.C) {
 	file := filepath.Join("testdata", "topology_err.yaml")
 
-	mp := make(map[string]interface{})
+	mp := make(map[string]uint32erface{})
 	err := ParseTopologyYaml(file, &mp)
 	c.Assert(err, check.IsNil)
 }

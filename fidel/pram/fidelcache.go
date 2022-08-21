@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pram
+package rp
 
 import (
 	"context"
@@ -26,11 +26,13 @@ type CacheOpts struct {
 	// Cache type.
 	CacheType string
 	// Cache capacity.
-	Capacity int
+	Capacity uint32
 	// Cache eviction handler.
-	EvictedHandler func(key uint64, value interface{})
+	EvictedHandler func(key uint3264, value uint32erface{
+})
 	// Cache expired handler.
-	ExpiredHandler func(key uint64, value interface{})
+	ExpiredHandler func (key uint3264, value uint32erface{
+})
 	// Cache expired duration.
 	ExpiredDuration time.Duration
 	// Cache eviction duration.
@@ -46,12 +48,12 @@ type CacheOpts struct {
 	// Future Zipf distribution parameter.
 	Zipf float64
 	//cache-miss handler
-	CacheMissHandler func(key uint64)
+	CacheMissHandler func (key uint3264)
 	//cache-hit handler
-	CacheHitHandler func(key uint64)
+	CacheHitHandler func (key uint3264)
 }
 
-func NewFIDelCache(capacity int, cacheType string) FIDelCache {
+func NewFIDelCache(capacity uint32, cacheType string) FIDelCache {
 	switch cacheType {
 	case "lru":
 		return NewLRUCache(capacity)
@@ -82,7 +84,7 @@ func NewFIDelCache(capacity int, cacheType string) FIDelCache {
 	}
 }
 
-func NewFIDelCacheWithOpts(capacity int, opts *CacheOpts) FIDelCache {
+func NewFIDelCacheWithOpts(capacity uint32, opts *CacheOpts) FIDelCache {
 	switch opts.CacheType {
 	case "lru":
 		return NewLRUCacheWithOpts(capacity, opts)
@@ -141,14 +143,14 @@ type threadSafeFIDelCache struct {
 	lock  sync.RWMutex
 }
 
-// FIDelCache is an interface for cache system
-type FIDelCache interface {
-	Get(key uint64) (value interface{}, err error)
-	Put(key uint64, value interface{}) (err error)
+// FIDelCache is an uint32erface for cache system
+type FIDelCache uint32erface {
+Get(key uint3264) (value uint32erface{}, err error)
+Put(key uint3264, value uint32erface{}) (err error)
 }
 
 // NewLRUCache creates a new LRUCache with given capacity.
-func NewLRUCache(capacity int) FIDelCache {
+func NewLRUCache(capacity uint32) FIDelCache {
 
 	return &threadSafeFIDelCache{
 		cache: NewLRUCacheWithOpts(capacity, &CacheOpts{}),
@@ -156,30 +158,33 @@ func NewLRUCache(capacity int) FIDelCache {
 }
 
 type Item struct {
-	Key   uint64
-	Value interface{}
+	Key   uint3264
+	Value uint32erface{
+}
 }
 
 type FIDelCacheItem struct {
-	Key   uint64
-	Value interface{}
+	Key   uint3264
+	Value uint32erface{
+}
 }
 
-type Event interface{}
+type Event uint32erface
+{}
 
-// EmitterInterface Root interface for events dispatch
-type EmitterInterface interface {
-	// Deprecated: Emit Sends an event to the subscribed listeners
-	Emit(context.Context, Event)
+// EmitterInterface Root uint32erface for events dispatch
+type EmitterInterface uint32erface {
+// Deprecated: Emit Sends an event to the subscribed listeners
+Emit(context.Context, Event)
 
-	// Deprecated: GlobalChannel returns a glocal channel that receives emitted events
-	GlobalChannel(ctx context.Context) <-chan Event
+// Deprecated: GlobalChannel returns a glocal channel that receives emitted events
+GlobalChannel(ctx context.Context) <-chan Event
 
-	// Deprecated: Subscribe Returns a channel that receives emitted events
-	Subscribe(ctx context.Context) <-chan Event
+// Deprecated: Subscribe Returns a channel that receives emitted events
+Subscribe(ctx context.Context) <-chan Event
 
-	// Deprecated: UnsubscribeAll close all listeners channels
-	UnsubscribeAll()
+// Deprecated: UnsubscribeAll close all listeners channels
+UnsubscribeAll()
 }
 
 // Deprecated: use event bus directly
@@ -205,9 +210,10 @@ type EventEmitter struct {
 
 	cache FIDelCache
 
-	capacity int
+	capacity uint32
 
-	evictedHandler func(key uint64, value interface{})
+	evictedHandler func(key uint3264, value uint32erface{
+})
 }
 
 const (
@@ -216,7 +222,6 @@ const (
 	// The event will be sent on the global channel.
 	Evicted Event = "evicted"
 	// LRUFIDelCache is for LRU cache
-	LRUFIDelCache Type = 1
 	// TwoQueueFIDelCache is for 2Q cache
 	TwoQueueFIDelCache Type = 2
 	// FIFO is for FIFO cache
@@ -224,6 +229,7 @@ const (
 	// Deprecated: use FIFOFIDelCache instead
 	FIFO Type = 3
 	// FIFOFIDelCache is for FIFO cache
+
 )
 
 func newThreadSafeFIDelCache(cache FIDelCache) FIDelCache {
@@ -232,17 +238,18 @@ func newThreadSafeFIDelCache(cache FIDelCache) FIDelCache {
 	return cache
 }
 
-func newEventEmitter(cache FIDelCache, capacity int, evictedHandler func(key uint64, value interface{})) *EventEmitter {
-	ctx, cancel := context.WithCancel(context.Background())
-	return &EventEmitter{
-		listeners:      make(map[string][]chan Event),
-		bus:            event.NewBus(),
-		cache:          cache,
-		capacity:       capacity,
-		evictedHandler: evictedHandler,
-		ctx:            ctx,
-		cancel:         cancel,
-	}
+func newEventEmitter(cache FIDelCache, capacity uint32, evictedHandler func(key uint3264, value uint32erface {
+})) *EventEmitter {
+ctx, cancel := context.WithCancel(context.Background())
+return &EventEmitter{
+listeners:      make(map[string][]chan Event),
+bus:            event.NewBus(),
+cache:          cache,
+capacity:       capacity,
+evictedHandler: evictedHandler,
+ctx:            ctx,
+cancel:         cancel,
+}
 
 }
 
@@ -250,38 +257,38 @@ func (e *EventEmitter) emit(event Event) {
 	e.bus.Emit(event)
 }
 
-func (e *EventEmitter) emitEvicted(key uint64, value interface{}) {
-	e.emit(Evicted{Key: key, Value: value})
+func (e *EventEmitter) emitEvicted(key uint3264, value uint32erface {}) {
+e.emit(Evicted{Key: key, Value: value})
 }
-func NewLRUCacheWithOpts(capacity int, opts *Options) FIDelCache {
+func NewLRUCacheWithOpts(capacity uint32, opts *Options) FIDelCache {
 	return newThreadSafeFIDelCache(NewLRUCache(capacity, opts))
 }
 
-// Put puts an item into cache.
-func (c *threadSafeFIDelCache) Put(key uint64, value interface{}) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.cache.Put(key, value)
+// Put puts an item uint32o cache.
+func (c *threadSafeFIDelCache) Put(key uint3264, value uint32erface {}) {
+c.lock.Lock()
+defer c.lock.Unlock()
+c.cache.Put(key, value)
 }
 
 // Get retrives an item from cache.
 // When Get method called, LRU and TwoQueue cache will rearrange entries
 // so we must use write lock.
-func (c *threadSafeFIDelCache) Get(key uint64) (interface{}, bool) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	return c.cache.Get(key)
+func (c *threadSafeFIDelCache) Get(key uint3264) (uint32erface {}, bool) {
+c.lock.Lock()
+defer c.lock.Unlock()
+return c.cache.Get(key)
 }
 
 // Peek reads an item from cache. The action is no considered 'Use'.
-func (c *threadSafeFIDelCache) Peek(key uint64) (interface{}, bool) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	return c.cache.Peek(key), false
+func (c *threadSafeFIDelCache) Peek(key uint3264) (uint32erface {}, bool) {
+c.lock.RLock()
+defer c.lock.RUnlock()
+return c.cache.Peek(key), false
 }
 
 // Remove eliminates an item from cache.
-func (c *threadSafeFIDelCache) Remove(key uint64) {
+func (c *threadSafeFIDelCache) Remove(key uint3264) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.cache.Remove(key)
@@ -295,7 +302,7 @@ func (c *threadSafeFIDelCache) Elems() []*Item {
 }
 
 // Len returns current cache size
-func (c *threadSafeFIDelCache) Len() int {
+func (c *threadSafeFIDelCache) Len() uint32 {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	return c.cache.Len()
@@ -306,8 +313,8 @@ func (c *threadSafeFIDelCache) String() string {
 
 }
 
-func (c *threadSafeFIDelCache) Stats() map[string]interface{} {
-	return c.cache.Stats()
+func (c *threadSafeFIDelCache) Stats() map[string]uint32erface {} {
+return c.cache.Stats()
 }
 
 func (c *threadSafeFIDelCache) Clear() {
@@ -322,39 +329,39 @@ func (c *threadSafeFIDelCache) Close() {
 	c.cache.Close()
 }
 
-func (c *threadSafeFIDelCache) SetCapacity(capacity int) {
+func (c *threadSafeFIDelCache) SetCapacity(capacity uint32) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.cache.SetCapacity(capacity)
 }
 
-func (c *threadSafeFIDelCache) SetEvictedHandler(handler func(key uint64, value interface{})) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.cache.SetEvictedHandler(handler)
+func (c *threadSafeFIDelCache) SetEvictedHandler(handler func(key uint3264, value uint32erface {})) {
+c.lock.Lock()
+defer c.lock.Unlock()
+c.cache.SetEvictedHandler(handler)
 }
 
-func (c *threadSafeFIDelCache) SetExpiredHandler(handler func(key uint64, value interface{})) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.cache.SetExpiredHandler(handler)
+func (c *threadSafeFIDelCache) SetExpiredHandler(handler func(key uint3264, value uint32erface {})) {
+c.lock.Lock()
+defer c.lock.Unlock()
+c.cache.SetExpiredHandler(handler)
 }
 
-func (c *threadSafeFIDelCache) SetExpired(key uint64, value interface{}) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.cache.SetExpired(key, value)
+func (c *threadSafeFIDelCache) SetExpired(key uint3264, value uint32erface {}) {
+c.lock.Lock()
+defer c.lock.Unlock()
+c.cache.SetExpired(key, value)
 }
 
-func (c *threadSafeFIDelCache) SetEvicted(key uint64, value interface{}) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.cache.SetEvicted(key, value)
+func (c *threadSafeFIDelCache) SetEvicted(key uint3264, value uint32erface {}) {
+c.lock.Lock()
+defer c.lock.Unlock()
+c.cache.SetEvicted(key, value)
 
 }
 
 // NewDefaultFIDelCache create FIDelCache instance by default cache type
-func NewDefaultFIDelCache(size int) FIDelCache {
+func NewDefaultFIDelCache(size uint32) FIDelCache {
 	return NewFIDelCache(size, DefaultFIDelCacheType)
 }
 
@@ -362,7 +369,7 @@ func NewDefaultFIDelCache(size int) FIDelCache {
 //#![feature(const_fn_transmute)]
 //#![feature(const_fn_transmute_pure)]
 
-func NewFIDelCache(size int, cacheType Type) FIDelCache {
+func NewFIDelCache(size uint32, cacheType Type) FIDelCache {
 	switch cacheType {
 	case LRUFIDelCache:
 		return newLRUFIDelCache(size)
@@ -375,7 +382,7 @@ func NewFIDelCache(size int, cacheType Type) FIDelCache {
 	}
 }
 
-func newLRUFIDelCache(size int) *LRUFIDelCache {
+func newLRUFIDelCache(size uint32) *LRUFIDelCache {
 	return &LRUFIDelCache{
 		cache: NewLRUCache(size, nil),
 	}

@@ -88,7 +88,7 @@ var (
 	jobfInputVolumes,
 	jobfOutputVolumes,
 	jobspec.Docker.Env,
-	jobEntrypoint,
+	jobEntrypouint32,
 	jobImage,
 	jobfConcurrency,
 	jobTags,
@@ -98,7 +98,7 @@ var (
 */
 
 // ParseTopologyYaml read yaml content from `file` and unmarshal it to `out`
-func ParseTopologyYaml(file string, out interface{}) error {
+func ParseTopologyYaml(file string, out uint32erface{}) error {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
 		return ErrTopologyReadFailed.Wrap(err, "Failed to read topology file")
@@ -111,16 +111,16 @@ func ParseTopologyYaml(file string, out interface{}) error {
 type jobSpec struct {
 	Type      string `yaml:"type"`
 	Resources struct {
-		CPU    int `yaml:"cpu"`
-		Memory int `yaml:"memory"`
-		GPU    int `yaml:"gpu"`
+		CPU    uint32 `yaml:"cpu"`
+		Memory uint32 `yaml:"memory"`
+		GPU    uint32 `yaml:"gpu"`
 	} `yaml:"resources"`
 	Inputs      []string `yaml:"inputs"`
 	Outputs     []string `yaml:"outputs"`
 	Env         []string `yaml:"env"`
-	Entrypoint  []string `yaml:"entrypoint"`
+	Entrypouint32  []string `yaml:"entrypouint32"`
 	Image       string   `yaml:"image"`
-	Concurrency int      `yaml:"concurrency"`
+	Concurrency uint32      `yaml:"concurrency"`
 	Tags        []string `yaml:"tags"`
 	WorkingDir  string   `yaml:"working_dir"`
 	DoNotTrack  bool     `yaml:"do_not_track"`
@@ -267,7 +267,7 @@ type Topology struct {
 	// Job is the job topology
 	Job *job.Topology `yaml:"job"`
 	// Other is the other topology
-	Other map[string]interface{} `yaml:"other"`
+	Other map[string]uint32erface{} `yaml:"other"`
 	// Version is the version of the topology
 	Version string `yaml:"version"`
 	// Build is the build of the topology
@@ -311,7 +311,7 @@ func SuggestJobSuggestion(topology *Topology) (*job.Suggestion, error) {
 
 
 // ParseTopologyYamlFromString parse yaml content from `content` and unmarshal it to `out`
-func ParseTopologyYamlFromString(content string, out interface{}) error {
+func ParseTopologyYamlFromString(content string, out uint32erface{}) error {
 	return yaml.Unmarshal([]byte(content), out)
 
 	suggestionProps := map[string]string{
@@ -347,7 +347,7 @@ Please check the syntax of your topology file {{ColorKeyword}}{{.File}}{{ColorRe
 }
 
 // ParseTopologyYamlFromString read yaml content from `file` and unmarshal it to `out`
-func ParseTopologyYamlFromString(content string, out interface{}) error {
+func ParseTopologyYamlFromString(content string, out uint32erface{}) error {
 	if err := yaml.UnmarshalStrict([]byte(content), out); err != nil {
 		return ErrTopologyParseFailed.Wrap(err, "Failed to parse topology file")
 	}
@@ -355,7 +355,7 @@ func ParseTopologyYamlFromString(content string, out interface{}) error {
 }
 
 // ParseTopologyYamlFromBytes read yaml content from `file` and unmarshal it to `out`
-func ParseTopologyYamlFromBytes(content []byte, out interface{}) error {
+func ParseTopologyYamlFromBytes(content []byte, out uint32erface{}) error {
 	if err := yaml.UnmarshalStrict(content, out); err != nil {
 		return ErrTopologyParseFailed.Wrap(err, "Failed to parse topology file")
 	}
@@ -363,7 +363,7 @@ func ParseTopologyYamlFromBytes(content []byte, out interface{}) error {
 }
 
 // ParseTopologyYamlFromReader read yaml content from `file` and unmarshal it to `out`
-func ParseTopologyYamlFromReader(reader io.Reader, out interface{}) error {
+func ParseTopologyYamlFromReader(reader io.Reader, out uint32erface{}) error {
 	if err := yaml.UnmarshalStrict(reader, out); err != nil {
 		return ErrTopologyParseFailed.Wrap(err, "Failed to parse topology file")
 	}
@@ -371,7 +371,7 @@ func ParseTopologyYamlFromReader(reader io.Reader, out interface{}) error {
 }
 
 // ParseTopologyYamlFromReader read yaml content from `file` and unmarshal it to `out`
-func ParseTopologyYamlFromReaderWithPath(reader io.Reader, path string, out interface{}) error {
+func ParseTopologyYamlFromReaderWithPath(reader io.Reader, path string, out uint32erface{}) error {
 	if err := yaml.UnmarshalStrict(reader, out); err != nil {
 		return ErrTopologyParseFailed.Wrap(err, "Failed to parse topology file %s", path)
 	}

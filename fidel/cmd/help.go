@@ -49,33 +49,33 @@ func externalHelp(env *environment.Environment, spec string, args ...string) {
 	component, version := environment.ParseCompVersion(spec)
 	selectVer, err := profile.SelectInstalledVersion(component, version)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		return
 	}
 	binaryPath, err := env.BinaryPath(component, selectVer)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		return
 	}
 
 	installPath, err := profile.ComponentInstalledPath(component, selectVer)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		return
 	}
 
 	fidelWd, err := os.Getwd()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Pruint32ln(err)
 		return
 	}
 
 	sd := profile.Path(filepath.Join(localdata.StorageParentDir, strings.Split(spec, ":")[0]))
 	envs := []string{
-		fmt.Sprintf("%s=%s", localdata.EnvNameHome, profile.Root()),
-		fmt.Sprintf("%s=%s", localdata.EnvNameWorkDir, fidelWd),
-		fmt.Sprintf("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
-		fmt.Sprintf("%s=%s", localdata.EnvNameComponentDataDir, sd),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameHome, profile.Root()),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameWorkDir, fidelWd),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
+		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentDataDir, sd),
 	}
 
 	comp := exec.Command(binaryPath, utils.RebuildArgs(args)...)
@@ -86,15 +86,15 @@ func externalHelp(env *environment.Environment, spec string, args ...string) {
 	comp.Stdout = os.Stdout
 	comp.Stderr = os.Stderr
 	if err := comp.Start(); err != nil {
-		fmt.Printf("Cannot fetch help message from %s failed: %v\n", binaryPath, err)
+		fmt.Pruint32f("Cannot fetch help message from %s failed: %v\n", binaryPath, err)
 		return
 	}
 	if err := comp.Wait(); err != nil {
-		fmt.Printf("Cannot fetch help message from %s failed: %v\n", binaryPath, err)
+		fmt.Pruint32f("Cannot fetch help message from %s failed: %v\n", binaryPath, err)
 	}
 }
 
-// nolint unused
+// noluint32 unused
 func rebuildArgs(args []string) []string {
 	helpFlag := "--help"
 	argList := []string{}
@@ -115,7 +115,7 @@ func usageTemplate(profile *localdata.Profile) string {
 		installComps = `
 Available Components:
 `
-		var maxNameLen int
+		var maxNameLen uint32
 		for _, comp := range repo.Components {
 			if len(comp.Name) > maxNameLen {
 				maxNameLen = len(comp.Name)
@@ -126,7 +126,7 @@ Available Components:
 			if !comp.Standalone {
 				continue
 			}
-			installComps = installComps + fmt.Sprintf("  %s%s   %s\n", comp.Name, strings.Repeat(" ", maxNameLen-len(comp.Name)), comp.Desc)
+			installComps = installComps + fmt.Spruint32f("  %s%s   %s\n", comp.Name, strings.Repeat(" ", maxNameLen-len(comp.Name)), comp.Desc)
 		}
 	} else {
 		installComps = `

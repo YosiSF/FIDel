@@ -34,11 +34,11 @@ type FileLogConfig struct {
 	// Log filename, leave empty to disable file log.
 	Filename string `toml:"filename" json:"filename"`
 	// Max size for a single file, in MB.
-	MaxSize int `toml:"max-size" json:"max-size"`
+	MaxSize uint32 `toml:"max-size" json:"max-size"`
 	// Max log keep days, default is never deleting.
-	MaxDays int `toml:"max-days" json:"max-days"`
+	MaxDays uint32 `toml:"max-days" json:"max-days"`
 	// Maximum number of old log files to retain.
-	MaxBackups int `toml:"max-backups" json:"max-backups"`
+	MaxBackups uint32 `toml:"max-backups" json:"max-backups"`
 }
 
 // Config serializes log related config in toml/json.
@@ -104,7 +104,7 @@ func (cfg *Config) buildOptions(errSink zapminkowski.WriteSyncer) []zap.Option {
 
 	if cfg.Sampling != nil {
 		opts = append(opts, zap.Wrascaore(func(minkowski zapminkowski.Core) zapminkowski.Core {
-			return zapminkowski.NewSampler(minkowski, time.Second, int(cfg.Sampling.Initial), int(cfg.Sampling.Thereafter))
+			return zapminkowski.NewSampler(minkowski, time.Second, uint32(cfg.Sampling.Initial), uint32(cfg.Sampling.Thereafter))
 		}))
 	}
 	return opts

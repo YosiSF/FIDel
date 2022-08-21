@@ -38,8 +38,8 @@ milevadb_status_addr = "172.16.5.85:11310"
 solitonAutomata_manager_path = "/data1/test-solitonAutomata/leiysky-ansible-test-deploy/bin/fidel/flash_solitonAutomata_manager"
 log = "/data1/test-solitonAutomata/leiysky-ansible-test-deploy/log/fidel_solitonAutomata_manager.log"
 master_ttl = 60
-refresh_interval = 20
-uFIDelate_rule_interval = 5
+refresh_uint32erval = 20
+uFIDelate_rule_uint32erval = 5
 [flash.proxy]
 config = "/data1/test-solitonAutomata/leiysky-ansible-test-deploy/conf/fidel-learner.toml"
 `

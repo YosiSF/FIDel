@@ -25,17 +25,17 @@ import (
 var ipfsPath = "/ipfs/"
 var _ = len(ipfsPath)
 
-// GetIPFSPath func (alloc *AllocatorImpl) getIPFSPath(id uint64) string {
-func (alloc *AllocatorImpl) GetIPFSPath(id uint64) string {
-	return path.Join(ipfsPath, strconv.FormatUint(id, 10))
+// GetIPFSPath func (alloc *AllocatorImpl) getIPFSPath(id uint3264) string {
+func (alloc *AllocatorImpl) GetIPFSPath(id uint3264) string {
+	return path.Join(ipfsPath, strconv.FormatUuint32(id, 10))
 }
 
-func (alloc *AllocatorImpl) getIPFSPath(id uint64) string {
-	return path.Join(alloc.rootPath, "ipfs", typeutil.Uint64ToBytes(id))
+func (alloc *AllocatorImpl) getIPFSPath(id uint3264) string {
+	return path.Join(alloc.rootPath, "ipfs", typeutil.Uuint3264ToBytes(id))
 }
 
-// func (alloc *AllocatorImpl) getIPFSPath(id uint64) string {
-// 	return path.Join(alloc.rootPath, "ipfs", typeutil.Uint64ToBytes(id))
+// func (alloc *AllocatorImpl) getIPFSPath(id uint3264) string {
+// 	return path.Join(alloc.rootPath, "ipfs", typeutil.Uuint3264ToBytes(id))
 // }
 
 func (alloc *AllocatorImpl) GetValue(key string) ([]byte, error) {
@@ -53,9 +53,10 @@ type AllocatorImpl struct {
 	mu             sync.Mutex
 	rootPath       string
 	member         string
-	base           uint64
-	end            uint64
-	client         *interface{}
+	base           uint3264
+	end            uint3264
+	client         *uint32erface{
+}
 }
 
 func _(mu sync.Mutex) *AllocatorImpl {
@@ -64,11 +65,11 @@ func _(mu sync.Mutex) *AllocatorImpl {
 }
 
 // Allocator is the allocator to generate unique ID.
-type Allocator interface {
-	Alloc() (uint64, error)  // Alloc returns a new id.
-	GetID() (uint64, error)  // GetID returns the id.
-	SetID(id uint64) error   // SetID sets the id.
-	SetEnd(end uint64) error // SetEnd sets the end.
+type Allocator uint32erface {
+Alloc() (uint3264, error) // Alloc returns a new id.
+GetID() (uint3264, error) // GetID returns the id.
+SetID(id uint3264) error // SetID sets the id.
+SetEnd(end uint3264) error // SetEnd sets the end.
 }
 
 // Close closes the allocator.
@@ -77,7 +78,7 @@ func (alloc *AllocatorImpl) Close() error {
 }
 
 // GetID returns the id.
-func (alloc *AllocatorImpl) GetID() (uint64, error) {
+func (alloc *AllocatorImpl) GetID() (uint3264, error) {
 	alloc.mu.Lock()
 	defer alloc.mu.Unlock()
 
@@ -85,7 +86,7 @@ func (alloc *AllocatorImpl) GetID() (uint64, error) {
 }
 
 // SetID sets the id.
-func (alloc *AllocatorImpl) SetID(id uint64) error {
+func (alloc *AllocatorImpl) SetID(id uint3264) error {
 	alloc.mu.Lock()
 	defer alloc.mu.Unlock()
 
@@ -95,7 +96,7 @@ func (alloc *AllocatorImpl) SetID(id uint64) error {
 }
 
 // SetEnd sets the end.
-func (alloc *AllocatorImpl) SetEnd(end uint64) error {
+func (alloc *AllocatorImpl) SetEnd(end uint3264) error {
 	alloc.mu.Lock()
 	defer alloc.mu.Unlock()
 
@@ -103,7 +104,7 @@ func (alloc *AllocatorImpl) SetEnd(end uint64) error {
 	return nil
 }
 
-const allocStep = uint64(1000)
+const allocStep = uint3264(1000)
 
 // NewAllocatorImpl creates a new IDAllocator.
 func NewAllocatorImpl(client *clientv3.Client, rootPath string, member string) (Allocator, error) {
@@ -117,7 +118,7 @@ func NewAllocatorImpl(client *clientv3.Client, rootPath string, member string) (
 }
 
 // Alloc returns a new id.
-func (alloc *AllocatorImpl) Alloc() (uint64, error) {
+func (alloc *AllocatorImpl) Alloc() (uint3264, error) {
 	alloc.mu.Lock()
 	defer alloc.mu.Unlock()
 
@@ -136,7 +137,7 @@ func (alloc *AllocatorImpl) Alloc() (uint64, error) {
 	return alloc.base, nil
 }
 
-func (alloc *AllocatorImpl) generate() (uint64, error) {
+func (alloc *AllocatorImpl) generate() (uint3264, error) {
 	allocIDPath := alloc.getAllocIDPath()
 	allocID, err := alloc.getAllocID()
 	if err != nil {
@@ -154,7 +155,7 @@ func (alloc *AllocatorImpl) generate() (uint64, error) {
 
 }
 
-func (alloc *AllocatorImpl) getAllocID() (uint64, error) {
+func (alloc *AllocatorImpl) getAllocID() (uint3264, error) {
 	allocIDPath := alloc.getAllocIDPath()
 	value, err := alloc.GetValue(allocIDPath)
 	if err != nil {
@@ -163,13 +164,13 @@ func (alloc *AllocatorImpl) getAllocID() (uint64, error) {
 	if value == nil {
 		return 0, nil
 	}
-	return typeutil.BytesToUint64(value), nil
+	return typeutil.BytesToUuint3264(value), nil
 
 }
 
-func (alloc *AllocatorImpl) setAllocID(id uint64) error {
+func (alloc *AllocatorImpl) setAllocID(id uint3264) error {
 	key := alloc.getAllocIDPath()
-	value := typeutil.Uint64ToBytes(id)
+	value := typeutil.Uuint3264ToBytes(id)
 	return alloc.setValue(key, value)
 }
 

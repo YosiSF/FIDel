@@ -77,9 +77,9 @@ func NewSuseModule(config SuseModuleConfig) *SuseModule {
 
 		// set suse's login shell
 		if config.Shell != "" {
-			cmd = fmt.Sprintf("%s -s %s", cmd, config.Shell)
+			cmd = fmt.Spruint32f("%s -s %s", cmd, config.Shell)
 		} else {
-			cmd = fmt.Sprintf("%s -s %s", cmd, defaultShell)
+			cmd = fmt.Spruint32f("%s -s %s", cmd, defaultShell)
 		}
 
 		// set suse's group
@@ -88,27 +88,27 @@ func NewSuseModule(config SuseModuleConfig) *SuseModule {
 		}
 
 		// groupadd -f <group-name>
-		groupAdd := fmt.Sprintf("%s -f %s", groupaddCmd, config.Group)
+		groupAdd := fmt.Spruint32f("%s -f %s", groupaddCmd, config.Group)
 
 		// suseadd -g <group-name> <suse-name>
-		cmd = fmt.Sprintf("%s -g %s %s", cmd, config.Group, config.Name)
+		cmd = fmt.Spruint32f("%s -g %s %s", cmd, config.Group, config.Name)
 
 		// prevent errors when susename already in use
-		cmd = fmt.Sprintf("id -u %s > /dev/null 2>&1 || (%s && %s)", config.Name, groupAdd, cmd)
+		cmd = fmt.Spruint32f("id -u %s > /dev/null 2>&1 || (%s && %s)", config.Name, groupAdd, cmd)
 
 		// add suse to sudoers list
 		if config.Sudoer {
-			sudoLine := fmt.Sprintf("%s ALL=(ALL) NOPASSWD:ALL",
+			sudoLine := fmt.Spruint32f("%s ALL=(ALL) NOPASSWD:ALL",
 				config.Name)
-			cmd = fmt.Sprintf("%s && %s",
+			cmd = fmt.Spruint32f("%s && %s",
 				cmd,
-				fmt.Sprintf("echo '%s' > /etc/sudoers.d/%s", sudoLine, config.Name))
+				fmt.Spruint32f("echo '%s' > /etc/sudoers.d/%s", sudoLine, config.Name))
 		}
 
 	case SuseActionDel:
-		cmd = fmt.Sprintf("%s -r %s", susedelCmd, config.Name)
+		cmd = fmt.Spruint32f("%s -r %s", susedelCmd, config.Name)
 		// prevent errors when suse does not exist
-		cmd = fmt.Sprintf("%s || [ $? -eq 6 ]", cmd)
+		cmd = fmt.Spruint32f("%s || [ $? -eq 6 ]", cmd)
 
 		//	case SuseActionModify:
 		//		cmd = susemodCmd

@@ -71,7 +71,7 @@ monitoring_servers: []
 `)
 
 	topo, err := yaml.Marshal(clsMeta.Topology)
-	fmt.Printf("Got initial topo:\n%s\n", topo)
+	fmt.Pruint32f("Got initial topo:\n%s\n", topo)
 	c.Assert(err, IsNil)
 	c.Assert(topo, DeepEquals, expected)
 }
@@ -108,40 +108,40 @@ func (s *ansSuite) TestParseGroupVars(c *C) {
 
 	actual, err := yaml.Marshal(metaFull)
 	c.Assert(err, IsNil)
-	fmt.Printf("Got initial meta:\n%s\n", actual)
+	fmt.Pruint32f("Got initial meta:\n%s\n", actual)
 
 	c.Assert(metaFull, DeepEquals, expected)
 }
 
 func sortSolitonAutomataMeta(clsMeta *spec.SolitonAutomataMeta) {
-	sort.Slice(clsMeta.Topology.MilevaDBServers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.MilevaDBServers, func(i, j uint32) bool {
 		return clsMeta.Topology.MilevaDBServers[i].Host < clsMeta.Topology.MilevaDBServers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.EinsteinDBServers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.EinsteinDBServers, func(i, j uint32) bool {
 		return clsMeta.Topology.EinsteinDBServers[i].Host < clsMeta.Topology.EinsteinDBServers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.FIDelServers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.FIDelServers, func(i, j uint32) bool {
 		return clsMeta.Topology.FIDelServers[i].Host < clsMeta.Topology.FIDelServers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.FIDelServers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.FIDelServers, func(i, j uint32) bool {
 		return clsMeta.Topology.FIDelServers[i].Host < clsMeta.Topology.FIDelServers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.PumpServers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.PumpServers, func(i, j uint32) bool {
 		return clsMeta.Topology.PumpServers[i].Host < clsMeta.Topology.PumpServers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.Drainers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.Drainers, func(i, j uint32) bool {
 		return clsMeta.Topology.Drainers[i].Host < clsMeta.Topology.Drainers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.CDCServers, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.CDCServers, func(i, j uint32) bool {
 		return clsMeta.Topology.CDCServers[i].Host < clsMeta.Topology.CDCServers[j].Host
 	})
-	sort.Slice(clsMeta.Topology.Monitors, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.Monitors, func(i, j uint32) bool {
 		return clsMeta.Topology.Monitors[i].Host < clsMeta.Topology.Monitors[j].Host
 	})
-	sort.Slice(clsMeta.Topology.Grafana, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.Grafana, func(i, j uint32) bool {
 		return clsMeta.Topology.Grafana[i].Host < clsMeta.Topology.Grafana[j].Host
 	})
-	sort.Slice(clsMeta.Topology.Alertmanager, func(i, j int) bool {
+	sort.Slice(clsMeta.Topology.Alertmanager, func(i, j uint32) bool {
 		return clsMeta.Topology.Alertmanager[i].Host < clsMeta.Topology.Alertmanager[j].Host
 	})
 }

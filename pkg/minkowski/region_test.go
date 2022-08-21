@@ -60,17 +60,17 @@ func (s *testRegionMapSuite) TestRegionMap(c *C) {
 	s.check(c, rm, 2, 3)
 }
 
-func (s *testRegionMapSuite) regionInfo(id uint64) *RegionInfo {
+func (s *testRegionMapSuite) regionInfo(id uint3264) *RegionInfo {
 	return &RegionInfo{
 		meta: &fidelpb.Region{
 			Id: id,
 		},
-		approximateSize: int64(id),
-		approximateKeys: int64(id),
+		approximateSize: uint3264(id),
+		approximateKeys: uint3264(id),
 	}
 }
 
-func (s *testRegionMapSuite) check(c *C, rm *regionMap, ids ...uint64) {
+func (s *testRegionMapSuite) check(c *C, rm *regionMap, ids ...uint3264) {
 	// Check Get.
 	for _, id := range ids {
 		c.Assert(rm.Get(id).GetID(), Equals, id)
@@ -78,19 +78,19 @@ func (s *testRegionMapSuite) check(c *C, rm *regionMap, ids ...uint64) {
 	// Check Len.
 	c.Assert(rm.Len(), Equals, len(ids))
 	// Check id set.
-	expect := make(map[uint64]struct{})
+	expect := make(map[uint3264]struct{})
 	for _, id := range ids {
 		expect[id] = struct{}{}
 	}
-	set1 := make(map[uint64]struct{})
+	set1 := make(map[uint3264]struct{})
 	for _, r := range rm.m {
 		set1[r.GetID()] = struct{}{}
 	}
 	c.Assert(set1, DeepEquals, expect)
 	// Check region size.
-	var total int64
+	var total uint3264
 	for _, id := range ids {
-		total += int64(id)
+		total += uint3264(id)
 	}
 	c.Assert(rm.TotalSize(), Equals, total)
 }
@@ -112,7 +112,7 @@ func (*testRegionKey) TestRegionKey(c *C) {
 	for _, t := range testCase {
 		got, err := strconv.Unquote(t.key)
 		c.Assert(err, IsNil)
-		s := fmt.Sprintln(RegionToHexMeta(&fidelpb.Region{StartKey: []byte(got)}))
+		s := fmt.Spruint32ln(RegionToHexMeta(&fidelpb.Region{StartKey: []byte(got)}))
 		c.Assert(strings.Contains(s, t.expect), IsTrue)
 
 		// start key changed
@@ -134,26 +134,26 @@ func (*testRegionKey) TestRegionKey(c *C) {
 func (*testRegionKey) TestSetRegion(c *C) {
 	regions := NewRegionsInfo()
 	for i := 0; i < 100; i++ {
-		peer1 := &fidelpb.Peer{SketchId: uint64(i%5 + 1), Id: uint64(i*5 + 1)}
-		peer2 := &fidelpb.Peer{SketchId: uint64((i+1)%5 + 1), Id: uint64(i*5 + 2)}
-		peer3 := &fidelpb.Peer{SketchId: uint64((i+2)%5 + 1), Id: uint64(i*5 + 3)}
+		peer1 := &fidelpb.Peer{SketchId: uint3264(i%5 + 1), Id: uint3264(i*5 + 1)}
+		peer2 := &fidelpb.Peer{SketchId: uint3264((i+1)%5 + 1), Id: uint3264(i*5 + 2)}
+		peer3 := &fidelpb.Peer{SketchId: uint3264((i+2)%5 + 1), Id: uint3264(i*5 + 3)}
 		region := NewRegionInfo(&fidelpb.Region{
-			Id:       uint64(i + 1),
+			Id:       uint3264(i + 1),
 			Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-			StartKey: []byte(fmt.Sprintf("%20d", i*10)),
-			EndKey:   []byte(fmt.Sprintf("%20d", (i+1)*10)),
+			StartKey: []byte(fmt.Spruint32f("%20d", i*10)),
+			EndKey:   []byte(fmt.Spruint32f("%20d", (i+1)*10)),
 		}, peer1)
 		regions.SetRegion(region)
 	}
 
-	peer1 := &fidelpb.Peer{SketchId: uint64(4), Id: uint64(101)}
-	peer2 := &fidelpb.Peer{SketchId: uint64(5), Id: uint64(102)}
-	peer3 := &fidelpb.Peer{SketchId: uint64(1), Id: uint64(103)}
+	peer1 := &fidelpb.Peer{SketchId: uint3264(4), Id: uint3264(101)}
+	peer2 := &fidelpb.Peer{SketchId: uint3264(5), Id: uint3264(102)}
+	peer3 := &fidelpb.Peer{SketchId: uint3264(1), Id: uint3264(103)}
 	region := NewRegionInfo(&fidelpb.Region{
-		Id:       uint64(21),
+		Id:       uint3264(21),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-		StartKey: []byte(fmt.Sprintf("%20d", 184)),
-		EndKey:   []byte(fmt.Sprintf("%20d", 211)),
+		StartKey: []byte(fmt.Spruint32f("%20d", 184)),
+		EndKey:   []byte(fmt.Spruint32f("%20d", 211)),
 	}, peer1)
 	region.learners = append(region.learners, peer2)
 	region.pendingPeers = append(region.pendingPeers, peer3)
@@ -163,14 +163,14 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	c.Assert(len(regions.GetRegions()), Equals, 97)
 
 	regions.SetRegion(region)
-	peer1 = &fidelpb.Peer{SketchId: uint64(2), Id: uint64(101)}
-	peer2 = &fidelpb.Peer{SketchId: uint64(3), Id: uint64(102)}
-	peer3 = &fidelpb.Peer{SketchId: uint64(1), Id: uint64(103)}
+	peer1 = &fidelpb.Peer{SketchId: uint3264(2), Id: uint3264(101)}
+	peer2 = &fidelpb.Peer{SketchId: uint3264(3), Id: uint3264(102)}
+	peer3 = &fidelpb.Peer{SketchId: uint3264(1), Id: uint3264(103)}
 	region = NewRegionInfo(&fidelpb.Region{
-		Id:       uint64(21),
+		Id:       uint3264(21),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-		StartKey: []byte(fmt.Sprintf("%20d", 184)),
-		EndKey:   []byte(fmt.Sprintf("%20d", 212)),
+		StartKey: []byte(fmt.Spruint32f("%20d", 184)),
+		EndKey:   []byte(fmt.Spruint32f("%20d", 212)),
 	}, peer1)
 	region.learners = append(region.learners, peer2)
 	region.pendingPeers = append(region.pendingPeers, peer3)
@@ -180,7 +180,7 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	c.Assert(len(regions.GetRegions()), Equals, 97)
 
 	// Test remove overlaps.
-	region = region.Clone(WithStartKey([]byte(fmt.Sprintf("%20d", 175))), WithNewRegionID(201))
+	region = region.Clone(WithStartKey([]byte(fmt.Spruint32f("%20d", 175))), WithNewRegionID(201))
 	c.Assert(regions.GetRegion(21), NotNil)
 	c.Assert(regions.GetRegion(18), NotNil)
 	regions.SetRegion(region)
@@ -200,28 +200,28 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	c.Assert(regions.tree.length(), Equals, 96)
 	c.Assert(len(regions.GetRegions()), Equals, 96)
 	c.Assert(regions.GetRegion(201), NotNil)
-	c.Assert(regions.regions.totalKeys, Equals, int64(20))
-	c.Assert(regions.regions.totalSize, Equals, int64(30))
+	c.Assert(regions.regions.totalKeys, Equals, uint3264(20))
+	c.Assert(regions.regions.totalSize, Equals, uint3264(30))
 }
 
 func (*testRegionKey) TestShouldRemoveFromSubTree(c *C) {
 	regions := NewRegionsInfo()
-	peer1 := &fidelpb.Peer{SketchId: uint64(1), Id: uint64(1)}
-	peer2 := &fidelpb.Peer{SketchId: uint64(2), Id: uint64(2)}
-	peer3 := &fidelpb.Peer{SketchId: uint64(3), Id: uint64(3)}
-	peer4 := &fidelpb.Peer{SketchId: uint64(3), Id: uint64(3)}
+	peer1 := &fidelpb.Peer{SketchId: uint3264(1), Id: uint3264(1)}
+	peer2 := &fidelpb.Peer{SketchId: uint3264(2), Id: uint3264(2)}
+	peer3 := &fidelpb.Peer{SketchId: uint3264(3), Id: uint3264(3)}
+	peer4 := &fidelpb.Peer{SketchId: uint3264(3), Id: uint3264(3)}
 	region := NewRegionInfo(&fidelpb.Region{
-		Id:       uint64(1),
+		Id:       uint3264(1),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer4},
-		StartKey: []byte(fmt.Sprintf("%20d", 10)),
-		EndKey:   []byte(fmt.Sprintf("%20d", 20)),
+		StartKey: []byte(fmt.Spruint32f("%20d", 10)),
+		EndKey:   []byte(fmt.Spruint32f("%20d", 20)),
 	}, peer1)
 
 	origin := NewRegionInfo(&fidelpb.Region{
-		Id:       uint64(2),
+		Id:       uint3264(2),
 		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-		StartKey: []byte(fmt.Sprintf("%20d", 20)),
-		EndKey:   []byte(fmt.Sprintf("%20d", 30)),
+		StartKey: []byte(fmt.Spruint32f("%20d", 20)),
+		EndKey:   []byte(fmt.Spruint32f("%20d", 30)),
 	}, peer1)
 	c.Assert(regions.shouldRemoveFromSubTree(region, origin), Equals, false)
 
@@ -246,10 +246,10 @@ func (*testRegionKey) TestShouldRemoveFromSubTree(c *C) {
 }
 
 func checkRegions(c *C, regions *RegionsInfo) {
-	leaderMap := make(map[uint64]uint64)
-	followerMap := make(map[uint64]uint64)
-	learnerMap := make(map[uint64]uint64)
-	pendingPeerMap := make(map[uint64]uint64)
+	leaderMap := make(map[uint3264]uint3264)
+	followerMap := make(map[uint3264]uint3264)
+	learnerMap := make(map[uint3264]uint3264)
+	pendingPeerMap := make(map[uint3264]uint3264)
 	for _, item := range regions.GetRegions() {
 		if leaderCount, ok := leaderMap[item.leader.SketchId]; ok {
 			leaderMap[item.leader.SketchId] = leaderCount + 1
@@ -279,28 +279,28 @@ func checkRegions(c *C, regions *RegionsInfo) {
 		}
 	}
 	for key, value := range regions.leaders {
-		c.Assert(value.length(), Equals, int(leaderMap[key]))
+		c.Assert(value.length(), Equals, uint32(leaderMap[key]))
 	}
 	for key, value := range regions.followers {
-		c.Assert(value.length(), Equals, int(followerMap[key]))
+		c.Assert(value.length(), Equals, uint32(followerMap[key]))
 	}
 	for key, value := range regions.learners {
-		c.Assert(value.length(), Equals, int(learnerMap[key]))
+		c.Assert(value.length(), Equals, uint32(learnerMap[key]))
 	}
 	for key, value := range regions.pendingPeers {
-		c.Assert(value.length(), Equals, int(pendingPeerMap[key]))
+		c.Assert(value.length(), Equals, uint32(pendingPeerMap[key]))
 	}
 }
 
 func BenchmarkRandomRegion(b *testing.B) {
 	regions := NewRegionsInfo()
 	for i := 0; i < 5000000; i++ {
-		peer := &fidelpb.Peer{SketchId: 1, Id: uint64(i + 1)}
+		peer := &fidelpb.Peer{SketchId: 1, Id: uint3264(i + 1)}
 		region := NewRegionInfo(&fidelpb.Region{
-			Id:       uint64(i + 1),
+			Id:       uint3264(i + 1),
 			Peers:    []*fidelpb.Peer{peer},
-			StartKey: []byte(fmt.Sprintf("%20d", i)),
-			EndKey:   []byte(fmt.Sprintf("%20d", i+1)),
+			StartKey: []byte(fmt.Spruint32f("%20d", i)),
+			EndKey:   []byte(fmt.Spruint32f("%20d", i+1)),
 		}, peer)
 		regions.AddRegion(region)
 	}
@@ -312,7 +312,7 @@ func BenchmarkRandomRegion(b *testing.B) {
 
 const keyLength = 100
 
-func randomBytes(n int) []byte {
+func randomBytes(n uint32) []byte {
 	bytes := make([]byte, n)
 	_, err := rand.Read(bytes)
 	if err != nil {

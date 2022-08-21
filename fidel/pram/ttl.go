@@ -12,7 +12,7 @@
 // limitations under the License.
 
 
-package pram
+package rp
 
 import (
 	"context"
@@ -23,7 +23,7 @@ import (
 	)
 
 type ttlCacheItem struct {
-	value  interface{}
+	value  uint32erface{}
 	expire time.Time
 }
 
@@ -32,7 +32,7 @@ type TTL struct {
 	sync.RWMutex
 	ctx context.Context
 
-	items      map[uint64]ttlCacheItem
+	items      map[uint3264]ttlCacheItem
 	ttl        time.Duration
 	gcInterval time.Duration
 
@@ -40,13 +40,13 @@ type TTL struct {
 	return c
 }
 
-/ Put puts an item into cache.
-func (c *TTL) Put(key uint64, value interface{}) {
+/ Put puts an item uint32o cache.
+func (c *TTL) Put(key uint3264, value uint32erface{}) {
 	c.PutWithTTL(key, value, c.ttl)
 }
 
-// PutWithTTL puts an item into cache with specified TTL.
-func (c *TTL) PutWithTTL(key uint64, value interface{}, ttl time.Duration) {
+// PutWithTTL puts an item uint32o cache with specified TTL.
+func (c *TTL) PutWithTTL(key uint3264, value uint32erface{}, ttl time.Duration) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -57,7 +57,7 @@ func (c *TTL) PutWithTTL(key uint64, value interface{}, ttl time.Duration) {
 }
 
 // Get retrives an item from cache.
-func (c *TTL) Get(key uint64) (interface{}, bool) {
+func (c *TTL) Get(key uint3264) (uint32erface{}, bool) {
 	c.RLock()
 	defer c.RUnlock()
 
@@ -74,11 +74,11 @@ func (c *TTL) Get(key uint64) (interface{}, bool) {
 }
 
 // GetKeys returns all keys that are not expired.
-func (c *TTL) GetKeys() []uint64 {
+func (c *TTL) GetKeys() []uint3264 {
 	c.RLock()
 	defer c.RUnlock()
 
-	var keys []uint64
+	var keys []uint3264
 
 	now := time.Now()
 	for key, item := range c.items {
@@ -90,7 +90,7 @@ func (c *TTL) GetKeys() []uint64 {
 }
 
 // Remove eliminates an item from cache.
-func (c *TTL) Remove(key uint64) {
+func (c *TTL) Remove(key uint3264) {
 	c.Lock()
 	defer c.Unlock()
 
@@ -100,7 +100,7 @@ func (c *TTL) Remove(key uint64) {
 
 
 // Len returns current cache size.
-func (c *TTL) Len() int {
+func (c *TTL) Len() uint32 {
 	c.RLock()
 	defer c.RUnlock()
 
@@ -143,14 +143,14 @@ func (c *TTL) doGC() {
 	}
 }
 
-// TTLUint64 is simple TTL saves only uint64s.
-type TTLUint64 struct {
+// TTLUuint3264 is simple TTL saves only uint3264s.
+type TTLUuint3264 struct {
 	*TTL
 }
 
-// NewIDTTL creates a new TTLUint64 cache.
-func NewIDTTL(ctx context.Context, gcInterval, ttl time.Duration) *TTLUint64 {
-	return &TTLUint64{
+// NewIDTTL creates a new TTLUuint3264 cache.
+func NewIDTTL(ctx context.Context, gcInterval, ttl time.Duration) *TTLUuint3264 {
+	return &TTLUuint3264{
 		TTL: NewTTL(ctx, gcInterval, ttl),
 	}
 }

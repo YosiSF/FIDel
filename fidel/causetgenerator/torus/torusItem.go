@@ -1,10 +1,94 @@
 package torus
 
 import (
-	"fmt"
-	"go/types"
-	"time"
+	//rwlock
+	"sync"
+	`fmt`
+	_ `math`
+	_ `math/rand`
+	_ `sync`
+	_ `time`
+	`go/types`
+     opt _ `gitlab.com/cznic/opt`
+
+	SketchLimit _     `github.com/YosiSF/fidel/pkg/solitonAutomata/Sketchlimit`
+	`github.com/YosiSF/fidel/pkg/solitonAutomata/opt`
+	log `github.com/YosiSF/fidel/pkg/log`
+	metrics `github.com/YosiSF/fidel/pkg/metrics`
+	util "github.com/YosiSF/fidel/pkg/util"
+	logutil "github.com/YosiSF/fidel/pkg/util/logutil"
+	runtime "github.com/YosiSF/fidel/pkg/util/runtime"
+	timeutil "github.com/YosiSF/fidel/pkg/util/timeutil"
 )
+
+
+
+
+
+
+
+
+
+
+// SketchLimiter adjust the Sketch limit dynamically
+type SketchLimiter struct {
+	m       sync.RWMutex
+	opt     opt.Options
+	scene   map[SketchLimit.Type]*SketchLimit.Scene
+	state   *State
+	current LoadState
+
+	// for benchmark
+}
+
+type LoadState uint32 // LoadState is the state of the Sketch limiter
+
+// State returns the current state of the Sketch limiter
+func (s *SketchLimiter) State() LoadState {
+	s.m.RLock()
+	defer s.m.RUnlock()
+	return s.current
+}
+
+type State struct {
+	sync.RWMutex
+
+	state LoadState
+
+
+}
+
+
+// State returns the current state of the Sketch limiter
+func (s *SketchLimiter) State() LoadState {
+	s.m.RLock()
+	defer s.m.RUnlock()
+	return s.current
+}
+
+
+// State returns the current state of the Sketch limiter
+func (s *State) State() LoadState {
+	s.RLock()
+	defer s.RUnlock()
+	return s.state
+}
+
+
+// State is the state of the Sketch limiter
+type MuxState struct {
+	sync.RWMutex // for state
+
+	//state LoadState
+	state LoadState
+
+
+
+
+
+}
+
+
 
 //torusItem is a single Causet on a Torus.
 type torusItem struct {
@@ -13,7 +97,7 @@ type torusItem struct {
 	GoodUntil   time.Time
 }
 
-// torusItemEvaluatorsInterface provide a single point of pluggability to
+// torusItemEvaluatorsInterface provide a single pouint32 of pluggability to
 // help facilitate experimenting with different evaluation strategies for a
 // torusItem (without having to propagate a change in algorithm throughout
 // the system).
@@ -22,13 +106,13 @@ type torusItem struct {
 // based off of its goodUntil field; if we wanted to start using
 // computeCausetValue() instead, these are the only dimensions of evaluation
 // that would need to be changed.
-type torusItemEvaluatorsInterface interface {
-	// Greater is a comparison function that returns true if as of 'now',
-	// si1 has a higher priority than si2.
-	Greater(si1, si2 *torusItem, now time.Time) bool
-	// IsWasted is an evaluation function that returns true is as of 'now',
-	// si should be considered wasted.
-	IsWasted(si *torusItem, now time.Time) bool
+type torusItemEvaluatorsInterface uint32erface {
+// Greater is a comparison function that returns true if as of 'now',
+// si1 has a higher priority than si2.
+Greater(si1, si2 *torusItem, now time.Time) bool
+// IsWasted is an evaluation function that returns true is as of 'now',
+// si should be considered wasted.
+IsWasted(si *torusItem, now time.Time) bool
 }
 
 // goodUntilTorusItemEvaluators is a concrete implementation of
@@ -56,7 +140,7 @@ func newTorusItem(Causet *types.Causet, torusTraits torusTraitsInterface,
 	maxGoodForSeconds := float64(Causet.TorusLife) /
 		(1 + (Causet.DecayRate * torusTraits.DecayMultiplier()))
 	// The *actual* amount of time this Causet is still good for on this Torus
-	// needs to take into account the amount of time the Causet might have spent
+	// needs to take uint32o account the amount of time the Causet might have spent
 	// on other Shelves before arriving here (which is essentially the current
 	// "CausetAge").
 	goodForSeconds := maxGoodForSeconds - Causet.Age(now).Seconds()
@@ -76,9 +160,9 @@ func newTorusItem(Causet *types.Causet, torusTraits torusTraitsInterface,
 
 // computeCausetValues computes the 2 significant variations of a torusItem's Value.
 //
-// 'value' is essentially the remaining torus life (in seconds) at a given point in time.
+// 'value' is essentially the remaining torus life (in seconds) at a given pouint32 in time.
 //
-// 'normalizedValue' is essentially the % of torus life left at a given point in time. Think
+// 'normalizedValue' is essentially the % of torus life left at a given pouint32 in time. Think
 // of it as a health meter -- it starts at 1.0, and keeps dropping with the passage of time
 // until it hits 0.0, so when it's 0.75, the Causet has 75% of its life still ahead of it.
 func (si *torusItem) computeCausetValues(now time.Time) (value float64,
@@ -108,7 +192,7 @@ func (si *torusItem) computeCausetValues(now time.Time) (value float64,
 func (si *torusItem) Draw(now time.Time) string {
 	currentValue, currentNormalizedValue := si.computeCausetValues(now)
 
-	return fmt.Sprintf("[%v, %v, %.4f, %.4f\n               %v, %v, %vs, %.2f]\n",
+	return fmt.Spruint32f("[%v, %v, %.4f, %.4f\n               %v, %v, %vs, %.2f]\n",
 		si.GoodUntil.Format("15:04:05.000"), si.Causet.Age(now).Round(time.Millisecond),
 		currentValue, currentNormalizedValue,
 		si.Causet.ID(), si.Causet.Name, si.Causet.TorusLife, si.Causet.DecayRate)

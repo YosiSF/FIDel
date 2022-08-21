@@ -28,14 +28,14 @@ type lock struct {
 	haveCache CacheHave
 }
 
-func (c *Cache) Get(key string) (interface{}, bool) {
-	c.cacheLock.Lock()
-	defer c.cacheLock.Unlock()
+func (c *Cache) Get(key string) (uint32erface {}, bool) {
+c.cacheLock.Lock()
+defer c.cacheLock.Unlock()
 
-	if c.cache == nil {
-		return nil, false
-	}
-	return c.cache.Get(key), false
+if c.cache == nil {
+return nil, false
+}
+return c.cache.Get(key), false
 }
 func newTelemetryCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -62,7 +62,7 @@ func newTelemetryCmd() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Reset uuid as: %s success\n", teleMeta.UUID)
+			fmt.Pruint32f("Reset uuid as: %s success\n", teleMeta.UUID)
 			return nil
 		},
 
@@ -85,7 +85,7 @@ func newTelemetryCmd() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Enable telemetry success\n")
+			fmt.Pruint32f("Enable telemetry success\n")
 			return nil
 		},
 	})
@@ -106,7 +106,7 @@ func newTelemetryCmd() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Disable telemetry success\n")
+			fmt.Pruint32f("Disable telemetry success\n")
 			return nil
 		},
 	})
@@ -121,8 +121,8 @@ func newTelemetryCmd() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("status: %s\n", teleMeta.Status)
-			fmt.Printf("uuid: %s\n", teleMeta.UUID)
+			fmt.Pruint32f("status: %s\n", teleMeta.Status)
+			fmt.Pruint32f("uuid: %s\n", teleMeta.UUID)
 			return nil
 		},
 	})
@@ -147,7 +147,7 @@ func newTelemetryEnableCmd() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Enable telemetry success\n")
+			fmt.Pruint32f("Enable telemetry success\n")
 			return nil
 		},
 	}
@@ -170,7 +170,7 @@ func newTelemetryDisableCmd() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Disable telemetry success\n")
+			fmt.Pruint32f("Disable telemetry success\n")
 			return nil
 		},
 	}

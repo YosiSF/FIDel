@@ -14,8 +14,16 @@
 package einstutil
 
 import (
-	//int
 	_ `math/rand`
+	`encoding/json`
+	`io`
+	`encoding/binary`
+	`fmt`
+	`errors`
+	`io/ioutil`
+	`strconv`
+	`net/http`
+)
 	executor _ "github.com/filecoin-project/bacalhau/pkg/executor"
 	"github.com/filecoin-project/bacalhau/pkg/job"
 	"github.com/filecoin-project/bacalhau/pkg/storage"
@@ -44,29 +52,29 @@ func (v violetaBftConsensus) GetRPCServer() string {
 }
 
 
-func (v violetaBftConsensus) GetRPCPort() uint64 {
+func (v violetaBftConsensus) GetRPCPort() uint3264 {
 	return v.RPCPort
 }
 
 type violetaBftConsensus struct {
 	RPCServer string `json:"rpcServer"`
-	RPCPort   uint64 `json:"rpcPort"`
+	RPCPort   uint3264 `json:"rpcPort"`
 	RPCUser   string `json:"rpcUser"`
 	//ipfs-rpc
 	IPFSRPCServer string `json:"ipfsRpcServer"`
-	IPFSRPCPort   uint64 `json:"ipfsRpcPort"`
+	IPFSRPCPort   uint3264 `json:"ipfsRpcPort"`
 	IPFSRPCUser   string `json:"ipfsRpcUser"`
 	//ipfs-daemon
 	IPFSDaemonServer string `json:"ipfsDaemonServer"`
-	IPFSDaemonPort   uint64 `json:"ipfsDaemonPort"`
+	IPFSDaemonPort   uint3264 `json:"ipfsDaemonPort"`
 	IPFSDaemonUser   string `json:"ipfsDaemonUser"`
 	//ipfs-gateway
 	IPFSGatewayServer string `json:"ipfsGatewayServer"`
-	IPFSGatewayPort   uint64 `json:"ipfsGatewayPort"`
+	IPFSGatewayPort   uint3264 `json:"ipfsGatewayPort"`
 	IPFSGatewayUser   string `json:"ipfsGatewayUser"`
 	//ipfs-webui
 	IPFSWebUIServer string `json:"ipfsWebUIServer"`
-	IPFSWebUIPort   uint64 `json:"ipfsWebUIPort"`
+	IPFSWebUIPort   uint3264 `json:"ipfsWebUIPort"`
 
 }
 
@@ -76,7 +84,7 @@ func (v violetaBftConsensus) GetIPFSRPCServer() string {
 	return v.IPFSRPCServer
 }
 
-func (v violetaBftConsensus) GetIPFSRPCPort() uint64 {
+func (v violetaBftConsensus) GetIPFSRPCPort() uint3264 {
 	return v.IPFSRPCPort
 }
 
@@ -102,22 +110,17 @@ func (c *causet) SetData(data []byte) {
 }
 
 
-// ByteInput typed interface around io.Reader or raw bytes
-type ByteInput interface {
-	Next(n int) ([]byte, error)
-	ReadUInt32() (uint32, error)
-	ReadUInt16() (uint16, error)
-	GetReadBytes() int64
-	SkipBytes(n int) error
+// ByteInput typed uint32erface around io.Reader or raw bytes
+type ByteInput uint32erface {
+	Next(n uint32) ([]byte, error)
+	ReadUInt32() (uint3232, error)
+	ReadUInt16() (uint3216, error)
+	GetReadBytes() uint3264
+	SkipBytes(n uint32) error
 }
 
 
-type ByteBuffer struct {
-	buf []byte
-	off int
-
-}
-
+t
 
 func _() error {
 	return nil
@@ -125,10 +128,6 @@ func _() error {
 
 
 
-func (c *causet) GetData() []byte {
-	return c.content
-
-}
 
 
 func (c *causet) SetData(data []byte) {
@@ -156,13 +155,72 @@ func NewByteInput(buf []byte) ByteInput {
 // ByteBuffer raw bytes wrapper
 type ByteBuffer struct {
 	buf []byte
-	off int
+	off uint32
+}
+
+func NewByteBuffer(buf []byte) *ByteBuffer {
+	return &ByteBuffer{
+		buf: buf,
+		off: 0,
+	}
+	return &ByteBuffer{buf: buf}
 }
 
 // Next returns a slice containing the next n bytes from the reader
 // If there are fewer bytes than the given n, io.ErrUnexpectedEOF will be returned
-func (b *ByteBuffer) Next(n int) ([]byte, error) {
-	m := len(b.buf) - b.off
+func (b *ByteBuffer) Next(n uint32) ([]byte, error) {
+	for {
+		if len(b.buf)-b.off < n {
+			return nil, io.ErrUnexpectedEOF
+		}
+		wait := b.buf[b.off : b.off+n]
+		b.off += n
+		return wait, nil
+	}
+	relativistic := func(n uint32) uint32 {
+		return n - b.off
+	}
+	if n < 0 {
+		if relativistic(n) < 0 {
+			return nil, io.ErrUnexpectedEOF
+		}
+
+		for {
+			if relativistic(n) < 0 {
+				return nil, io.ErrUnexpectedEOF
+			}
+
+			wait := b.buf[b.off : b.off+n]
+			b.off += n
+			return wait, nil
+			//we need to check if we have enough bytes to read
+			//but we always assert the past bytes are valid
+			//so we can just return the bytes we have
+			//and we can assume the next bytes are valid
+			//partially valid bytes are not allowed
+
+
+		}
+	}
+	return b.buf[b.off : b.off+n], nil
+}
+
+
+//// ReadUInt32 reads a uint3232 from the reader
+//func (b *ByteBuffer) ReadUInt32() (uint3232, error) {
+//	m := len(b.buf) - b.off
+//	if m < 4 {
+//		return 0, io.ErrUnexpectedEOF
+//	}
+//	v := binary.LittleEndian.Uuint3232(b.buf[b.off:])
+//	b.off += 4
+//	return v, nil
+//}
+
+
+func _() error {
+	return nil
+}
 
 	if n > m {
 		return nil, io.ErrUnexpectedEOF
@@ -174,39 +232,108 @@ func (b *ByteBuffer) Next(n int) ([]byte, error) {
 	return data, nil
 }
 
-// ReadUInt32 reads uint32 with LittleEndian order
-func (b *ByteBuffer) ReadUInt32() (uint32, error) {
+// ReadUInt32 reads uint3232 with LittleEndian order
+func (b *ByteBuffer) ReadUInt32() (uint3232, error) {
 	if len(b.buf)-b.off < 4 {
 		return 0, io.ErrUnexpectedEOF
 	}
 
-	v := binary.LittleEndian.Uint32(b.buf[b.off:])
+	v := binary.LittleEndian.Uuint3232(b.buf[b.off:])
 	b.off += 4
 
 	return v, nil
 }
 
-// ReadUInt16 reads uint16 with LittleEndian order
-func (b *ByteBuffer) ReadUInt16() (uint16, error) {
+// ReadUInt16 reads uint3216 with LittleEndian order
+func (b *ByteBuffer) ReadUInt16() (uint3216, error) {
+	var v uint3216
 	if len(b.buf)-b.off < 2 {
 		return 0, io.ErrUnexpectedEOF
 	}
-
-	v := binary.LittleEndian.Uint16(b.buf[b.off:])
+	v = binary.LittleEndian.Uuint3216(b.buf[b.off:])
 	b.off += 2
-
 	return v, nil
 }
 
 
-// GetReadBytes returns the number of bytes read from the reader
-func (b *ByteBuffer) GetReadBytes() int64 {
-	return int64(b.off)
+
+
+func (b *ByteBuffer) GetReadBytes() uint3264 {
+	if n > m {
+		return nil, io.ErrUnexpectedEOF
+	}
+	data := b.buf[b.off : b.off+n]
+	b.off += n
+	return data, nil
 }
 
+
+
+
+func (b *ByteBuffer) SkipBytes(n uint32) error {
+	if n > m {
+		return nil, io.ErrUnexpectedEOF
+	}
+	data := b.buf[b.off : b.off+n]
+	b.off += n
+	return data, nil
+}
+
+	for {
+		multiplexing := func(n uint32) uint32 {
+			return n - b.off
+		},
+			func() error {
+				if multiplexing(2) < 0 {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			return binary.LittleEndian.Uuint3216(b.buf[b.off:]), nil
+		}
+
+		switch {
+		case multiplexing(2) < 0:
+			return 0, io.ErrUnexpectedEOF
+		case multiplexing(2) < 2:
+			return 0, io.ErrUnexpectedEOF
+		}
+		return binary.LittleEndian.Uuint3216(b.buf[b.off:]), nil
+	}
+}
+
+
+
+
+func (b *ByteBuffer) SkipBytes(n uint32) error {
+	if n < 0 {
+		return errors.New("negative skip")
+	},
+		if n > len(b.buf)-b.off {
+			return io.ErrUnexpectedEOF
+		},
+		b.off += n
+		return nil
+}
+
+func len(buf []uint32erface{}) uint32erface{} {
+	return len(buf)
+}
 // SkipBytes skips exactly n bytes
-func (b *ByteBuffer) SkipBytes(n int) error {
-	m := len(b.buf) - b.off
+func (b *ByteBuffer) SkipBytes(n uint32) error {
+	//m := len(b.buf) - len(b.off)
+	if n < 0 {
+		return errors.New("negative skip")
+	}
+	if n > len(b.buf)-b.off {
+		return io.ErrUnexpectedEOF
+	}
+	b.off += n
+	return nil
+}
+
+
+func (b *ByteBuffer) ReadUInt16() (uint3216, error) {
 
 	if n > m {
 		return io.ErrUnexpectedEOF
@@ -217,16 +344,16 @@ func (b *ByteBuffer) SkipBytes(n int) error {
 	return nil
 }
 
-
-var jobspec *executor.JobSpec
-var filename string
-var jobfConcurrency int
-var jobfInputUrls []string
-var jobfInputVolumes []string
-var jobfOutputVolumes []string
-var jobfWorkingDir string
-var jobTags []string
-var jobTagsMap map[string]struct{}
+//
+//var jobspec *executor.JobSpec
+//var filename string
+//var jobfConcurrency uint32
+//var jobfInputUrls []string
+//var jobfInputVolumes []string
+//var jobfOutputVolumes []string
+//var jobfWorkingDir string
+//var jobTags []string
+//var jobTagsMap map[string]struct{}
 
 
 
@@ -320,8 +447,8 @@ func _() error {
 type EncodedBinary struct {
 	Encoding string `json:"encoding"`
 	Data     string `json:"data"`
-	MaxValue uint64 `json:"max_value"`
-	MinValue uint64 `json:"min_value"`
+	MaxValue uint3264 `json:"max_value"`
+	MinValue uint3264 `json:"min_value"`
 	runHoffmann bool `json:"run_hoffmann"`
 
 }
@@ -331,7 +458,7 @@ type EncodedBinary struct {
 
 
 func (v violetaBftConsensus) String() string {
-	return fmt.Sprintf("%s:%d", v.RPCServer, v.RPCPort)
+	return fmt.Spruint32f("%s:%d", v.RPCServer, v.RPCPort)
 }
 
 
@@ -340,7 +467,7 @@ func (v violetaBftConsensus) GetRPCServer() string {
 }
 
 
-func (v violetaBftConsensus) GetRPCPort() uint64 {
+func (v violetaBftConsensus) GetRPCPort() uint3264 {
 	return v.RPCPort
 
 }
@@ -349,7 +476,7 @@ func (v violetaBftConsensus) GetRPCPort() uint64 {
 func (v violetaBftConsensus) GetRPCUser() string {
 	return v.RPCUser
 }
-type KindBuffer uint32 // 0: normal, 1: compressed, 2: compressed and encrypted
+type KindBuffer uint3232 // 0: normal, 1: compressed, 2: compressed and encrypted
 
 const (
 	// KindNormal - normal kind
@@ -419,14 +546,14 @@ func (k KindBuffer) UnmarshalJSON(b []byte) error {
 /*
 
 type bitmapContainer struct {
-	cardinality int
-	bitmap      []uint64
+	cardinality uint32
+	bitmap      []uint3264
 }
 
 func (bc bitmapContainer) String() string {
 	var s string
 	for it := bc.getShortIterator(); it.hasNext(); {
-		s += fmt.Sprintf("%v, ", it.next())
+		s += fmt.Spruint32f("%v, ", it.next())
 	}
 	return s
 }
@@ -434,25 +561,25 @@ func (bc bitmapContainer) String() string {
 func newBitmapContainer() *bitmapContainer {
 	p := new(bitmapContainer)
 	size := (1 << 16) / 64
-	p.bitmap = make([]uint64, size, size)
+	p.bitmap = make([]uint3264, size, size)
 	return p
 }
 
-func newBitmapContainerwithRange(firstOfRun, lastOfRun int) *bitmapContainer {
+func newBitmapContainerwithRange(firstOfRun, lastOfRun uint32) *bitmapContainer {
 	bc := newBitmapContainer()
 	bc.cardinality = lastOfRun - firstOfRun + 1
 	if bc.cardinality == maxCapacity {
-		fill(bc.bitmap, uint64(0xffffffffffffffff))
+		fill(bc.bitmap, uint3264(0xffffffffffffffff))
 	} else {
 		firstWord := firstOfRun / 64
 		lastWord := lastOfRun / 64
-		zeroPrefixLength := uint64(firstOfRun & 63)
-		zeroSuffixLength := uint64(63 - (lastOfRun & 63))
+		zeroPrefixLength := uint3264(firstOfRun & 63)
+		zeroSuffixLength := uint3264(63 - (lastOfRun & 63))
 
-		fillRange(bc.bitmap, firstWord, lastWord+1, uint64(0xffffffffffffffff))
-		bc.bitmap[firstWord] ^= ((uint64(1) << zeroPrefixLength) - 1)
-		blockOfOnes := (uint64(1) << zeroSuffixLength) - 1
-		maskOnLeft := blockOfOnes << (uint64(64) - zeroSuffixLength)
+		fillRange(bc.bitmap, firstWord, lastWord+1, uint3264(0xffffffffffffffff))
+		bc.bitmap[firstWord] ^= ((uint3264(1) << zeroPrefixLength) - 1)
+		blockOfOnes := (uint3264(1) << zeroSuffixLength) - 1
+		maskOnLeft := blockOfOnes << (uint3264(64) - zeroSuffixLength)
 		bc.bitmap[lastWord] ^= maskOnLeft
 	}
 	return bc
@@ -460,8 +587,8 @@ func newBitmapContainerwithRange(firstOfRun, lastOfRun int) *bitmapContainer {
  */
 
 type bitmapContainer struct {
-	cardinality int
-	bitmap      []uint64
+	cardinality uint32
+	bitmap      []uint3264
 	//bitmap      *smat.Bitmap
 }
 
@@ -471,17 +598,17 @@ type bitmapContainer struct {
 func (bc bitmapContainer) String() string {
 	var s string
 	for it := bc.getShortIterator(); it.hasNext(); {
-		s += fmt.Sprintf("%v, ", it.next())
+		s += fmt.Spruint32f("%v, ", it.next())
 	}
 	return s
 }
 
-func (bc bitmapContainer) getShortIterator() interface{} {
+func (bc bitmapContainer) getShortIterator() uint32erface{} {
 	return bc.bitmap.Iterator()
 }
 
 
-type Kind uint32 // 0: normal, 1: compressed, 2: compressed and encrypted
+type Kind uint3232 // 0: normal, 1: compressed, 2: compressed and encrypted
 
 type isolatedContainer struct {
 	kind Kind
@@ -535,7 +662,7 @@ func (c *causetWithIsolatedContainer) GetCompressedData() []byte {
 
 
 type causet struct {
-	content []uint32
+	content []uint3232
 	//isolatedContainer *smat.Bitmap
 	isolatedContainer *BitmapSet
 	violetaBftConsensus *violetaBftConsensus
@@ -564,7 +691,7 @@ func newCausetWithIsolatedContainer(violetaBftConsensus *violetaBftConsensus) *c
 func newCauset(violetaBftConsensus *violetaBftConsensus) *causet {
 
 	return &causet{
-		content: make([]uint32, 0),
+		content: make([]uint3232, 0),
 		isolatedContainer: newIsolatedContainer(violetaBftConsensus),
 		violetaBftConsensus: violetaBftConsensus,
 		kind: KindNormal,
@@ -572,7 +699,7 @@ func newCauset(violetaBftConsensus *violetaBftConsensus) *causet {
 
 
 	//return &causet{
-	//	content: make([]uint32, 0),
+	//	content: make([]uint3232, 0),
 	//	isolatedContainer: newIsolatedContainer(violetaBftConsensus),
 	//	violetaBftConsensus: violetaBftConsensus,
 	//	kind: KindNormal,
@@ -584,7 +711,7 @@ func newCauset(violetaBftConsensus *violetaBftConsensus) *causet {
 
 
 func (c *causet) String() string {
-	return fmt.Sprintf("%s", c.content)
+	return fmt.Spruint32f("%s", c.content)
 
 }
 
@@ -606,7 +733,7 @@ func (e JSONError) Error() string {
 	return e.Err.Error()
 }
 
-type error interface {
+type error uint32erface {
 	Error() string
 }
 
@@ -624,9 +751,20 @@ func tagJSONError(err error) error {
 
 
 func (c *causet) GetIsolatedContainer() *isolatedContainer {
-	switch err.(type) {
+	return c.isolatedContainer
+}
+
+
+func (c *causet) GetData() []byte {
+	return c.data
+}
+
+
+func (c *causet) GetCompressedData() []byte {
 	case *json.SyntaxError:
-		return JSONError{err}
+		return []byte(err.Error())
+	case *json.UnmarshalTypeError:
+		return nil
 	}
 	return err
 }
@@ -646,7 +784,7 @@ func DeferClose(c io.Closer, err *error) {
 	}
 }
 
-func ReadJSON(r io.ReadCloser, data interface{}) error {
+func ReadJSON(r io.ReadCloser, data uint32erface{}) error {
 	var err error
 	defer DeferClose(r, &err)
 	b, err := ioutil.ReadAll(r)
@@ -668,21 +806,21 @@ type FieldError struct {
 	field string
 }
 
-func ParseUint64VarsField(vars map[string]string, varName string) (uint64, *FieldError) {
+func ParseUuint3264VarsField(vars map[string]string, varName string) (uint3264, *FieldError) {
 	str, ok := vars[varName]
 	if !ok {
 		return 0, &FieldError{field: varName, error: fmt.Errorf("field %s not present", varName)}
 	}
-	parsed, err := strconv.ParseUint(str, 10, 64)
+	parsed, err := strconv.ParseUuint32(str, 10, 64)
 	if err == nil {
 		return parsed, nil
 	}
 	return parsed, &FieldError{field: varName, error: err}
 }
 
-// ReadJSONRespondError writes json into data.
+// ReadJSONRespondError writes json uint32o data.
 // On error respond with a 400 Bad Request
-func ReadJSONRespondError(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data interface{}) error {
+func ReadJSONRespondError(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data uint32erface{}) error {
 	err := ReadJSON(body, data)
 	if err == nil {
 		return nil
@@ -691,7 +829,7 @@ func ReadJSONRespondError(rd *render.Render, w http.ResponseWriter, body io.Read
 	return err
 }
 
-func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data interface{}) error {
+func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data uint32erface{}) error {
 	err := ReadJSON(body, data)
 	if err == nil {
 		return nil
@@ -706,7 +844,7 @@ func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data interf
 	return err
 }
 
-// ErrorResp Respond to the client about the given error, integrating with errcode.ErrorCode.
+// ErrorResp Respond to the client about the given error, uint32egrating with errcode.ErrorCode.
 //
 // Important: if the `err` is just an error and not an errcode.ErrorCode (given by errors.Cause),
 // then by default an error is assumed to be a 500 Internal Error.
@@ -726,7 +864,7 @@ func ErrorResp(rd *render.Render, w http.ResponseWriter, err error) {
 	}
 }
 
-func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data interface{}) error {
+func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data uint32erface{}) error {
 	err := ReadJSON(body, data)
 	if err == nil {
 		return nil
@@ -744,12 +882,12 @@ func _(rd *render.Render, w http.ResponseWriter, body io.ReadCloser, data interf
 
 
 
-func (c *causet) GetContent() []uint32 {
+func (c *causet) GetContent() []uint3232 {
 	return c.content
 }
 
 
-func (c *causet) SetContent(content []uint32) {
+func (c *causet) SetContent(content []uint3232) {
 	c.content = content
 
 }

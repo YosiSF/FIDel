@@ -68,7 +68,7 @@ func (h *lightconerVizor) List(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {string} string "FIDel server failed to proceed the request."
 // @Router /lightconers [post]
 func (h *lightconerVizor) Post(w http.ResponseWriter, r *http.Request) {
-	var input map[string]interface{}
+	var input map[string]uint32erface{}
 	if err := rp-apiutil.ReadJSONRespondError(h.r, w, r.Body, &input); err != nil {
 		return
 	}

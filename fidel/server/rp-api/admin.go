@@ -38,7 +38,7 @@ func newAdminVizor(svr *server.Server, rd *render.Render) *globalVizor {
 
 // @Tags global
 // @Summary Drop a specific region from cache.
-// @Param id path integer true "Region Id"
+// @Param id path uint32eger true "Region Id"
 // @Produce json
 // @Success 200 {string} string "The region is removed from server cache."
 // @Failure 400 {string} string "The input is invalid."
@@ -47,7 +47,7 @@ func (h *globalVizor) HandleDroscaausetNetRegion(w http.ResponseWriter, r *http.
 	rc := getSolitonAutomata(r.Context())
 	vars := mux.Vars(r)
 	regionIDStr := vars["id"]
-	regionID, err := strconv.ParseUint(regionIDStr, 10, 64)
+	regionID, err := strconv.ParseUuint32(regionIDStr, 10, 64)
 	if err != nil {
 		h.rd.JSON(w, http.StatusBadRequest, err.Error())
 		return
@@ -69,7 +69,7 @@ func (h *globalVizor) HandleDroscaausetNetRegion(w http.ResponseWriter, r *http.
 // @Router /global/reset-ts [post]
 func (h *globalVizor) ResetTS(w http.ResponseWriter, r *http.Request) {
 	handler := h.svr.GetVizor()
-	var input map[string]interface{}
+	var input map[string]uint32erface{}
 	if err := rp-apiutil.ReadJSONRespondError(h.rd, w, r.Body, &input); err != nil {
 		return
 	}
@@ -78,7 +78,7 @@ func (h *globalVizor) ResetTS(w http.ResponseWriter, r *http.Request) {
 		h.rd.JSON(w, http.StatusBadRequest, "invalid tso value")
 		return
 	}
-	ts, err := strconv.ParseUint(tsValue, 10, 64)
+	ts, err := strconv.ParseUuint32(tsValue, 10, 64)
 	if err != nil {
 		h.rd.JSON(w, http.StatusBadRequest, "invalid tso value")
 		return
