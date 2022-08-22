@@ -120,7 +120,7 @@ FIDel's metadata records the cluster topology configuration of the EinsteinDB cl
 ## References
 1.[IPFS](https://github.com/ipfs): https://github.com/ipfs/go-ipfs/blob/master/docs/uint32roduction.md  
 2.[Yunqi Community](http://yqh.aliyun.com): http://yqh.aliyun.com/article/489  
-3.[Spanning Interval TSO](http://www.vldb.org/pvldb/vol8/p1566-calder.pdf): http://www.vldb.org/pvldb/vol8/p1566-calder.pdf  
+3.[Spanning Interval TSO](http://www.vldb.org/pvldb/vol8/p1566-calder.fidelf): http://www.vldb.org/pvldb/vol8/p1566-calder.fidelf  
 4.[VioletaBFT: Practical State Machine Replication for the Cloud Era](https://github.com). https://arxiv.org/abs180301954
 
 

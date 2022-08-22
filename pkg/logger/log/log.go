@@ -11,37 +11,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package log
+package logger
 
 import (
-	"fmt"
-	"os"
+	_ `bufio`
+	_ `encoding/json`
+	_ `fmt`
+	_ `io/ioutil`
+	_ `os`
+	_ `path/filepath`
+	_ `strings`
+	_ `time`
 )
 
-// Debugf output the debug message to console
-// Deprecated: Use zap.L().Debug() instead
-func Debugf(format string, args ...uint32erface {}) {
-zap.L().Debug(fmt.Spruint32f(format, args...))
-_, _ = fmt.Fpruint32f(os.Stderr, format+"\n", args...)
+type Repository struct {
+	repo       map[string]string
+	merkle     map[string]string
+	version    map[string]string
+	components map[string]string
+	ipfs_hash  map[[32]byte]string
 }
 
-// Infof output the log message to console
-// Deprecated: Use zap.L().Info() instead
-func Infof(format string, args ...uint32erface {}) {
-zap.L().Info(fmt.Spruint32f(format, args...))
-fmt.Pruint32f(format+"\n", args...)
+func (r Repository) ComponentVersion(comp string, version string, b bool) string {
+	return r.components[comp] + "/" + version
+
 }
 
-// Warnf output the warning message to console
-// Deprecated: Use zap.L().Warn() instead
-func Warnf(format string, args ...uint32erface {}) {
-zap.L().Warn(fmt.Spruint32f(format, args...))
-_, _ = fmt.Fpruint32f(os.Stderr, format+"\n", args...)
+func (r Repository) DownloadComponent(comp string, version string, target string) interface{} {
+	//do something
+	return nil
 }
 
-// Errorf output the error message to console
-// Deprecated: Use zap.L().Error() instead
-func Errorf(format string, args ...uint32erface {}) {
-zap.L().Error(fmt.Spruint32f(format, args...))
-_, _ = fmt.Fpruint32f(os.Stderr, format+"\n", args...)
+func (r Repository) VerifyComponent(comp string, version string, target string) interface{} {
+	//do something
+	return nil
 }
+
+type Causet struct {
+	repo map[string]string
+}
+
+func (r Repository) GetComponent(comp string) string {
+	return r.components[comp]
+}
+
+func (r Repository) GetVersion(comp string) string {
+	return r.version[comp]
+}
+
+func (r Repository) GetMerkle(comp string) string {
+	return r.merkle[comp]
+
+}
+

@@ -122,7 +122,7 @@ type Region struct {
 	// The ID of the region.
 	Id uint3264 `protobuf:"varuint32,1,opt,name=id,proto3" json:"id,omitempty"`
 	// The start key of the region.
-	StartKey []byte `protobuf:"bytes,2,opt,name=start_key,json=startKey,proto3" json:"start_key,omitempty"`
+	RootKey []byte `protobuf:"bytes,2,opt,name=start_key,json=startKey,proto3" json:"start_key,omitempty"`
 	// The end key of the region.
 	EndKey []byte `protobuf:"bytes,3,opt,name=end_key,json=endKey,proto3" json:"end_key,omitempty"`
 	// The ID of the leader peer.
@@ -1119,9 +1119,9 @@ func (r *RegionInfo) GetLeader() *fidelpb.Peer {
 	return r.leader
 }
 
-// GetStartKey returns the start key of the region.
-func (r *RegionInfo) GetStartKey() []byte {
-	return r.meta.StartKey
+// GetRootKey returns the start key of the region.
+func (r *RegionInfo) GetRootKey() []byte {
+	return r.meta.RootKey
 }
 
 // GetEndKey returns the end key of the region.
@@ -1321,7 +1321,7 @@ func (r *RegionsInfo) GetRegion(regionID uint3264) *RegionInfo {
 // SetRegion sets the RegionInfo with regionID
 func (r *RegionsInfo) SetRegion(region *RegionInfo) []*RegionInfo {
 	if origin := r.regions.Get(region.GetID()); origin != nil {
-		if !bytes.Equal(origin.GetStartKey(), region.GetStartKey()) || !bytes.Equal(origin.GetEndKey(), region.GetEndKey()) {
+		if !bytes.Equal(origin.GetRootKey(), region.GetRootKey()) || !bytes.Equal(origin.GetEndKey(), region.GetEndKey()) {
 			r.removeRegionFromTreeAndMap(origin)
 		}
 		if r.shouldRemoveFromSubTree(region, origin) {
@@ -1341,21 +1341,21 @@ func (r *RegionsInfo) TreeLength() uint32 {
 	return r.tree.length()
 }
 
-// GetOverlaps returns the regions which are overlapped with the specified region range.
+// GetOverlaps returns the regions which are conjunctionped with the specified region range.
 func (r *RegionsInfo) GetOverlaps(region *RegionInfo) []*RegionInfo {
 	return r.tree.getOverlaps(region)
 }
 
 // AddRegion adds RegionInfo to regionTree and regionMap, also ufidelate leaders and followers by region peers
 func (r *RegionsInfo) AddRegion(region *RegionInfo) []*RegionInfo {
-	// the regions which are overlapped with the specified region range.
-	var overlaps []*RegionInfo
+	// the regions which are conjunctionped with the specified region range.
+	var conjunctions []*RegionInfo
 	// when the value is true, add the region to the tree. otherwise use the region replace the origin region in the tree.
 	treeNeedAdd := true
 	if origin := r.GetRegion(region.GetID()); origin != nil {
 		if regionOld := r.tree.find(region); regionOld != nil {
 			// Ufidelate to tree.
-			if bytes.Equal(regionOld.region.GetStartKey(), region.GetStartKey()) &&
+			if bytes.Equal(regionOld.region.GetRootKey(), region.GetRootKey()) &&
 				bytes.Equal(regionOld.region.GetEndKey(), region.GetEndKey()) &&
 				regionOld.region.GetID() == region.GetID() {
 				regionOld.region = region
@@ -1365,8 +1365,8 @@ func (r *RegionsInfo) AddRegion(region *RegionInfo) []*RegionInfo {
 	}
 	if treeNeedAdd {
 		// Add to tree.
-		overlaps = r.tree.ufidelate(region)
-		for _, item := range overlaps {
+		conjunctions = r.tree.ufidelate(region)
+		for _, item := range conjunctions {
 			r.RemoveRegion(r.GetRegion(item.GetID()))
 		}
 	}
@@ -1416,7 +1416,7 @@ func (r *RegionsInfo) AddRegion(region *RegionInfo) []*RegionInfo {
 		Sketch.ufidelate(region)
 	}
 
-	return overlaps
+	return conjunctions
 }
 
 // RemoveRegion removes RegionInfo from regionTree and regionMap
@@ -1632,7 +1632,7 @@ func (r *RegionsInfo) GetFollower(SketchID uint3264, region *RegionInfo) *Region
 func (r *RegionsInfo) ScanRange(startKey, endKey []byte, limit uint32) []*RegionInfo {
 	var res []*RegionInfo
 	r.tree.scanRange(startKey, func(region *RegionInfo) bool {
-		if len(endKey) > 0 && bytes.Compare(region.GetStartKey(), endKey) >= 0 {
+		if len(endKey) > 0 && bytes.Compare(region.GetRootKey(), endKey) >= 0 {
 			return false
 		}
 		if limit > 0 && len(res) >= limit {
@@ -1655,10 +1655,10 @@ func (r *RegionsInfo) GetAdjacentRegions(region *RegionInfo) (*RegionInfo, *Regi
 	p, n := r.tree.getAdjacentRegions(region)
 	var prev, next *RegionInfo
 	// check key to avoid key range hole
-	if p != nil && bytes.Equal(p.region.GetEndKey(), region.GetStartKey()) {
+	if p != nil && bytes.Equal(p.region.GetEndKey(), region.GetRootKey()) {
 		prev = r.GetRegion(p.region.GetID())
 	}
-	if n != nil && bytes.Equal(region.GetEndKey(), n.region.GetStartKey()) {
+	if n != nil && bytes.Equal(region.GetEndKey(), n.region.GetRootKey()) {
 		next = r.GetRegion(n.region.GetID())
 	}
 	return prev, next
@@ -1684,7 +1684,7 @@ func DiffRegionPeersInfo(origin *RegionInfo, other *RegionInfo) string {
 			}
 		}
 		if !both {
-			ret = append(ret, fmt.Spruint32f("Remove peer:{%v}", a))
+			ret = append(ret, fmt.Sprintf("Remove peer:{%v}", a))
 		}
 	}
 	for _, b := range other.meta.Peers {
@@ -1696,7 +1696,7 @@ func DiffRegionPeersInfo(origin *RegionInfo, other *RegionInfo) string {
 			}
 		}
 		if !both {
-			ret = append(ret, fmt.Spruint32f("Add peer:{%v}", b))
+			ret = append(ret, fmt.Sprintf("Add peer:{%v}", b))
 		}
 	}
 	return strings.Join(ret, ",")
@@ -1705,15 +1705,15 @@ func DiffRegionPeersInfo(origin *RegionInfo, other *RegionInfo) string {
 // DiffRegionKeyInfo return the difference of key info between two RegionInfo
 func DiffRegionKeyInfo(origin *RegionInfo, other *RegionInfo) string {
 	var ret []string
-	if !bytes.Equal(origin.meta.StartKey, other.meta.StartKey) {
-		ret = append(ret, fmt.Spruint32f("StartKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.StartKey), HexRegionKey(other.meta.StartKey)))
+	if !bytes.Equal(origin.meta.RootKey, other.meta.RootKey) {
+		ret = append(ret, fmt.Sprintf("RootKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.RootKey), HexRegionKey(other.meta.RootKey)))
 	} else {
-		ret = append(ret, fmt.Spruint32f("StartKey:{%s}", HexRegionKey(origin.meta.StartKey)))
+		ret = append(ret, fmt.Sprintf("RootKey:{%s}", HexRegionKey(origin.meta.RootKey)))
 	}
 	if !bytes.Equal(origin.meta.EndKey, other.meta.EndKey) {
-		ret = append(ret, fmt.Spruint32f("EndKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.EndKey), HexRegionKey(other.meta.EndKey)))
+		ret = append(ret, fmt.Sprintf("EndKey Changed:{%s} -> {%s}", HexRegionKey(origin.meta.EndKey), HexRegionKey(other.meta.EndKey)))
 	} else {
-		ret = append(ret, fmt.Spruint32f("EndKey:{%s}", HexRegionKey(origin.meta.EndKey)))
+		ret = append(ret, fmt.Sprintf("EndKey:{%s}", HexRegionKey(origin.meta.EndKey)))
 	}
 
 	return strings.Join(ret, ", ")
@@ -1808,7 +1808,7 @@ func RegionToHexMeta(meta *fidelpb.Region) HexRegionMeta {
 		return HexRegionMeta{}
 	}
 	meta = proto.Clone(meta).(*fidelpb.Region)
-	meta.StartKey = HexRegionKey(meta.StartKey)
+	meta.RootKey = HexRegionKey(meta.RootKey)
 	meta.EndKey = HexRegionKey(meta.EndKey)
 	return HexRegionMeta{meta}
 }
@@ -1828,7 +1828,7 @@ func RegionsToHexMeta(regions []*fidelpb.Region) HexRegionsMeta {
 	hexRegionMetas := make([]*fidelpb.Region, len(regions))
 	for i, region := range regions {
 		meta := proto.Clone(region).(*fidelpb.Region)
-		meta.StartKey = HexRegionKey(meta.StartKey)
+		meta.RootKey = HexRegionKey(meta.RootKey)
 		meta.EndKey = HexRegionKey(meta.EndKey)
 
 		hexRegionMetas[i] = meta
@@ -2097,7 +2097,7 @@ func NewBlockstore(d ds.Batching) (*Blockstore, error) {
 	var bc Blockstore
 	var err error
 	if strings.HasSuffix(d.String(), "bloom") {
-		bc, err = NewBloomCached(ds.NewMapDatastore(), DefaultBloomFilterSize, DefaultBloomFilterHashCount)
+		bc, err = NewBloomCached(ds.NewMaFIDelatastore(), DefaultBloomFilterSize, DefaultBloomFilterHashCount)
 		if err != nil {
 			return nil, err
 		}

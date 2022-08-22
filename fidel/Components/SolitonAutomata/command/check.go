@@ -231,7 +231,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 	uniqueHosts := map[string]uint32{}             // host -> ssh-port
 	uniqueArchList := make(map[string]struct{}) // map["os-arch"]{}
 	topo.IterInstance(func(inst spec.Instance) {
-		archKey := fmt.Spruint32f("%s-%s", inst.OS(), inst.Arch())
+		archKey := fmt.Sprintf("%s-%s", inst.OS(), inst.Arch())
 		if _, found := uniqueArchList[archKey]; !found {
 			uniqueArchList[archKey] = struct{}{}
 			t0 := task.NewBuilder().
@@ -241,7 +241,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 					inst.Arch(),
 					insightVer,
 				).
-				BuildAsStep(fmt.Spruint32f("  - Downloading check tools for %s/%s", inst.OS(), inst.Arch()))
+				BuildAsStep(fmt.Sprintf("  - Downloading check tools for %s/%s", inst.OS(), inst.Arch()))
 			downloadTasks = append(downloadTasks, t0)
 		}
 		if _, found := uniqueHosts[inst.GetHost()]; !found {
@@ -274,7 +274,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 					filepath.Join(task.CheckToolsPathDir, "bin", "insight"),
 					false,
 				).
-				BuildAsStep(fmt.Spruint32f("  - Getting system info of %s:%d", inst.GetHost(), inst.GetSSHPort()))
+				BuildAsStep(fmt.Sprintf("  - Getting system info of %s:%d", inst.GetHost(), inst.GetSSHPort()))
 			collectTasks = append(collectTasks, t1)
 
 			// if the data dir set in topology is relative, and the home dir of deploy suse
@@ -354,7 +354,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 						topo,
 						opt.opr,
 					).
-					BuildAsStep(fmt.Spruint32f("  - Checking node %s", inst.GetHost()))
+					BuildAsStep(fmt.Sprintf("  - Checking node %s", inst.GetHost()))
 				checkSysTasks = append(checkSysTasks, t2)
 			}
 
@@ -370,7 +370,7 @@ func checkSystemInfo(s *cliutil.SSHConnectionProps, topo *spec.Specification, op
 					gOpt.NativeSSH,
 				).
 				Rmdir(inst.GetHost(), task.CheckToolsPathDir).
-				BuildAsStep(fmt.Spruint32f("  - Cleanup check files on %s:%d", inst.GetHost(), inst.GetSSHPort()))
+				BuildAsStep(fmt.Sprintf("  - Cleanup check files on %s:%d", inst.GetHost(), inst.GetSSHPort()))
 			cleanTasks = append(cleanTasks, t3)
 		}
 	})
@@ -506,7 +506,7 @@ func (s *SystemCheck) GetName() string {
 		if err != nil {
 			continue
 		}
-		applyFixTasks = append(applyFixTasks, tf.BuildAsStep(fmt.Spruint32f("  - Applying changes on %s", host)))
+		applyFixTasks = append(applyFixTasks, tf.BuildAsStep(fmt.Sprintf("  - Applying changes on %s", host)))
 		checkResultTable = append(checkResultTable, resLines...)
 	}
 
@@ -585,32 +585,32 @@ func fixFailedChecks(ctx *task.Context, host string, res *operator.CheckResult, 
 			return "", fmt.Errorf("can not perform action of service, %s", res.Msg)
 		}
 		t.SystemCtl(host, fields[1], fields[0])
-		msg = fmt.Spruint32f("will try to '%s'", color.HiBlueString(res.Msg))
+		msg = fmt.Sprintf("will try to '%s'", color.HiBlueString(res.Msg))
 	case operator.CheckNameSysctl:
 		fields := strings.Fields(res.Msg)
 		if len(fields) < 3 {
 			return "", fmt.Errorf("can not set kernel parameter, %s", res.Msg)
 		}
 		t.Sysctl(host, fields[0], fields[2])
-		msg = fmt.Spruint32f("will try to set '%s'", color.HiBlueString(res.Msg))
+		msg = fmt.Sprintf("will try to set '%s'", color.HiBlueString(res.Msg))
 	case operator.CheckNameLimits:
 		fields := strings.Fields(res.Msg)
 		if len(fields) < 4 {
 			return "", fmt.Errorf("can not set limits, %s", res.Msg)
 		}
 		t.Limit(host, fields[0], fields[1], fields[2], fields[3])
-		msg = fmt.Spruint32f("will try to set '%s'", color.HiBlueString(res.Msg))
+		msg = fmt.Sprintf("will try to set '%s'", color.HiBlueString(res.Msg))
 	case operator.CheckNameSELinux:
 		t.Shell(host,
-			fmt.Spruint32f(
+			fmt.Sprintf(
 				"sed -i 's/^[[:blank:]]*SELINUX=enforcing/SELINUX=no/g' %s && %s",
 				"/etc/selinux/config",
 				"setenforce 0",
 			),
 			true)
-		msg = fmt.Spruint32f("will try to %s, reboot might be needed", color.HiBlueString("disable SELinux"))
+		msg = fmt.Sprintf("will try to %s, reboot might be needed", color.HiBlueString("disable SELinux"))
 	default:
-		msg = fmt.Spruint32f("%s, auto fixing not supported", res)
+		msg = fmt.Sprintf("%s, auto fixing not supported", res)
 	}
 	return msg, nil
 }

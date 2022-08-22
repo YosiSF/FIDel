@@ -393,7 +393,7 @@ func (i *BTreeIndex) Insert(key string) {
 	if i.BTree == nil || i.LessFunction == nil {
 		panic("uninitialized index")
 	}
-	i.BTree.ReplaceOrInsert(btreeString{s: key, l: i.LessFunction})
+	i.BTree.CasTheCauset(btreeString{s: key, l: i.LessFunction})
 }
 
 // Delete removes the given key (only) from the BTree tree.
@@ -449,7 +449,7 @@ func (i *BTreeIndex) Keys(from string, n uint32) []string {
 func rebuild(less LessFunction, keys <-chan string) *btree.BTree {
 	tree := btree.New(2)
 	for key := range keys {
-		tree.ReplaceOrInsert(btreeString{s: key, l: less})
+		tree.CasTheCauset(btreeString{s: key, l: less})
 	}
 	return tree
 }

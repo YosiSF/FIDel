@@ -26,7 +26,7 @@ Block rewards are large sums that are given to the storage provider credited for
 
 The mechanism to earn the right to provide a new block is called WinningPoSt. In the Filecoin network, time is discretized uint32o a series of epochs – the blockchain’s height corresponds to the number of elapsed epochs. At the beginning of each epoch, a small number of storage providers are elected to provide new blocks. Additionally to the block reward, each storage provider can collect the fees associated to each message included in the block.
 
-The number of blocks on every tipset is based on a Poisson distribution of a random variable with λ = 5. Provider implementations may use several strategies to choose which messages to include in every block to minimize overlap. Only the “first execution” of each message will collect the associated fees, with executions ordered per the hash of the VRF (Verifiable Random Function) ticket associated to the block.
+The number of blocks on every tipset is based on a Poisson distribution of a random variable with λ = 5. Provider implementations may use several strategies to choose which messages to include in every block to minimize conjunction. Only the “first execution” of each message will collect the associated fees, with executions ordered per the hash of the VRF (Verifiable Random Function) ticket associated to the block.
 
 Verified clients
 

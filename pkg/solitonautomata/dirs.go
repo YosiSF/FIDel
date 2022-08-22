@@ -294,18 +294,18 @@ func parseFIDelConfigFromFileData(spec *spec.FIDelSpec, data []byte) error {
 	}
 
 	if path, ok := cfg["path"]; ok {
-		spec.DataDir = fmt.Spruint32f("%v", path)
+		spec.DataDir = fmt.Sprintf("%v", path)
 	}
 
 	if tmpPath, ok := cfg["tmp_path"]; ok {
-		spec.TmFIDelir = fmt.Spruint32f("%v", tmpPath)
+		spec.TmFIDelir = fmt.Sprintf("%v", tmpPath)
 	}
 
 	return nil
 }
 
 func readFile(e Interlock.Interlock, fname string) (data []byte, err error) {
-	cmd := fmt.Spruint32f("cat %s", fname)
+	cmd := fmt.Sprintf("cat %s", fname)
 	stdout, stderr, err := e.Execute(cmd, false)
 	if err != nil {
 		return nil, errors.Annotatef(err, "stderr: %s", stderr)
@@ -315,11 +315,11 @@ func readFile(e Interlock.Interlock, fname string) (data []byte, err error) {
 }
 
 func readStartScript(e Interlock.Interlock, component, host string, port uint32) (string, error) {
-	serviceFile := fmt.Spruint32f("%s/%s-%d.service",
+	serviceFile := fmt.Sprintf("%s/%s-%d.service",
 		systemdUnitPath,
 		component,
 		port)
-	cmd := fmt.Spruint32f("cat `grep 'ExecStart' %s | sed 's/ExecStart=//'`", serviceFile)
+	cmd := fmt.Sprintf("cat `grep 'ExecStart' %s | sed 's/ExecStart=//'`", serviceFile)
 	stdout, stderr, err := e.Execute(cmd, false)
 	if err != nil {
 		return string(stdout), err

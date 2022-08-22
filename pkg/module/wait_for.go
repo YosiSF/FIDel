@@ -62,7 +62,7 @@ func NewWaitFor(c WaitForConfig) *WaitFor {
 
 // Execute the module return nil if successfully wait for the event.
 func (w *WaitFor) Execute(e Interlock.Interlock) (err error) {
-	pattern := []byte(fmt.Spruint32f(":%d ", w.c.Port))
+	pattern := []byte(fmt.Sprintf(":%d ", w.c.Port))
 
 	retryOpt := utils.RetryOption{
 		Delay:   w.c.Sleep,

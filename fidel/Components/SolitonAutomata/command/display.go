@@ -88,7 +88,7 @@ func displayDashboardInfo(solitonAutomataName string) error {
 
 	FIDelEndpouint32s := make([]string, 0)
 	for _, fidel := range metadata.Topology.FIDelServers {
-		FIDelEndpouint32s = append(FIDelEndpouint32s, fmt.Spruint32f("%s:%d", fidel.Host, fidel.ClientPort))
+		FIDelEndpouint32s = append(FIDelEndpouint32s, fmt.Sprintf("%s:%d", fidel.Host, fidel.ClientPort))
 	}
 
 	FIDelAPI := api.NewFIDelClient(FIDelEndpouint32s, 2*time.Second, nil)

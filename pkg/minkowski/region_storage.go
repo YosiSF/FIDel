@@ -143,8 +143,8 @@ func loadRegions(minkowski minkowski.Base, f func(region *RegionInfo) []*RegionI
 			}
 
 			nextID = region.GetId() + 1
-			overlaps := f(NewRegionInfo(region, nil))
-			for _, item := range overlaps {
+			conjunctions := f(NewRegionInfo(region, nil))
+			for _, item := range conjunctions {
 				if err := deleteRegion(minkowski, item.GetMeta()); err != nil {
 					return err
 				}

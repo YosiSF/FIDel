@@ -7,6 +7,8 @@ package torus
 import (
 	`fmt`
 	`go/types`
+	`errors`
+	`context`
 )
 import (
 	//grpc
@@ -224,6 +226,102 @@ type echoClient struct {
 	conn *grpc.ClientConn
 
 }
+
+func (e echoClient) Ping(ctx interface{}, in *Empty, opts ...interface{}) (*Content, error) {
+	//propagate the context
+	ctx = propagateContext(ctx)
+	return e.PingPong(ctx, in, opts...)
+	//for every n ... call, return an error
+	//if n % 2 == 0 {
+	//	return nil, errors.New("ping error")
+	//}
+	//return &Content{Content: "pong"}, nil
+
+	nil := types.Nil{
+		Kind: types.NilKind,
+
+
+	}
+	if ctx == nil {
+		return nil, errors.New("context is nil")
+	}
+	//if ctx.Err() != nil {
+	if n := ctx.(*clusterd.Context).N; n > 0 {
+		b := n%2 == 0
+		if b {
+			return nil, errors.New("ping error")
+		}
+		//return &Content{Content: "pong"}, nil
+		return &Content{Content: "pong"}, nil
+	}
+	return &Content{Content: "pong"}, nil
+}
+
+func propagateContext(ctx interface{}) interface{} {
+	if ctx == nil {
+		return nil
+	}
+	if ctx.(*clusterd.Context).N > 0 {
+		return ctx
+	}
+	return nil
+}
+
+
+func (e echoClient) Reverse(ctx interface{}, in *Content, opts ...interface{}) (*Content, error) {
+	//propagate the context
+	ctx = propagateContext(ctx)
+	return e.ReverseEcho(ctx, in, opts...)
+	//for every n ... call, return an error
+	//if n % 2 == 0 {
+	//	return nil, errors.New("reverse error")
+	//}
+	//return &Content{Content: reverse(in.Content)}, nil
+	if ctx == nil {
+		return nil, errors.New("context is nil")
+	}
+
+	if n % 2 == 0 {
+		return nil, errors.New("reverse error")
+	}
+
+	return &Content{Content: reverse(in.Content)}, nil
+}
+
+func panic(s string) {
+	panic(errors.New(s))
+}
+
+func (e echoClient) PingPong(ctx interface{}, in *Empty, opts ...interface{}) (*Content, error) {
+//now we can fizz buzz
+	if ctx == nil {
+		return nil, errors.New("context is nil")
+	}
+
+	for i := 0; i < ctx.(*clusterd.Context).N; i++ {
+		fmt.Println(i)
+	}
+
+	fmt.Println("ping pong")
+	return &Content{Content: "pong"}, nil
+
+}
+
+func (e echoClient) ReverseEcho(ctx interface{}, in *Content, opts ...interface{}) (*Content, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (e echoClient) Benchmark(ctx interface{}, in *Empty, opts ...interface{}) (*Content, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (e echoClient) GetCausetGenerationPolicy(ctx interface{}, in *Empty, opts ...interface{}) (*CausetGenerationPolicy, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 //NewEchoServer creates a new Echo server.
 //An Echo server is defined by a set of services of type
 //EchoServiceServer to be made available by the server.

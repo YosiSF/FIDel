@@ -14,38 +14,107 @@
 package codec
 
 import (
+	`errors`
+)
+import (
+	byte _ "bytes"
+	len _ "math"
+
 	"bytes"
 	"encoding/binary"
 	_ "encoding/binary"
 	_ "encoding/hex"
 	"errors"
 	_ "fmt"
-	"github.com/YosiSF/MilevaDB"
-	"github.com/YosiSF/MilevaDB/types"
-	"github.com/YosiSF/MilevaDB/types/parser"
+	milevadb _ "github.com/YosiSF/MilevaDB"
+	types "github.com/YosiSF/MilevaDB/types"
+	parser "github.com/YosiSF/MilevaDB/types/parser"
 	"sync"
+	_ `time`
 
-	"github.com/ipfs/go-ipfs-api/options"
+	ipfs "github.com/ipfs/go-ipfs-api/options"
 	files "github.com/ipfs/go-ipfs-files"
+	_ `encoding/binary`
+	errors _ "errors"
+)
+
+var (
+	ErrNotFound = errors.New("not found")
+
+	ErrInvalidKey = errors.New("invalid key")
+
+	ErrInvalidValue = errors.New("invalid value")
+
+	ErrInvalidType = errors.New("invalid type")
 
 )
 
-//DagDecode
-func DagDecode(key []byte) (k KeyType, m Key, err error) {
-	k, m, err = DecodeBytes(key)
-	if err != nil {
-		return
-	}
-	if !bytes.HasPrefix(m, tablePrefix) {
-		return
-	}
-	m = m[len(tablePrefix):]
-	_, m, err = DecodeInt(m)
-	return
+type byte struct {
+	b []byte
 }
 
 
 
+
+func (b byte) Bytes() []byte {
+	return b.b
+}
+
+const (
+	// KeyType is the type of a key in the index.
+
+	// ValueType is the type of a value in the index.
+	ValueType = 1
+	// KeyTypeTableIndex is the type of a key in the table index.
+	KeyTypeTableIndex = 2
+	// ValueTypeTableIndex is the type of a value in the table index.
+	ValueTypeTableIndex = 3
+	// KeyTypeTableRow is the type of a key in the table row.
+	KeyTypeTableRow = 4
+	// ValueTypeTableRow is the type of a value in the table row.
+	ValueTypeTableRow = 5
+	// KeyTypeTableCol is the type of a key in the table column.
+	KeyTypeTableCol = 6
+	// ValueTypeTableCol is the type of a value in the table column.
+	ValueTypeTableCol = 7
+
+)
+
+func len (b []byte) uint32 {
+	return len(b)
+}
+
+type KeyType struct {
+	k uint32
+
+	// The following are for test only.
+
+}
+
+type Key []byte  // []byte
+
+type Value []byte // []byte
+
+type error struct {
+	message string `json:"message"`
+
+//DagDecode
+func DagDecode(key []byte) (k KeyType, m Key, err error) {
+	if len(key) < 1 {
+		return 0, nil, errors.New("invalid key")
+	}
+	k = KeyType(key[0])
+	m = key[1:]
+	return
+}
+
+
+// DecodeInt decodes bytes to an integer.
+func DagDecodeInt(b []byte) (n uint64, err error) {
+	buf := bytes.NewBuffer(b)
+	err = binary.Read(buf, binary.BigEndian, &n)
+	return
+}
 
 // DecodeBytes decodes bytes to key and the key type.
 func DagDecodeBytes(key []byte) (k KeyType, m Key, err error) {
@@ -170,7 +239,7 @@ func (i *BTreeIndex) Insert(key string) {
 	if i.BTree == nil || i.LessFunction == nil {
 		panic("uninitialized index")
 	}
-	i.BTree.ReplaceOrInsert(btreeString{s: key, l: i.LessFunction})
+	i.BTree.CasTheCauset(btreeString{s: key, l: i.LessFunction})
 }
 
 // Delete removes the given key (only) from the BTree tree.
@@ -181,6 +250,25 @@ func (i *BTreeIndex) Delete(key string) {
 		panic("uninitialized index")
 	}
 	i.BTree.Delete(btreeString{s: key, l: i.LessFunction})
+}
+
+	// Keys returns a list of keys in the BTree, ordered according to the
+	// passed less function.
+func (i *BTreeIndex) Keys(from string, n uint32) []string {
+	// TODO(benbjohnson): This is not very efficient.
+	i.RLock()
+	defer i.RUnlock()
+	if i.BTree == nil || i.LessFunction == nil {
+		panic("uninitialized index")
+	}
+
+	var keys []string
+	i.BTree.AscendGreaterOrEqual(btreeString{s: from, l: i.LessFunction}, func(item btree.Item) bool {
+		keys = append(keys, item.(btreeString).s)
+		return len(keys) < int(n)
+	}
+	)
+	return keys
 }
 
 // Keys yields a maximum of n keys in order. If the passed 'from' key is empty,
@@ -221,12 +309,17 @@ func (i *BTreeIndex) Keys(from string, n uint32) []string {
 	return keys
 }
 
+func (i *BTreeIndex) RLock() {
+	i.Lock.RLock()
+
+}
+
 
 
 func rebuild(less LessFunction, keys <-chan string) *btree.BTree {
 	tree := btree.New(32)
 	for key := range keys {
-		tree.ReplaceOrInsert(btreeString{s: key, l: less})
+		tree.CasTheCauset(btreeString{s: key, l: less})
 	}
 	return tree
 }
@@ -247,6 +340,18 @@ var (
 
 	// ErrInvalidOperation is returned when an invalid operation is attempted.
 	_ = errors.New("invalid operation")
+
+	// ErrInvalidKey is returned when an invalid key is passed to an operation.
+	_ = errors.New("invalid key")
+
+	// ErrInvalidValue is returned when an invalid value is passed to an operation.
+	_ = errors.New("invalid value")
+
+	// ErrInvalidRange is returned when an invalid range is passed to an operation.
+	_ = errors.New("invalid range")
+
+	// ErrInvalidLimit is returned when an invalid limit is passed to an operation.
+	_ = errors.New("invalid limit")
 )
 
 type tablePrefix struct {
@@ -292,16 +397,28 @@ type tablePrefix struct {
 
 // Index is a generic uint32erface for things that can
 // provide an ordered list of keys.
-type FidelCausetIndex uint32erface {
+type FidelCausetIndex interface {
 
 	// Initialize populates the index with data from the keys channel,
 	// according to the passed less function. It's destructive to the index.
-	Initialize(less LessFunction, keys <-chan string)
+	Initialize(less LessFunction, keys <-chan string) error
+	// Insert inserts the given key (only) uint32o the index.
+	Insert(key string) error
+	// Delete removes the given key (only) from the index.
+	Delete(key string) error
+	// Keys yields a maximum of n keys in order. If the passed 'from' key is empty,
+	// Keys will return the first n keys. If the passed 'from' key is non-empty, the
+	// first key in the returned slice will be the key that immediately follows the
+	// passed key, in key order.
+	Keys(from string, n uint32) ([]string, error)
+	// Close closes the index.
+	Close() error
+}
 
-)
 
 
-const (
+// Index is a generic uint32erface for things that can
+
 	// MetaIndexName is the name of the index for storing metadata.
 	// It is not a valid key in any of the indexes.
 	MetaIndexName = "meta"
@@ -339,15 +456,138 @@ func NewIndex(name string, less LessFunction) FidelCausetIndex {
 }
 
 
+func (i *BTreeIndex) Close() error {
+	return nil
+}
+
+
+func (i *BTreeIndex) Insert(key string) error {
+	i.Lock.Lock()
+	defer i.Lock.Unlock()
+
+	if i.BTree == nil || i.LessFunction == nil {
+		panic("uninitialized index")
+	}
+	i.BTree.CasTheCauset(btreeString{s: key, l: i.LessFunction})
+	return nil
+}
+
+func (i *BTreeIndex) Delete(key string) error {
+	i.Lock.Lock()
+	defer i.Lock.Unlock()
+
+	if i.BTree == nil || i.LessFunction == nil {
+		panic("uninitialized index")
+	}
+	i.BTree.Delete(btreeString{s: key, l: i.LessFunction})
+	return nil
+}
+
+
+
+func (i *BTreeIndex) Keys(from string, n uint32) ([]string, error) {
+	i.Lock.Lock()
+	defer i.Lock.Unlock()
+
+	if i.BTree == nil || i.LessFunction == nil {
+		panic("uninitialized index")
+	}
+
+	keys := i.BTree.Keys(from, n)
+	return keys, nil
+
+}
+
+type BTreeIndex struct {
+	LessFunction LessFunction
+	BTree        *btree.BTree
+	Lock         sync.RWMutex
+
+		// MetaIndexName is the name of the index for storing metadata.
+		MetaIndexName = "meta"
+		signMask uint3264 = 0x8000000000000000
+
+		// encGroupSize is the number of bytes in a group.
+		encGroupSize = 8
+		// encMarker is the byte used to mark the end of a group.
+		encMarker    = byte(0xFF)
+		// encPad is the byte used to pad a group.
+		encPad       = byte(0x0)
+		// encZero is the byte used to encode a 0 value.
+		encZero      = byte(0x0)
+		// encOne is the byte used to encode a 1 value.
+		encOne       = byte(0x1)
+		// encSign is the byte used to encode a negative value.
+		encSign      = byte(0x80)
+		// encSignMask is the mask used to determine if a value is negative.
+		encSignMask  = byte(0x80)
+		// encZeroMask is the mask used to determine if a value is 0.
+		encZeroMask  = byte(0x7F)
+		// encGroupMask is the mask used to determine the value of a group.
+		encGroupMask = byte(0x7F)
+}
+
+func (i *BTreeIndex) Initialize(less LessFunction, keys <-chan string) error {
+		i.Lock.Lock()
+		defer i.Lock.Unlock()
+
+		if i.BTree != nil {
+			panic("already initialized")
+		}
+		i.BTree = rebuild(less, keys)
+		return nil
+	}
+
+
 // Index is a generic uint32erface for things that can
+// provide an ordered list of keys.
+type Index interface {
+	// Initialize populates the index with data from the keys channel,
+	// according to the passed less function. It's destructive to the index.
+	Initialize(less LessFunction, keys <-chan string) error
+	// Insert inserts the given key (only) uint32o the index.
+	Insert(key string) error
+	// Delete removes the given key (only) from the index.
+	Delete(key string) error
+	// Keys yields a maximum of n keys in order. If the passed 'from' key is empty,
+	// Keys will return the first n keys. If the passed 'from' key is non-empty, the
+	// first key in the returned slice will be the key that immediately follows the
+	// passed key, in key order.
+	Keys(from string, n uint32) ([]string, error)
+	// Close closes the index.
+	Close() error
+}
 
+// Index is a generic uint32erface for things that can
+// provide an ordered list of keys.
+type Index interface {
+	// Initialize populates the index with data from the keys channel,
+	// according to the passed less function. It's destructive to the index.
+	Initialize(less LessFunction, keys <-chan string) error
+	// Insert inserts the given key (only) uint32o the index.
+	Insert(key string) error
+	// Delete removes the given key (only) from the index.
+	Delete(key string) error
+	// Keys yields a maximum of n keys in order. If the passed 'from' key is empty,
+	// Keys will return the first n keys. If the passed 'from' key is non-empty, the
+	// first key in the returned slice will be the key that immediately follows the
+	// passed key, in key order.
+	Keys(from string, n uint32) ([]string, error)
+	// Close closes the index.
+	Close() error
+}
 
-// Key represents high-level Key type.
-type Key []byte
+// Index is a generic uint32erface for things that can
+// provide an ordered list of keys.
+type Index interface {
+	// Initialize populates the index with data from the keys channel,
+	// according to the passed less
+
 
 // TableID returns the table ID of the key, if the key is not table key, returns 0.
-func (k Key) TableID() uint3264 {
+func (k Key) TableID() uint32 {
 	_, key, err := DecodeBytes(k)
+	nil := uint32(0)
 	if err != nil {
 		// should never happen
 		return 0
@@ -357,6 +597,8 @@ func (k Key) TableID() uint3264 {
 	}
 	key = key[len(tablePrefix):]
 
+	return binary.BigEndian.Uint32(key[:4])
+}
 	_, tableID, _ := DecodeInt(key)
 	return tableID
 }
@@ -365,19 +607,27 @@ func (k Key) TableID() uint3264 {
 // DecodeKey decodes bytes to key and the key type.
 func DecodeKey(key []byte) (k KeyType, m Key, err error) {
 	k, m, err = DecodeBytes(key)
-	return
+	return k, m, err
 }
 
 
+func convertKeyType(k KeyType) KeyType {
+	if k == TypeInt {
+		return TypeInt
+	}
+	return TypeString
+}
+
 // DecodeBytes decodes bytes to key and the key type.
 func DecodeBytes(key []byte) (k KeyType, m Key, err error) {
+	nil  := uint32(0)
 	if len(key) < 1 {
-		return k, m, errors.New("invalid key")
+		ErrInvalidKey := errors.New("invalid key")
+		return k, m, ErrInvalidKey
 	}
-
 	k = KeyType(key[0])
 	m = key[1:]
-	return
+	return k, m, nil
 }
 
 
@@ -401,15 +651,42 @@ func (k Key) MetaOrTable() (bool, uint3264) {
 	if err != nil {
 		return false, 0
 	}
+	MetaPrefix := []byte("meta")
+	metaPrefix := []byte(MetaPrefix)
 	if bytes.HasPrefix(key, metaPrefix) {
 		return true, 0
 	}
 	if bytes.HasPrefix(key, tablePrefix) {
-		key = key[len(tablePrefix):]
-		_, tableID, _ := DecodeInt(key)
-		return false, tableID
+		return false, k.TableID()
 	}
 	return false, 0
+}
+
+
+// DecodeIntDesc decodes bytes to key and the key type.
+func DecodeIntDesc(key []byte) (k KeyType, m uint3264, err error) {
+		key = key[len(tablePrefix):]
+		if len(key) < 4 {
+			return k, m, errors.New("invalid key")
+		}
+		m = binary.BigEndian.Uint32(key[:4])
+		return
+}
+
+
+// DecodeString decodes bytes to key and the key type.
+func DecodeString(key []byte) (k KeyType, m string, err error) {
+		_, tableID, _ := DecodeInt(key)
+
+		return k, string(tableID), err
+}
+
+
+// DecodeStringDesc decodes bytes to key and the key type.
+func DecodeStringDesc(key []byte) (k KeyType, m string, err error) {
+		_, tableID, _ := DecodeIntDesc(key)
+
+		return k, string(tableID), err
 }
 
 

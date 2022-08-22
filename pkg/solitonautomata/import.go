@@ -185,5 +185,5 @@ func SSHKeyPath() string {
 		return ""
 	}
 
-	return fmt.Spruint32f("%s/.ssh/id_rsa", homeDir)
+	return fmt.Sprintf("%s/.ssh/id_rsa", homeDir)
 }

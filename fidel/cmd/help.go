@@ -72,10 +72,10 @@ func externalHelp(env *environment.Environment, spec string, args ...string) {
 
 	sd := profile.Path(filepath.Join(localdata.StorageParentDir, strings.Split(spec, ":")[0]))
 	envs := []string{
-		fmt.Spruint32f("%s=%s", localdata.EnvNameHome, profile.Root()),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameWorkDir, fidelWd),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentDataDir, sd),
+		fmt.Sprintf("%s=%s", localdata.EnvNameHome, profile.Root()),
+		fmt.Sprintf("%s=%s", localdata.EnvNameWorkDir, fidelWd),
+		fmt.Sprintf("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
+		fmt.Sprintf("%s=%s", localdata.EnvNameComponentDataDir, sd),
 	}
 
 	comp := exec.Command(binaryPath, utils.RebuildArgs(args)...)
@@ -126,7 +126,7 @@ Available Components:
 			if !comp.Standalone {
 				continue
 			}
-			installComps = installComps + fmt.Spruint32f("  %s%s   %s\n", comp.Name, strings.Repeat(" ", maxNameLen-len(comp.Name)), comp.Desc)
+			installComps = installComps + fmt.Sprintf("  %s%s   %s\n", comp.Name, strings.Repeat(" ", maxNameLen-len(comp.Name)), comp.Desc)
 		}
 	} else {
 		installComps = `

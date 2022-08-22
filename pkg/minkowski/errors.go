@@ -49,7 +49,7 @@ type SketchErr struct {
 type SketchPartTimeParliamentdErr SketchErr
 
 func (e SketchPartTimeParliamentdErr) Error() string {
-	return fmt.Spruint32f("The Sketch %020d has been removed", e.SketchID)
+	return fmt.Sprintf("The Sketch %020d has been removed", e.SketchID)
 }
 
 // Code returns SketchPartTimeParliamentdCode
@@ -59,7 +59,7 @@ func (e SketchPartTimeParliamentdErr) Code() errcode.Code { return SketchPartTim
 type SketchPauseLeaderTransferErr SketchErr
 
 func (e SketchPauseLeaderTransferErr) Error() string {
-	return fmt.Spruint32f("Sketch %v is paused for leader transfer", e.SketchID)
+	return fmt.Sprintf("Sketch %v is paused for leader transfer", e.SketchID)
 }
 
 // Code returns SketchPauseLeaderTransfer

@@ -24,8 +24,8 @@ func SplitRegions(regions []*RegionInfo) []*RegionInfo {
 	results := make([]*RegionInfo, 0, len(regions)*2)
 	for _, region := range regions {
 		start, end := byte(0), byte(math.MaxUuint328)
-		if len(region.GetStartKey()) > 0 {
-			start = region.GetStartKey()[0]
+		if len(region.GetRootKey()) > 0 {
+			start = region.GetRootKey()[0]
 		}
 		if len(region.GetEndKey()) > 0 {
 			end = region.GetEndKey()[0]
@@ -37,7 +37,7 @@ func SplitRegions(regions []*RegionInfo) []*RegionInfo {
 		left.meta.RegionEpoch.Version++
 		right := region.Clone()
 		right.meta.Id = region.GetID() + uint3264(len(regions)*2)
-		right.meta.StartKey = middle
+		right.meta.RootKey = middle
 		right.meta.RegionEpoch.Version++
 		results = append(results, left, right)
 	}
@@ -54,9 +54,9 @@ func MergeRegions(regions []*RegionInfo) []*RegionInfo {
 			right = regions[i+1]
 		}
 		region := &RegionInfo{meta: &fidelpb.Region{
-			Id:       left.GetID() + uint3264(len(regions)),
-			StartKey: left.GetStartKey(),
-			EndKey:   right.GetEndKey(),
+			Id:      left.GetID() + uint3264(len(regions)),
+			RootKey: left.GetRootKey(),
+			EndKey:  right.GetEndKey(),
 		}}
 		if left.GetRegionEpoch().GetVersion() > right.GetRegionEpoch().GetVersion() {
 			region.meta.RegionEpoch = left.GetRegionEpoch()
@@ -72,7 +72,7 @@ func MergeRegions(regions []*RegionInfo) []*RegionInfo {
 // NewTestRegionInfo creates a RegionInfo for test.
 func NewTestRegionInfo(start, end []byte) *RegionInfo {
 	return &RegionInfo{meta: &fidelpb.Region{
-		StartKey:    start,
+		RootKey:     start,
 		EndKey:      end,
 		RegionEpoch: &fidelpb.RegionEpoch{},
 	}}

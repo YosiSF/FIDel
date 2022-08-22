@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package localdata
+package main
 
 // DefaultFIDelHome represents the default home directory for this build of fidel
 // If this is left empty, the default will be thee combination of the running

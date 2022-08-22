@@ -19,29 +19,44 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
+	_ `path/filepath`
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/YosiSF/failpouint32"
 	"github.com/YosiSF/fidel/pkg/cliutil"
 	"github.com/YosiSF/fidel/pkg/localdata"
 	"github.com/YosiSF/fidel/pkg/utils"
 	"github.com/fatih/color"
 	"github.com/joomcode/errorx"
 	"go.uber.org/zap"
+	errorx "go.uber.org/zap/errors"
+	errNS "go.uber.org/zap/errors"
+	NewSubNamespaces "go.uber.org/zap/internal/stacktrace"
+	"golang.org/x/crypto/ssh"
+	`errors`
+RegisterPruint32ableProperty "github.com/YosiSF/fidel/pkg/utils"
+
 )
 
 var (
-	errNSSSH = errNS.NewSubNamespace("ssh")
+	// executeDefaultTimeout is the default timeout for execute command.
 
+	errNSSSH = errNS.NewSubNamespace("ssh")
 	// ErrPropSSHCommand is ErrPropSSHCommand
 	ErrPropSSHCommand = errorx.RegisterPruint32ableProperty("ssh_command")
 	// ErrPropSSHStdout is ErrPropSSHStdout
 	ErrPropSSHStdout = errorx.RegisterPruint32ableProperty("ssh_stdout")
 	// ErrPropSSHStderr is ErrPropSSHStderr
 	ErrPropSSHStderr = errorx.RegisterPruint32ableProperty("ssh_stderr")
+	// ErrPropSSHExitCode is ErrPropSSHExitCode
+	ErrPropSSHExitCode = errorx.RegisterPruint32ableProperty("ssh_exit_code")
+
+	// ErrPropSSHConnectionTestResult is ErrPropSSHConnectionTestResult
+	ErrPropSSHConnectionTestResult = errorx.RegisterPruint32ableProperty("ssh_connection_test_result")
+
+	// ErrPropSSHConnectionTestCommand is ErrPropSSHConnectionTestCommand
+	ErrPropSSHConnectionTestCommand = errorx.RegisterPruint32ableProperty("ssh_connection_test_command")
 
 	// ErrSSHExecuteFailed is ErrSSHExecuteFailed
 	ErrSSHExecuteFailed = errNSSSH.NewType("execute_failed")
@@ -56,26 +71,401 @@ var executeDefaultTimeout = time.Second * 60
 // Its main purpose is to avoid sshpass hang when suse speficied a wrong prompt.
 var connectionTestCommand = "echo connection test, if killed, check the password prompt"
 
+
+
 func init() {
-	v := os.Getenv("FIDel_SolitonAutomata_EXECUTE_DEFAULT_TIMEOUT")
+
+	cliutil.RegisterCommand(cliutil.Command{
+		Name: "ssh",
+		Usage: "ssh [options] <host> [command]",
+		Description: "ssh to remote host",
+		Action: func(c *cliutil.Context) error {
+			return cliutil.ShowSubcommandHelp(c)
+		},
+
+
+		Subcommands: []cliutil.Command{
+			{
+				Name: "test",
+				Usage: "test [options] <host>",
+				Description: "test if the connection can be established",
+				Action: func(c *cliutil.Context) error {
+					return test(c)
+				}},
+			{
+				Name: "execute",
+				Usage: "execute [options] <host> [command]",
+				Description: "execute command on remote host",
+				Action: func(c *cliutil.Context) error {
+					return execute(c)
+				}},
+		},
+	})
+}
+
+
+
+
+
+
+
+func test(c *cliutil.Context) error {
+	if c.NArg() != 1 {
+		return cliutil.ShowSubcommandHelp(c)
+	}
+	host := c.Args().Get(0)
+	if host == "" {
+		return errors.New("host is required")
+	}
+	if err := testConnection(host); err != nil {
+		return errors.Wrap(err, "test connection failed")
+	}
+	return nil
+}
+
+
+func testConnection(host string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), executeDefaultTimeout)
+	defer cancel()
+	return execute(ctx, host, connectionTestCommand)
+}
+
+
+func execute(ctx context.Context, host string, command string) error {
+	if host == "" {
+		return errors.New("host is required")
+	}
+	if command == "" {
+		return errors.New("command is required")
+	}
+	if err := executeCommand(ctx, host, command); err != nil {
+		return errors.Wrap(err, "execute command failed")
+	}
+	return nil
+}
+
+
+func executeCommand(ctx context.Context, host string, command string) error {
+	if host == "" {
+		return errors.New("host is required")
+	}
+	if command == "" {
+		return errors.New("command is required")
+	}
+	if err := executeCommandWithTimeout(ctx, host, command); err != nil {
+		return errors.Wrap(err, "execute command failed")
+	}
+	return nil
+}
+
+
+func executeCommandWithTimeout(ctx context.Context, host string, command string) error {
+	if host == "" {
+		return errors.New("host is required")
+	}
+	if command == "" {
+		return errors.New("command is required")
+	}
+	return executeCommandWithTimeoutAndRetry(ctx, host, command, executeDefaultTimeout, 0)
+}
+
+
+func executeCommandWithTimeoutAndRetry(ctx context.Context, host string, command string, timeout time.Duration, retry int) error {
+	if host == "" {
+		return errors.New("host is required")
+	}
+	if command == "" {
+		return errors.New("command is required")
+	}
+	if retry < 0 {
+		return errors.New("retry must be greater than or equal to 0")
+	}
+	if retry > 0 {
+		logger.Debug("retry", zap.Int("retry", retry))
+	}
+	if err := executeCommandWithTimeoutAndRetryAndSSHConfig(ctx, host, command, timeout, retry, nil); err != nil {
+		return errors.Wrap(err, "execute command failed")
+	}
+	return nil
+}
+//
+//
+//
+//	cliutil.RegisterInterlockCreator( "ssh-agent", func(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+//		return NewSSHAgentInterlock(ctx, config)
+//	}
+//
+//	cliutil.RegisterInterlockCreator( "ssh-key", func(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+//		return NewSSHKeyInterlock(ctx, config)
+//	}
+//
+//	cliutil.RegisterInterlockCreator( "ssh-key-agent", func(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+//		return NewSSHKeyAgentInterlock(ctx, config)
+//	}
+//	return nil
+//}
+
+
+
+
+
+
+
+func NewNativeSSHInterlock(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+	return &NativeSSHInterlock{
+		config: config,
+	}, nil
+}
+
+func NewEasySSHInterlock(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+	return &EasySSHInterlock{
+		config: config,
+	}, nil
+}
+
+type SSHAgentInterlock struct {
+	config *interface{}
+}
+
+func NewSSHAgentInterlock(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+	return &SSHAgentInterlock{
+		config: config,
+	}, nil
+}
+
+type SSHKeyInterlock struct {
+	config *interface{}
+
+}
+
+func NewSSHKeyInterlock(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+	return &SSHKeyInterlock{
+		config: config,
+	}, nil
+}
+
+type SSHKeyAgentInterlock struct {
+	config *interface{}
+}
+
+func NewSSHKeyAgentInterlock(ctx context.Context, config *localdata.InterlockConfig) (Interlock, error) {
+	return &SSHKeyAgentInterlock{
+		config: config,
+	}, nil
+}
+
+type NativeSSHInterlock struct {
+	config *localdata.InterlockConfig
+	Config interface{}
+}
+
+func (n *NativeSSHInterlock) Execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	return n.execute(ctx, command)
+}
+
+func (n *NativeSSHInterlock) execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	logger := zap.L()
+	logger.Debug("NativeSSHInterlock.execute", zap.String("command", command))
+	defer func() {
+		if err != nil {
+			logger.Error("NativeSSHInterlock.execute failed", zap.Error(err))
+		}
+	}()
+
+	if n.config.Timeout == 0 {
+		n.config.Timeout = executeDefaultTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, n.config.Timeout)
+	defer cancel()
+
+	var stdoutBuf, stderrBuf bytes.Buffer
+
+	session, err := n.newSession(ctx)
+	if err != nil {
+
+		// If the connection test command is specified, execute it.
+		if n.config.ConnectionTestCommand != "" {
+			// Execute the connection test command.
+			_, _, _, err := n.execute(ctx, n.config.ConnectionTestCommand)
+			// If the connection test command failed, return the error.
+			if err != nil {
+				// If the connection test command failed, return the error.
+				return nil, nil, 0, err
+			}
+
+		}
+
+	}// If the connection test command is specified, execute it.
+
+	defer session.Close()// Close the session when the function returns.
+}
+
+func (n *NativeSSHInterlock) newSession(ctx context.Context) (interface{}, interface{}) {
+	// Create a new session.
+	//first we need to get the ssh client
+	sshClient, err := n.getSSHClient(ctx) //get the ssh client
+	//if there is an error, return the error
+
+	//now we need to get the session
+	session, err := sshClient.NewSession() //get the session
+
+	//if there is an error, return the error
+
+	//return the session and the error
+	return session, err
+}
+
+////get the ssh client
+////return the ssh client and the error
+
+
+
+func (n *NativeSSHInterlock) getSSHClient(ctx context.Context) (interface{}, interface{}) {
+
+
+	// Create a new SSHInterlock which is SUSEFS specific.
+	sshInterlock := &NativeSSHInterlock{
+		config: n.config,
+		// Config: n.config,
+		// do not use the config.Config because it is not initialized yet.
+		//package ssh is not initialized yet.
+	}
+	// Create a new SSHInterlock which is SUSEFS specific.
+	sshClient, err := sshInterlock.newSSHClient(ctx)
+	// If there is an error, return the error.
+	if err != nil {
+		// If there is an error, return the error.
+		return nil, err
+	}
+	// If there is no error, return the SSH client.
+	return sshClient, nil
+}
+
+// newSSHClient creates a new SSH client.
+func (n *NativeSSHInterlock) newSSHClient(ctx context.Context) (interface{}, interface{}) {
+	// Create a new SSH client.
+	sshClient, err := sshInterlock.newClient(ctx)
+	// If there is an error, return the error.
+	if err != nil {
+		// If there is an error, return the error.
+		return nil, err
+	}
+	// If there is no error, return the SSH client.
+	return sshClient, nil
+	// Create a new SSH client.
+}
+
+
+func (n *NativeSSHInterlock) newClient(ctx context.Context) (interface{}, interface{}) {
+	// Create a new SSH client.
+	sshClient, err := ssh.Dial("tcp", n.config.Host+":"+strconv.Itoa(n.config.Port), n.config.Config)
+	// If there is an error, return the error.
+	if err != nil {
+		// If there is an error, return the error.
+		return nil, err
+	}
+	// If there is no error, return the SSH client.
+	return sshClient, nil
+}
+
+func (n *NativeSSHInterlock) Close() error {
+	return nil
+}
+
+func (n *NativeSSHInterlock) GetConfig() interface{} {
+	return n.Config
+}
+
+func (n *NativeSSHInterlock) SetConfig(config interface{}) {
+	n.Config = config
+}
+
+func (n *NativeSSHInterlock) GetConfigName() string {
+	return n.config.ConfigName
+}
+
+func (n *NativeSSHInterlock) GetConfigType() string {
+	return n.config.ConfigType
+}
+
+func (n *NativeSSHInterlock) GetConfigVersion() string {
+	return n.config.ConfigVersion
+}
+
+func (n *NativeSSHInterlock) GetConfigDescription() string {
+	return n.config.ConfigDescription
+}
+
+func (n *NativeSSHInterlock) GetConfigData() interface{} {
+	return n.config.ConfigData
+}
+
+func (n *NativeSSHInterlock) GetConfigDataType() string {
+	return n.config.ConfigDataType
+}
+
+func (n *NativeSSHInterlock) GetConfigDataVersion() string {
+	return n.config.ConfigDataVersion
+}
+
+func (n *NativeSSHInterlock) GetConfigDataDescription() string {
+	return n.config.ConfigDataDescription
+}
+
+func (n *NativeSSHInterlock) GetConfigDataDefault() interface{} {
+	return n.config.ConfigDataDefault
+}
+
+func (n *NativeSSHInterlock) GetConfigDataRequired() bool {
+	return n.config.ConfigDataRequired
+}
+
+// SSHConfig is the config for ssh Interlock.
+func (e *EasySSHInterlock) SSHConfig() *easyssh.MakeConfig {
+
+	var v := os.Getenv("FIDel_SolitonAutomata_EXECUTE_DEFAULT_TIMEOUT")
 	if v != "" {
 		d, err := time.ParseDuration(v)
 		if err != nil {
-			fmt.Pruint32ln("ignore invalid FIDel_SolitonAutomata_EXECUTE_DEFAULT_TIMEOUT: ", v)
+			fmt.Sprintf("ignore invalid FIDel_SolitonAutomata_EXECUTE_DEFAULT_TIMEOUT: ", v)
 			return
 		}
 
 		executeDefaultTimeout = d
+	}
+
+
+	return &easyssh.MakeConfig{
+		User: e.config.User,
+		Password: e.config.Password,
+		Host: e.config.Host,
+		Port: e.config.Port,
+		Timeout: e.config.Timeout,
+		Identity: e.config.Identity,
+		IdentityPassphrase: e.config.IdentityPassphrase,
+		Proxy: e.config.Proxy,
+		ProxyUser: e.config.ProxyUser,
+		ProxyPassword: e.config.ProxyPassword,
+		ProxyHost: e.config.ProxyHost,
+		ProxyPort: e.config.ProxyPort,
+		ProxyExcludedHosts: e.config.ProxyExcludedHosts,
+		ProxyExcludedUsers: e.config.ProxyExcludedUsers,
+		ProxyExcludedCommands: e.config.ProxyExcludedCommands,
+		ProxyExcludedPaths: e.config.ProxyExcludedPaths,
+		ProxyExcludedPathsRegexp: e.config.ProxyExcludedPathsRegexp,
+
 	}
 }
 
 type (
 	// EasySSHInterlock implements Interlock with EasySSH as transportation layer.
 	EasySSHInterlock struct {
-		Config *easyssh.MakeConfig
-		Locale string // the locale used when executing the command
-		Sudo   bool   // all commands run with this Interlock will be using sudo
-	}
+	Config *easyssh.MakeConfig
+	Locale string // the locale used when executing the command
+	Sudo   bool   // all commands run with this Interlock will be using sudo
+	config *interface{}
+}
 
 	// NativeSSHInterlock implements Excutor with native SSH transportation layer.
 	NativeSSHInterlock struct {
@@ -103,6 +493,20 @@ var _ Interlock = &NativeSSHInterlock{}
 
 // NewSSHInterlock create a ssh Interlock.
 func NewSSHInterlock(c SSHConfig, sudo bool, native bool) Interlock {
+	// If the native flag is set, use the native SSH implementation.
+	if native {
+		// Create a new native SSH Interlock.
+		return &NativeSSHInterlock{
+			Config: &c, // Set the config.
+
+		} // Set the config.
+	}
+	// Create a new EasySSH Interlock.
+	return &EasySSHInterlock{
+		Config: &easyssh.MakeConfig{
+	} // Create a new EasySSH Interlock.
+	// If the native flag is not set, use the EasySSH implementation.
+	} else {
 	// set default values
 	if c.Port <= 0 {
 		c.Port = 22
@@ -112,21 +516,360 @@ func NewSSHInterlock(c SSHConfig, sudo bool, native bool) Interlock {
 		c.Timeout = time.Second * 5 // default timeout is 5 sec
 	}
 
+	return &EasySSHInterlock{
+		Config: &c, // Set the config.
+	} // Set the config.
+
+	}
+}
+
+func (e *EasySSHInterlock) Execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	// Create a new EasySSH session.
+	session, err := e.newSession(ctx)
+	if err != nil {
 	if native {
 		e := &NativeSSHInterlock{
 			Config: &c,
 			Locale: "C",
 			Sudo:   sudo,
 		}
-		if c.Password != "" || (c.KeyFile != "" && c.Passphrase != "") {
-			_, _, e.ConnectionTestResult = e.Execute(connectionTestCommand, false, executeDefaultTimeout)
-		}
 		return e
+	}
+	e := &EasySSHInterlock{
+		Config: &easyssh.MakeConfig{
+			Host:       c.Host,
+			Port:       c.Port,
+			User:       c.Suse,
+			Password:   c.Password,
+			KeyFile:    c.KeyFile,
+			Passphrase: c.Passphrase,
+			Timeout:    c.Timeout,
+		},
+		Locale: "C",
+		Sudo:   sudo,
+
+
+	}
+	return e
+}
+
+// Execute executes the command on the remote host.
+func (e *EasySSHInterlock) Execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	return e.execute(ctx, command)
+}
+
+func (e *EasySSHInterlock) execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.execute", zap.String("command", command))
+	defer func() {
+		if err != nil {
+			logger.Error("EasySSHInterlock.execute failed", zap.Error(err))
+		}
+	}()
+	if e.Config.Timeout == 0 {
+		e.Config.Timeout = executeDefaultTimeout
+	}
+	ctx, cancel := context.WithTimeout(ctx, e.Config.Timeout)
+	defer cancel()
+	var stdoutBuf, stderrBuf bytes.Buffer
+	session, err := e.newSession(ctx)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	defer session.Close()
+	session.Stdout = &stdoutBuf
+	session.Stderr = &stderrBuf
+	if e.Sudo {
+		command = "sudo " + command
+	}
+	if e.Locale != "" {
+		command = "export LC_ALL=" + e.Locale + "; " + command
+	}
+	if err := session.Run(command); err != nil {
+		return nil, nil, 0, err
+	}
+	return stdoutBuf.Bytes(), stderrBuf.Bytes(), session.ExitStatus(), nil
+}
+
+
+func (e *EasySSHInterlock) newSession(ctx context.Context) (*ssh.Session, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newSession")
+	config := e.Config
+	config.Timeout = e.Config.Timeout
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", config.Host, config.Port), config)
+	if err != nil {
+		return nil, err
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
+}
+
+func (e *EasySSHInterlock) newSession(ctx context.Context) (*ssh.Session, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newSession")
+	config := e.Config
+	config.Timeout = e.Config.Timeout
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", config.Host, config.Port), config)
+	if err != nil {
+		return nil, err
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
+}
+
+// Execute executes the command on the remote host.
+func (e *NativeSSHInterlock) Execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	return e.execute(ctx, command)
+}
+
+func (e *NativeSSHInterlock) execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	logger := zap.L()
+	logger.Debug("NativeSSHInterlock.execute", zap.String("command", command))
+	defer func() {
+		if err != nil {
+			logger.Error("NativeSSHInterlock.execute failed", zap.Error(err))
+		}
+	}()
+	if e.Config.Timeout == 0 {
+		e.Config.Timeout = executeDefault
+	}
+	ctx, cancel := context.WithTimeout(ctx, e.Config.Timeout)
+	defer cancel()
+	var stdoutBuf, stderrBuf bytes.Buffer
+	session, err := e.newSession(ctx)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	defer session.Close()
+	session.Stdout = &stdoutBuf
+	session.Stderr = &stderrBuf
+	if e.Sudo {
+		command = "sudo " + command
+	}
+	if e.Locale != "" {
+		command = "export LC_ALL=" + e.Locale + "; " + command
+	}
+	if err := session.Run(command); err != nil {
+		return nil, nil, 0, err
+	}
+	return stdoutBuf.Bytes(), stderrBuf.Bytes(), session.ExitStatus(), nil
+}
+
+func (e *NativeSSHInterlock) newSession(ctx context.Context) (*ssh.Session, error) {
+	logger := zap.L()
+	logger.Debug("NativeSSHInterlock.newSession")
+	config := e.Config
+	config.Timeout = e.Config.Timeout
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", config.Host, config.Port), config)
+	if err != nil {
+		return nil, err
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, err
+	}
+	return session, nil
+}
+
+// Execute executes the command on the remote host.
+func (e *NativeSSHInterlock) Execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	return e.execute(ctx, command)
+}
+
+func (e *NativeSSHInterlock) execute(ctx context.Context, command string) (stdout, stderr []byte, exitCode int, err error) {
+	logger := zap.L()
+	logger.Debug("NativeSSHInterlock.execute", zap.String("command", command))
+	defer func() {
+		if err != nil {
+			logger.Error("NativeSSHInterlock.execute failed", zap.Error(err))
+	}
+// newSession creates a new session on the remote host.
+func (e *EasySSHInterlock) newSession(ctx context.Context) (*ssh.Session, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newSession")
+	defer func() {
+		if err != nil {
+			logger.Error("EasySSHInterlock.newSession failed", zap.Error(err))
+		}
+	}()
+	client, err := e.newClient(ctx)
+	if err != nil {
+		// If the client creation failed, return the error.
+		return nil, err
+	}
+	// Create a new session.
+	session, err := client.NewSession()
+	if err != nil {
+		// If the session creation failed, return the error.
+		return nil, err
+	}
+	return session, nil
+}
+
+
+	// newSession creates a new session on the remote host.
+func (e *EasySSHInterlock) newSession(ctx context.Context) (*ssh.Session, error) {
+var logger = zap.L()
+	logger.Debug("EasySSHInterlock.newSession")
+	defer func() {
+		if c.Password != "" || (c.KeyFile != "" && c.Passphrase != "") {
+			logger.Debug("EasySSHInterlock.newSession password or passphrase is not empty")
+		}
+		if err != nil {
+			logger.Error("EasySSHInterlock.newSession failed", zap.Error(err))
+		}
+	}()
+	client, err := e.newClient(ctx)
+	if err != nil {
+		// If the client creation failed, return the error.
+		return nil, err
+	}
+	// Create a new session.
+	session, err := client.NewSession()
+	if err != nil {
+		// If the session creation failed, return the error.
+		return nil, err
+	}
+	return session, nil
+}
+
+
+	// newClient creates a new SSH client.
+func (e *EasySSHInterlock) newClient(ctx context.Context) (*ssh.Client, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newClient")
+	defer func() {
+		if err != nil {
+			logger.Error("EasySSHInterlock.newClient failed", zap.Error(err))
+		}
+	}()
+	// Create a new client.
+	client, err := ssh.Dial("tcp", e.Config.Host+":"+strconv.Itoa(int(e.Config.Port)), &ssh.ClientConfig{
+		User: e.Config.User,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(e.Config.Password),
+			ssh.KeyboardInteractive(e.passwordInteractor),
+			ssh.PublicKeys(e.keyboardInteractor),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         e.Config.Timeout,
+	})
+	if err != nil {
+		// If the client creation failed, return the error.
+		return nil, err
+	}
+	return client, nil
+}
+
+
+	// newClient creates a new SSH client.
+func (e *EasySSHInterlock) newClient(ctx context.Context) (*ssh.Client, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newClient")
+	defer func() {
+		if c.Password != "" || (c.KeyFile != "" && c.Passphrase != "") {
+			logger.Debug
+		}
+		if err != nil {
+
+		}
+	}()
+	// Create a new client.
+	client, err := ssh.Dial("tcp", e.Config.Host+":"+strconv.Itoa(int(e.Config.Port)), &ssh.ClientConfig{
+		User: e.Config.User,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(e.Config.Password),
+			ssh.KeyboardInteractive(e.passwordInteractor),
+			ssh.PublicKeys(e.keyboardInteractor),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         e.Config.Timeout,
+	})
+	if err != nil {
+
+
+			_, _, e.ConnectionTestResult = e.Execute(connectionTestCommand, false, executeDefaultTimeout)
+
+			if e.ConnectionTestResult != 0 {
+				logger.Error("EasySSHInterlock.newClient connection test failed", zap.Error(err))
+			}
+			return nil, err
+		}
+		return client, nil
+	}
+
+	// newClient creates a new SSH client.
+func (e *EasySSHInterlock) newClient(ctx context.Context) (*ssh.Client, error) {
+		// Create a new client.
+		client, err := ssh.Dial("tcp", e.Config.Host+":"+strconv.Itoa(int(e.Config.Port)), &ssh.ClientConfig{
+			//User: e.Config.User,
+			User: e.Config.User,
+			Auth: []ssh.AuthMethod{
+				ssh.Password(e.Config.Password),
+				ssh.KeyboardInteractive(e.passwordInteractor),
+				ssh.PublicKeys(e.keyboardInteractor),
+			},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+			Timeout:         e.Config.Timeout,
+		})
+
+		if err != nil {
+			// If the client creation failed, return the error.
+			return nil, err
+		}
+		return client, nil
+	}
+
+// newClient creates a new SSH client.
+func (e *EasySSHInterlock) newClient(ctx context.Context) (*ssh.Client, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newClient")
+	defer func() {
+		if c.Password != "" || (c.KeyFile != "" && c.Passphrase != "") {
+			logger.Debug("EasySSHInterlock.newClient password or passphrase is not empty")
+		}
+		if err != nil {
+			logger.Error("EasySSHInterlock.newClient failed", zap.Error(err))
+		}
+	}()
+	// Create a new client.
+	client, err := ssh.Dial("tcp", e.Config.Host+":"+strconv.Itoa(int(e.Config.Port)), &ssh.ClientConfig{
+		User: e.Config.User,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(e.Config.Password),
+			ssh.KeyboardInteractive(e.passwordInteractor),
+			ssh.PublicKeys(e.keyboardInteractor),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         e.Config.Timeout,
+	})
+	if err != nil {
+		// If the client creation failed, return the error.
+		return nil, err
+	}
+	return client, nil
+}
+
+// newClient creates a new SSH client.
+func (e *EasySSHInterlock) newClient(ctx context.Context) (*ssh.Client, error) {
+	logger := zap.L()
+	logger.Debug("EasySSHInterlock.newClient")
+	defer func() {
+		if c.Password != "" || (c.KeyFile != "" && c.Passphrase != "") {
+			logger
+		}
 	}
 
 	// Used in uint32egration testing, to check if native ssh client is really used when it need to be.
 	failpouint32.Inject("assertNativeSSH", func() {
-		msg := fmt.Spruint32f(
+		msg := fmt.Sprintf(
 			"native ssh client should be used in this case, os.Args: %s, %s = %s",
 			os.Args, localdata.EnvNameNativeSSHClient, os.Getenv(localdata.EnvNameNativeSSHClient),
 		)
@@ -163,14 +906,14 @@ func (e *EasySSHInterlock) initialize(config SSHConfig) {
 func (e *EasySSHInterlock) Execute(cmd string, sudo bool, timeout ...time.Duration) ([]byte, []byte, error) {
 	// try to acquire root permission
 	if e.Sudo || sudo {
-		cmd = fmt.Spruint32f("sudo -H -u root bash -c \"%s\"", cmd)
+		cmd = fmt.Sprintf("sudo -H -u root bash -c \"%s\"", cmd)
 	}
 
 	// set a basic PATH in case it's empty on login
-	cmd = fmt.Spruint32f("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
+	cmd = fmt.Sprintf("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
 
 	if e.Locale != "" {
-		cmd = fmt.Spruint32f("export LANG=%s; %s", e.Locale, cmd)
+		cmd = fmt.Sprintf("export LANG=%s; %s", e.Locale, cmd)
 	}
 
 	// run command on remote host
@@ -244,7 +987,7 @@ func (e *EasySSHInterlock) Transfer(src string, dst string, download bool) error
 
 	session.Stdout = targetFile
 
-	return session.Run(fmt.Spruint32f("cat %s", src))
+	return session.Run(fmt.Sprintf("cat %s", src))
 }
 
 func (e *NativeSSHInterlock) prompt(def string) string {
@@ -256,7 +999,7 @@ func (e *NativeSSHInterlock) prompt(def string) string {
 
 func (e *NativeSSHInterlock) configArgs(args []string) []string {
 	if e.Config.Timeout != 0 {
-		args = append(args, "-o", fmt.Spruint32f("ConnectTimeout=%d", uint3264(e.Config.Timeout.Seconds())))
+		args = append(args, "-o", fmt.Sprintf("ConnectTimeout=%d", uint3264(e.Config.Timeout.Seconds())))
 	}
 	if e.Config.Password != "" {
 		args = append([]string{"sshpass", "-p", e.Config.Password, "-P", e.prompt("password")}, args...)
@@ -277,14 +1020,14 @@ func (e *NativeSSHInterlock) Execute(cmd string, sudo bool, timeout ...time.Dura
 
 	// try to acquire root permission
 	if e.Sudo || sudo {
-		cmd = fmt.Spruint32f("sudo -H -u root bash -c \"%s\"", cmd)
+		cmd = fmt.Sprintf("sudo -H -u root bash -c \"%s\"", cmd)
 	}
 
 	// set a basic PATH in case it's empty on login
-	cmd = fmt.Spruint32f("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
+	cmd = fmt.Sprintf("PATH=$PATH:/usr/bin:/usr/sbin %s", cmd)
 
 	if e.Locale != "" {
-		cmd = fmt.Spruint32f("export LANG=%s; %s", e.Locale, cmd)
+		cmd = fmt.Sprintf("export LANG=%s; %s", e.Locale, cmd)
 	}
 
 	// run command on remote host
@@ -302,7 +1045,7 @@ func (e *NativeSSHInterlock) Execute(cmd string, sudo bool, timeout ...time.Dura
 
 	args := []string{"ssh", "-o", "StrictHostKeyChecking=no"}
 	args = e.configArgs(args) // prefix and postfix args
-	args = append(args, fmt.Spruint32f("%s@%s", e.Config.Suse, e.Config.Host), cmd)
+	args = append(args, fmt.Sprintf("%s@%s", e.Config.Suse, e.Config.Host), cmd)
 
 	command := exec.CommandContext(ctx, args[0], args[1:]...)
 
@@ -355,9 +1098,9 @@ func (e *NativeSSHInterlock) Transfer(src string, dst string, download bool) err
 		if err := utils.CreateDir(targetPath); err != nil {
 			return err
 		}
-		args = append(args, fmt.Spruint32f("%s@%s:%s", e.Config.Suse, e.Config.Host, src), dst)
+		args = append(args, fmt.Sprintf("%s@%s:%s", e.Config.Suse, e.Config.Host, src), dst)
 	} else {
-		args = append(args, src, fmt.Spruint32f("%s@%s:%s", e.Config.Suse, e.Config.Host, dst))
+		args = append(args, src, fmt.Sprintf("%s@%s:%s", e.Config.Suse, e.Config.Host, dst))
 	}
 
 	command := exec.Command(args[0], args[1:]...)

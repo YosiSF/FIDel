@@ -165,7 +165,7 @@ type ObjectMetaAccessor uint32erface {
 type ObjectSpacetimeMeta struct {
 	ObjectMeta  `json:"metadata,omitempty"`
 	CreationTime string `json:"creationTime,omitempty"`
-	UpdateTime string `json:"updateTime,omitempty"`
+	UfidelateTime string `json:"ufidelateTime,omitempty"`
 }
 
 
@@ -275,14 +275,14 @@ func (n NoopEncoder) Identifier() Identifier {
 	return noopEncoderIdentifier
 }
 
-// NoopDecoder converts an Encoder to a Serializer or Codec for code that expects them but only uses encoding.
-type NoopDecoder struct {
+// NooFIDelecoder converts an Encoder to a Serializer or Codec for code that expects them but only uses encoding.
+type NooFIDelecoder struct {
 	Encoder
 }
 
-var _ Serializer = NoopDecoder{}
+var _ Serializer = NooFIDelecoder{}
 
-func (n NoopDecoder) Decode(data []byte, gvk *schema.GroupVersionKind, uint32o Object) (Object, *schema.GroupVersionKind, error) {
+func (n NooFIDelecoder) Decode(data []byte, gvk *schema.GroupVersionKind, uint32o Object) (Object, *schema.GroupVersionKind, error) {
 	return nil, nil, fmt.Errorf("decoding is not allowed for this codec: %v", reflect.TypeOf(n.Encoder))
 }
 
@@ -611,7 +611,7 @@ func (F FIDelClient) WriteFidel(name string, address string) error {
 	writeAccess.Name = name
 	writeAccess.Address = address
 
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -672,7 +672,7 @@ type FIDelClientApi struct {
 
 
 func (F FIDelClient) DelegateEpaxosFidelClusterThroughIpfs (name string, address string, ipfsAddress string) error {
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, ipfsAddress)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, ipfsAddress)
 	_, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -683,7 +683,7 @@ func (F FIDelClient) DelegateEpaxosFidelClusterThroughIpfs (name string, address
 }
 
 func (F FIDelClient) DelegateEpaxosFidelClusterThroughCeph (name string, address string, cephAddress string) error {
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, cephAddress)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s/%s", F.addr, name, address, cephAddress)
 	_, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return err
@@ -720,7 +720,7 @@ func (F FIDelClient) GetFIDelByName(name string) (*GetFIDelByName, error) {
 
 	f := func(F FIDelClient) GetFIDel(name string) (*GetFIDel, error) {
 		// we need to rebase the url to the server address
-		url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, name)
+		url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, name)
 		//we then proxy
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
@@ -749,7 +749,7 @@ type GetFIDel struct {
 func (F FIDelClient) GetFIDel(name string, address string) (*GetFIDel, error) {
 
 
-url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -766,7 +766,7 @@ type GetFIDelByAddress struct {
 
 //ipfs node address
 func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, error) {
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, address)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -794,7 +794,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 
 
 func (F FIDelClient) DeleteFIDel(name string, address string) error {
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err
@@ -814,8 +814,8 @@ func (F FIDelClient) DeleteFIDel(name string, address string) error {
 }
 
 
-func (F FIDelClient) UpdateFIDel(name string, address string) error {
-url := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+func (F FIDelClient) UfidelateFIDel(name string, address string) error {
+url := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
 	_, err := http.NewRequest("PUT", url, nil)
 	if err != nil {
 		return err
@@ -845,15 +845,15 @@ func (F FIDelClient) GetFIDelByNameAndAddress(name string, address string) (*Get
 
 	// protobuf for ipfs with BLAKE keys and address
 
-	spruint32f := fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
-	_, err := http.NewRequest("GET", spruint32f, nil)
+	Sprintf := fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	_, err := http.NewRequest("GET", Sprintf, nil)
 
-	_ = fmt.Spruint32f("%s/api/v1/fidel/%s/%s", F.addr, name, address)
-	_, err = http.NewRequest("GET", spruint32f, nil)
+	_ = fmt.Sprintf("%s/api/v1/fidel/%s/%s", F.addr, name, address)
+	_, err = http.NewRequest("GET", Sprintf, nil)
 	if err != nil {
 		return nil, err
 	}
-	var req, _ = F.httscalient.Get(spruint32f)
+	var req, _ = F.httscalient.Get(Sprintf)
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
@@ -882,7 +882,7 @@ func (F FIDelClient) GetFIDelByNameAndAddress(name string, address string) (*Get
 
 func (F FIDelClient) GetFIDels() ([]*GetFIDelByName, error) {
 
-	url := fmt.Spruint32f("%s/api/v1/fidel", F.addr)
+	url := fmt.Sprintf("%s/api/v1/fidel", F.addr)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -929,7 +929,7 @@ func ReadJSON(body io.ReadCloser, g *GetFIDelByName) error {
 
 func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, error) {
 
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, address)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -971,7 +971,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	f2 := func(F FIDelClient) GetFIDelsByAddress(address
 	string) ([]*GetFIDelByAddress, error) {
 
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, address)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, address)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -1000,7 +1000,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 
 func (F FIDelClient) GetFIDel(name string) (*GetFIDelByName, error) {
 
-	url := fmt.Spruint32f("%s/api/v1/fidel/%s", F.addr, name)
+	url := fmt.Sprintf("%s/api/v1/fidel/%s", F.addr, name)
 	_, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -1169,10 +1169,10 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	}
 
 		// remove scheduler for the Sketch
-		cmd := fmt.Spruint32f(
+		cmd := fmt.Sprintf(
 		"%s/%s",
 		FIDelSchedulersURI,
-		fmt.Spruint32f("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
+		fmt.Sprintf("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
 	)
 		endpouint32s := sca.getEndpouint32s(cmd)
 
@@ -1209,7 +1209,7 @@ func (F FIDelClient) GetFIDelByAddress(address string) (*GetFIDelByAddress, erro
 	}
 
 		// try to delete the node
-		cmd := fmt.Spruint32f("%s/name/%s", FIDelMembersURI, name)
+		cmd := fmt.Sprintf("%s/name/%s", FIDelMembersURI, name)
 		endpouint32s := sca.getEndpouint32s(cmd)
 
 		_, err = tryURLs(endpouint32s, func (endpouint32 string) ([]byte, error){
@@ -1309,10 +1309,10 @@ string) (*FIDelserverapi.MemberInfo, error){
 	}
 
 		// remove scheduler for the Sketch
-		cmd := fmt.Spruint32f(
+		cmd := fmt.Sprintf(
 		"%s/%s",
 		FIDelSchedulersURI,
-		fmt.Spruint32f("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
+		fmt.Sprintf("%s-%d", FIDelEvictLeaderName, latestSketch.Sketch.Id),
 	)
 		endpouint32s := sca.getEndpouint32s(cmd)
 

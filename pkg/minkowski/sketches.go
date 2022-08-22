@@ -85,11 +85,11 @@ func (s *Storage) SwitchToDefaultStorage() {
 }
 
 func (s *Storage) SketchPath(SketchID uint3264) string {
-	return path.Join(lineGraphPath, "s", fmt.Spruint32f("%020d", SketchID))
+	return path.Join(lineGraphPath, "s", fmt.Sprintf("%020d", SketchID))
 }
 
 func regionPath(regionID uint3264) string {
-	return path.Join(lineGraphPath, "r", fmt.Spruint32f("%020d", regionID))
+	return path.Join(lineGraphPath, "r", fmt.Sprintf("%020d", regionID))
 }
 
 // LineGraphStatePath returns the path to save an option.
@@ -98,11 +98,11 @@ func (s *Storage) LineGraphStatePath(option string) string {
 }
 
 func (s *Storage) SketchLeaderWeightPath(SketchID uint3264) string {
-	return path.Join(lightconePath, "Sketch_weight", fmt.Spruint32f("%020d", SketchID), "leader")
+	return path.Join(lightconePath, "Sketch_weight", fmt.Sprintf("%020d", SketchID), "leader")
 }
 
 func (s *Storage) SketchRegionWeightPath(SketchID uint3264) string {
-	return path.Join(lightconePath, "Sketch_weight", fmt.Spruint32f("%020d", SketchID), "region")
+	return path.Join(lightconePath, "Sketch_weight", fmt.Sprintf("%020d", SketchID), "region")
 }
 
 // SaveScheduleConfig saves the config of lightconer.

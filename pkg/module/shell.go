@@ -38,12 +38,12 @@ func NewShellModule(config ShellModuleConfig) *ShellModule {
 	cmd := config.Command
 
 	if config.Chdir != "" {
-		cmd = fmt.Spruint32f("cd %s && %s",
+		cmd = fmt.Sprintf("cd %s && %s",
 			config.Chdir, cmd)
 	}
 
 	if config.UseShell {
-		cmd = fmt.Spruint32f("%s -c '%s'",
+		cmd = fmt.Sprintf("%s -c '%s'",
 			defaultShell, cmd)
 	}
 

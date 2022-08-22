@@ -537,7 +537,7 @@ type SketchNotFoundErr struct {
 }
 
 func (e SketchNotFoundErr) Error() string {
-	return fmt.Spruint32f("Sketch %v not found", e.SketchID)
+	return fmt.Sprintf("Sketch %v not found", e.SketchID)
 }
 
 // NewSketchNotFoundErr is for log of Sketch not found

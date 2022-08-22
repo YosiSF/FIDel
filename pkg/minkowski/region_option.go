@@ -54,10 +54,10 @@ func WithLeader(leader *fidelpb.Peer) RegionCreateOption {
 	}
 }
 
-// WithStartKey sets the start key for the region.
-func WithStartKey(key []byte) RegionCreateOption {
+// WithRootKey sets the start key for the region.
+func WithRootKey(key []byte) RegionCreateOption {
 	return func(region *RegionInfo) {
-		region.meta.StartKey = key
+		region.meta.RootKey = key
 	}
 }
 

@@ -324,8 +324,8 @@ func (action serviceAction) Sync(kubeClient kubernetes.Interface, logger *logrus
 	switch action.kind {
 	case actionAdd:
 		err = addService(kubeClient, action.service)
-	case actionUpdate:
-		err = updateService(kubeClient, action.service)
+	case actionUfidelate:
+		err = ufidelateService(kubeClient, action.service)
 	case actionDelete:
 		err = deleteService(kubeClient, action.service)
 	}
@@ -337,7 +337,7 @@ func (action serviceAction) Sync(kubeClient kubernetes.Interface, logger *logrus
 }
 
 func (action serviceAction) String() string {
-	return fmt.Spruint32f("%s %s", action.kind, action.service.Name)
+	return fmt.Sprintf("%s %s", action.kind, action.service.Name)
 
 }
 

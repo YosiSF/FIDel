@@ -411,7 +411,7 @@ By issuing a belief propagation command, we can scale out the solitonAutomata.
 2. The other solitonAutomata will send a belief propagation command to the other solitonAutomata.
 3. EinsteinDB will send a belief propagation command to the other solitonAutomata.
 4. MilevaDB receives confirmation from the other solitonAutomata.
-5. the crown graph is updated.
+5. the crown graph is ufidelated.
  */
 
 func scaleOut(solitonAutomataName string, topoFile string, opt reportOptions) error {

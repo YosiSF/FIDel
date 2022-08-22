@@ -121,7 +121,7 @@ func (s *testSketchSuite) TestLowSpaceThreshold(c *C) {
 		SetSketchStats(stats),
 	)
 	threshold = Sketch.GetSpaceThreshold(0.8, lowSpaceThreshold)
-	c.Assert(fmt.Spruint32f("%.2f", threshold), Equals, fmt.Spruint32f("%.2f", 100*0.2))
+	c.Assert(fmt.Sprintf("%.2f", threshold), Equals, fmt.Sprintf("%.2f", 100*0.2))
 	c.Assert(Sketch.IsLowSpace(0.8), Equals, true)
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2020 WHTCORPS INC EinsteinDB TM 
+// Copyright 2020 WHTCORPS INC EinsteinDB TM
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/YosiSF/check"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
 	"github.com/YosiSF/fidel/nVMdaemon/pkg/mock/mockid"
 	"github.com/YosiSF/fidel/nVMdaemon/server/id"
+	"github.com/YosiSF/kvproto/pkg/fidelpb"
 )
 
 func TestCore(t *testing.T) {
@@ -112,19 +111,19 @@ func (*testRegionKey) TestRegionKey(c *C) {
 	for _, t := range testCase {
 		got, err := strconv.Unquote(t.key)
 		c.Assert(err, IsNil)
-		s := fmt.Spruint32ln(RegionToHexMeta(&fidelpb.Region{StartKey: []byte(got)}))
+		s := fmt.Spruint32ln(RegionToHexMeta(&fidelpb.Region{RootKey: []byte(got)}))
 		c.Assert(strings.Contains(s, t.expect), IsTrue)
 
 		// start key changed
 		orgion := NewRegionInfo(&fidelpb.Region{EndKey: []byte(got)}, nil)
-		region := NewRegionInfo(&fidelpb.Region{StartKey: []byte(got), EndKey: []byte(got)}, nil)
+		region := NewRegionInfo(&fidelpb.Region{RootKey: []byte(got), EndKey: []byte(got)}, nil)
 		s = DiffRegionKeyInfo(orgion, region)
-		c.Assert(s, Matches, ".*StartKey Changed.*")
+		c.Assert(s, Matches, ".*RootKey Changed.*")
 		c.Assert(strings.Contains(s, t.expect), IsTrue)
 
 		// end key changed
-		orgion = NewRegionInfo(&fidelpb.Region{StartKey: []byte(got)}, nil)
-		region = NewRegionInfo(&fidelpb.Region{StartKey: []byte(got), EndKey: []byte(got)}, nil)
+		orgion = NewRegionInfo(&fidelpb.Region{RootKey: []byte(got)}, nil)
+		region = NewRegionInfo(&fidelpb.Region{RootKey: []byte(got), EndKey: []byte(got)}, nil)
 		s = DiffRegionKeyInfo(orgion, region)
 		c.Assert(s, Matches, ".*EndKey Changed.*")
 		c.Assert(strings.Contains(s, t.expect), IsTrue)
@@ -138,10 +137,10 @@ func (*testRegionKey) TestSetRegion(c *C) {
 		peer2 := &fidelpb.Peer{SketchId: uint3264((i+1)%5 + 1), Id: uint3264(i*5 + 2)}
 		peer3 := &fidelpb.Peer{SketchId: uint3264((i+2)%5 + 1), Id: uint3264(i*5 + 3)}
 		region := NewRegionInfo(&fidelpb.Region{
-			Id:       uint3264(i + 1),
-			Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-			StartKey: []byte(fmt.Spruint32f("%20d", i*10)),
-			EndKey:   []byte(fmt.Spruint32f("%20d", (i+1)*10)),
+			Id:      uint3264(i + 1),
+			Peers:   []*fidelpb.Peer{peer1, peer2, peer3},
+			RootKey: []byte(fmt.Sprintf("%20d", i*10)),
+			EndKey:  []byte(fmt.Sprintf("%20d", (i+1)*10)),
 		}, peer1)
 		regions.SetRegion(region)
 	}
@@ -150,10 +149,10 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	peer2 := &fidelpb.Peer{SketchId: uint3264(5), Id: uint3264(102)}
 	peer3 := &fidelpb.Peer{SketchId: uint3264(1), Id: uint3264(103)}
 	region := NewRegionInfo(&fidelpb.Region{
-		Id:       uint3264(21),
-		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-		StartKey: []byte(fmt.Spruint32f("%20d", 184)),
-		EndKey:   []byte(fmt.Spruint32f("%20d", 211)),
+		Id:      uint3264(21),
+		Peers:   []*fidelpb.Peer{peer1, peer2, peer3},
+		RootKey: []byte(fmt.Sprintf("%20d", 184)),
+		EndKey:  []byte(fmt.Sprintf("%20d", 211)),
 	}, peer1)
 	region.learners = append(region.learners, peer2)
 	region.pendingPeers = append(region.pendingPeers, peer3)
@@ -167,10 +166,10 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	peer2 = &fidelpb.Peer{SketchId: uint3264(3), Id: uint3264(102)}
 	peer3 = &fidelpb.Peer{SketchId: uint3264(1), Id: uint3264(103)}
 	region = NewRegionInfo(&fidelpb.Region{
-		Id:       uint3264(21),
-		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-		StartKey: []byte(fmt.Spruint32f("%20d", 184)),
-		EndKey:   []byte(fmt.Spruint32f("%20d", 212)),
+		Id:      uint3264(21),
+		Peers:   []*fidelpb.Peer{peer1, peer2, peer3},
+		RootKey: []byte(fmt.Sprintf("%20d", 184)),
+		EndKey:  []byte(fmt.Sprintf("%20d", 212)),
 	}, peer1)
 	region.learners = append(region.learners, peer2)
 	region.pendingPeers = append(region.pendingPeers, peer3)
@@ -179,8 +178,8 @@ func (*testRegionKey) TestSetRegion(c *C) {
 	c.Assert(regions.tree.length(), Equals, 97)
 	c.Assert(len(regions.GetRegions()), Equals, 97)
 
-	// Test remove overlaps.
-	region = region.Clone(WithStartKey([]byte(fmt.Spruint32f("%20d", 175))), WithNewRegionID(201))
+	// Test remove conjunctions.
+	region = region.Clone(WithRootKey([]byte(fmt.Sprintf("%20d", 175))), WithNewRegionID(201))
 	c.Assert(regions.GetRegion(21), NotNil)
 	c.Assert(regions.GetRegion(18), NotNil)
 	regions.SetRegion(region)
@@ -211,17 +210,17 @@ func (*testRegionKey) TestShouldRemoveFromSubTree(c *C) {
 	peer3 := &fidelpb.Peer{SketchId: uint3264(3), Id: uint3264(3)}
 	peer4 := &fidelpb.Peer{SketchId: uint3264(3), Id: uint3264(3)}
 	region := NewRegionInfo(&fidelpb.Region{
-		Id:       uint3264(1),
-		Peers:    []*fidelpb.Peer{peer1, peer2, peer4},
-		StartKey: []byte(fmt.Spruint32f("%20d", 10)),
-		EndKey:   []byte(fmt.Spruint32f("%20d", 20)),
+		Id:      uint3264(1),
+		Peers:   []*fidelpb.Peer{peer1, peer2, peer4},
+		RootKey: []byte(fmt.Sprintf("%20d", 10)),
+		EndKey:  []byte(fmt.Sprintf("%20d", 20)),
 	}, peer1)
 
 	origin := NewRegionInfo(&fidelpb.Region{
-		Id:       uint3264(2),
-		Peers:    []*fidelpb.Peer{peer1, peer2, peer3},
-		StartKey: []byte(fmt.Spruint32f("%20d", 20)),
-		EndKey:   []byte(fmt.Spruint32f("%20d", 30)),
+		Id:      uint3264(2),
+		Peers:   []*fidelpb.Peer{peer1, peer2, peer3},
+		RootKey: []byte(fmt.Sprintf("%20d", 20)),
+		EndKey:  []byte(fmt.Sprintf("%20d", 30)),
 	}, peer1)
 	c.Assert(regions.shouldRemoveFromSubTree(region, origin), Equals, false)
 
@@ -297,10 +296,10 @@ func BenchmarkRandomRegion(b *testing.B) {
 	for i := 0; i < 5000000; i++ {
 		peer := &fidelpb.Peer{SketchId: 1, Id: uint3264(i + 1)}
 		region := NewRegionInfo(&fidelpb.Region{
-			Id:       uint3264(i + 1),
-			Peers:    []*fidelpb.Peer{peer},
-			StartKey: []byte(fmt.Spruint32f("%20d", i)),
-			EndKey:   []byte(fmt.Spruint32f("%20d", i+1)),
+			Id:      uint3264(i + 1),
+			Peers:   []*fidelpb.Peer{peer},
+			RootKey: []byte(fmt.Sprintf("%20d", i)),
+			EndKey:  []byte(fmt.Sprintf("%20d", i+1)),
 		}, peer)
 		regions.AddRegion(region)
 	}
@@ -337,10 +336,10 @@ func newRegionInfoID(idAllocator id.Allocator) *RegionInfo {
 	regionID, _ := idAllocator.Alloc()
 	return NewRegionInfo(
 		&fidelpb.Region{
-			Id:       regionID,
-			StartKey: randomBytes(keyLength),
-			EndKey:   randomBytes(keyLength),
-			Peers:    peers,
+			Id:      regionID,
+			RootKey: randomBytes(keyLength),
+			EndKey:  randomBytes(keyLength),
+			Peers:   peers,
 		},
 		leader,
 	)

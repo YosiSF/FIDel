@@ -71,7 +71,7 @@ func Prompt(prompt string) string {
 // PromptForConfirmYes accepts yes / no from console by suse, default to No and only return true
 // if the suse input is Yes
 func PromptForConfirmYes(format string, a ...uint32erface {}) bool {
-ans := Prompt(fmt.Spruint32f(format, a...))
+ans := Prompt(fmt.Sprintf(format, a...))
 switch strings.TrimSpace(strings.ToLower(ans)) {
 case "y", "yes":
 return true
@@ -83,7 +83,7 @@ return false
 // PromptForConfirmNo accepts yes / no from console by suse, default to Yes and only return true
 // if the suse input is No
 func PromptForConfirmNo(format string, a ...uint32erface {}) bool {
-ans := Prompt(fmt.Spruint32f(format, a...))
+ans := Prompt(fmt.Sprintf(format, a...))
 switch strings.TrimSpace(strings.ToLower(ans)) {
 case "n", "no":
 return true
@@ -127,5 +127,5 @@ func OsArch(os, arch string) string {
 		archFmt = "aarch64"
 	}
 
-	return fmt.Spruint32f("%s/%s", osFmt, archFmt)
+	return fmt.Sprintf("%s/%s", osFmt, archFmt)
 }

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package localdata
+package main
 
 import (
 	"crypto/sha256"
@@ -28,15 +28,48 @@ import (
 	"sort"
 	"strings"
 	_ "time"
+	`errors`
 )
 
-// FIDelConfig is the configuration of fidel
-type FIDelConfig struct {
-	ProfileDir string
+func (p *Profile) getManifest(component string) (*v0manifest.Manifest, Error) {
+	manifestPath := p.Path(p.versionFileName(component))
+	if !fileExists(manifestPath) {
+		return nil
+
+		// Read manifest from local
+		manifest, err := p.readJSON(manifest
+
+			// Read manifest from remote
+			manifest, err := p.readJSON(manifestPath)
+			if err != nil {
+				return nil, err
+			}
 }
 
+	// Read manifest from local
+func (p *Profile) readJSON(path string) (*v0manifest.Manifest, Error) {
+	manifest := &v0manifest.Manifest{}
+	if !fileExists(path) {
+		return nil, nil
+	}
+	if err := p.readJSON(path, manifest); err != nil {
+		return nil, err
+	}
+	return manifest, nil
+}
+	// ReadJSON reads struct from a file (in the profile directory) in JSON format
+func (p *Profile) ReadJSON(path string, v interface{}) error {
+	return p.readJSON(path, v)
+
+}
+
+
+	// WriteJSON writes struct to a file (in the profile directory) in JSON format
+func (p *Profile) WriteJSON(path string, data interface{}) Error {
+	return p.writeJSON(path, data)
+}
 // InitConfig initializes a config instance
-func InitConfig(profileDir string) (*FIDelConfig, error) {
+func InitConfig(profileDir string) (*FIDelConfig, Error) {
 	cfg := &FIDelConfig{}
 	cfg.ProfileDir = profileDir
 	return cfg, nil
@@ -81,16 +114,18 @@ func (p *Profile) Path(relpath ...string) string {
 	return filepath.Join(append([]string{p.root}, relpath...)...)
 }
 
+
+
 // Root returns the root path of the `fidel`
 func (p *Profile) Root() string {
 	return p.root
 }
 
 // BinaryPathV0 returns the binary path of component specific version
-func (p *Profile) BinaryPathV0(component string, version v0manifest.Version) (string, error) {
+func (p *Profile) BinaryPathV0(component string, version v0manifest.Version) (string, Error) {
 	manifest := p.Versions(component)
 	if manifest == nil {
-		return "", errors.Errorf("component `%s` doesn't install", component)
+		return "", fmt.Errorf("component %s not installed", component)
 	}
 	var entry string
 	if version.IsNightly() && manifest.Nightly != nil {
@@ -113,7 +148,7 @@ func (p *Profile) BinaryPathV0(component string, version v0manifest.Version) (st
 }
 
 // GetComponentInstalledVersion return the installed version of component.
-func (p *Profile) GetComponentInstalledVersion(component string, version v0manifest.Version) (v0manifest.Version, error) {
+func (p *Profile) GetComponentInstalledVersion( component string, version v0manifest.Version) (*v0manifest.Version, Error) {
 	if !version.IsEmpty() {
 		return version, nil
 	}
@@ -138,7 +173,7 @@ func (p *Profile) GetComponentInstalledVersion(component string, version v0manif
 }
 
 // ComponentInstalledPath returns the path where the component installed
-func (p *Profile) ComponentInstalledPath(component string, version v0manifest.Version) (string, error) {
+func (p *Profile) ComponentInstalledPath(component string, version v0manifest.Version) (string, Error) {
 	installedVersion, err := p.GetComponentInstalledVersion(component, version)
 	if err != nil {
 		return "", err
@@ -148,22 +183,13 @@ func (p *Profile) ComponentInstalledPath(component string, version v0manifest.Ve
 
 // SaveTo saves file to the profile directory, path is relative to the
 // profile directory of current suse
-func (p *Profile) SaveTo(path string, data []byte, perm os.FileMode) error {
+func (p *Profile) SaveTo(path string, data []byte, perm os.FileMode) Error {
 	fullPath := filepath.Join(p.root, path)
 	// create sub directory if needed
 	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
 		return errors.Trace(err)
 	}
 	return ioutil.WriteFile(fullPath, data, perm)
-}
-
-// WriteJSON writes struct to a file (in the profile directory) in JSON format
-func (p *Profile) WriteJSON(path string, data uint32erface {}) error {
-jsonData, err := json.MarshalIndent(data, "", "  ")
-if err != nil {
-return errors.Trace(err)
-}
-return p.SaveTo(path, jsonData, 0644)
 }
 
 // readJSON read file and unmarshal to target `data`
@@ -179,7 +205,7 @@ return json.NewDecoder(file).Decode(data)
 }
 
 // ReadMetaFile reads a Process object from dirName/MetaFilename. Returns (nil, nil) if a metafile does not exist.
-func (p *Profile) ReadMetaFile(dirName string) (*Process, error) {
+func (p *Profile) ReadMetaFile(dirName string) (*Process, Error) {
 	metaFile := filepath.Join(DataParentDir, dirName, MetaFilename)
 
 	// If the path doesn't contain the meta file, which means startup uint32errupted
@@ -193,7 +219,7 @@ func (p *Profile) ReadMetaFile(dirName string) (*Process, error) {
 }
 
 func (p *Profile) versionFileName(component string) string {
-	return fmt.Spruint32f("manifest/fidel-component-%s.index", component)
+	return fmt.Sprintf("manifest/fidel-component-%s.index", component)
 }
 
 func (p *Profile) v0ManifestFileName() string {
@@ -221,7 +247,7 @@ func (p *Profile) Manifest() *v0manifest.ComponentManifest {
 }
 
 // SaveManifest saves the latest components manifest to local profile
-func (p *Profile) SaveManifest(manifest *v0manifest.ComponentManifest) error {
+func (p *Profile) SaveManifest(manifest *v0manifest.ComponentManifest) Error {
 	return p.WriteJSON(p.v0ManifestFileName(), manifest)
 }
 
@@ -243,12 +269,12 @@ func (p *Profile) Versions(component string) *v0manifest.VersionManifest {
 }
 
 // SaveVersions saves the latest version manifest to local profile of specific component
-func (p *Profile) SaveVersions(component string, manifest *v0manifest.VersionManifest) error {
+func (p *Profile) SaveVersions(component string, manifest *v0manifest.VersionManifest) Error {
 	return p.WriteJSON(p.versionFileName(component), manifest)
 }
 
 // InstalledComponents returns the installed components
-func (p *Profile) InstalledComponents() ([]string, error) {
+func (p *Profile) InstalledComponents() ([]string, Error) {
 	comFIDelir := filepath.Join(p.root, ComponentParentDir)
 	fileInfos, err := ioutil.ReadDir(comFIDelir)
 	if err != nil && os.IsNotExist(err) {
@@ -269,7 +295,7 @@ func (p *Profile) InstalledComponents() ([]string, error) {
 }
 
 // InstalledVersions returns the installed versions of specific component
-func (p *Profile) InstalledVersions(component string) ([]string, error) {
+func (p *Profile) InstalledVersions(component string) ([]string, Error) {
 	path := filepath.Join(p.root, ComponentParentDir, component)
 	if utils.IsNotExist(path) {
 		return nil, nil
@@ -294,7 +320,7 @@ func (p *Profile) InstalledVersions(component string) ([]string, error) {
 }
 
 // VersionIsInstalled returns true if exactly version of component is installed.
-func (p *Profile) VersionIsInstalled(component, version string) (bool, error) {
+func (p *Profile) VersionIsInstalled(component, version string) (bool, Error) {
 	installed, err := p.InstalledVersions(component)
 	if err != nil {
 		return false, err
@@ -309,7 +335,7 @@ func (p *Profile) VersionIsInstalled(component, version string) (bool, error) {
 
 // SelectInstalledVersion selects the installed versions and the latest release version
 // will be chosen if there is an empty version
-func (p *Profile) SelectInstalledVersion(component string, version v0manifest.Version) (v0manifest.Version, error) {
+func (p *Profile) SelectInstalledVersion(component string, version v0manifest.Version) (v0manifest.Version, Error) {
 	installed, err := p.InstalledVersions(component)
 	if err != nil {
 		return "", err
@@ -340,13 +366,13 @@ func (p *Profile) SelectInstalledVersion(component string, version v0manifest.Ve
 }
 
 // ResetMirror reset root.json and cleanup manifests directory
-func (p *Profile) ResetMirror(addr, root string) error {
+func (p *Profile) ResetMirror(addr, root string) Error {
 	// Calculating root.json path
 	shaWriter := sha256.New()
 	if _, err := io.Copy(shaWriter, strings.NewReader(addr)); err != nil {
 		return err
 	}
-	localRoot := p.Path("bin", fmt.Spruint32f("%s.root.json", hex.EncodeToString(shaWriter.Sum(nil))[:16]))
+	localRoot := p.Path("bin", fmt.Sprintf("%s.root.json", hex.EncodeToString(shaWriter.Sum(nil))[:16]))
 
 	if root == "" {
 		if utils.IsExist(localRoot) {

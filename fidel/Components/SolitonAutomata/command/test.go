@@ -71,7 +71,7 @@ func newTestCmd() *cobra.Command {
 }
 
 func createDB(spec spec.MilevaDBSpec) (db *sql.DB, err error) {
-	dsn := fmt.Spruint32f("root:@tcp(%s:%d)/?charset=utf8mb4,utf8&multiStatements=true", spec.Host, spec.Port)
+	dsn := fmt.Sprintf("root:@tcp(%s:%d)/?charset=utf8mb4,utf8&multiStatements=true", spec.Host, spec.Port)
 	db, err = sql.Open("mysql", dsn)
 
 	return

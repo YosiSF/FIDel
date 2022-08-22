@@ -52,7 +52,7 @@ func (a *address) GetPath() string {
 }
 
 func (a *address) String() string {
-	return fmt.Spruint32f("/fidel/%s/%s", a.root.String(), a.path)
+	return fmt.Sprintf("/fidel/%s/%s", a.root.String(), a.path)
 }
 
 func (a *address) GetPath() string {
@@ -81,7 +81,7 @@ func IsValid(name string) error {
 // Parse Returns an Address instance if the given path is valid
 func Parse(path string) (Address, error) {
 	if err := IsValid(path); err != nil {
-		return nil, errors.Wrap(err, fmt.Spruint32f("not a valid OrbitDB address: %s", path))
+		return nil, errors.Wrap(err, fmt.Sprintf("not a valid OrbitDB address: %s", path))
 	}
 
 	path = strings.TrimPrefix(path, "/orbitdb/")

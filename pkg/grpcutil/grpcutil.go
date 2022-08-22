@@ -11,29 +11,101 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package capnprotoutil
+package grpcutil
 
 import (
-	"bytes"
-	"context"
-	"crypto"
-	"crypto/tls"
-	"encoding/base32"
-	"encoding/base64"
-	"encoding/binary"
-	"errors"
-	"fmt"
-	"io"
-	"net"
-	"net/url"
+	_ `bytes`
+	_ `context`
+	_ `crypto`
+	_ `crypto/tls`
+	_ `encoding/base32`
+	_ `encoding/base64`
+	_ `encoding/binary`
+	_ `errors`
+	_ `fmt`
+	_ `io`
+	_ `net`
+	_ `net/url`
 	"strconv"
 	"time"
 	_ "time"
+	_ `unicode/utf8`
+	"unsafe"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/golang/protobuf/ptypes/duration"
+	"github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/golang/protobuf/ptypes/empty"
+
+
+	"github.com/golang/protobuf/ptypes/struct"
+	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/golang/protobuf/ptypes/empty"
+
 )
 
+
+type Any struct {
+	TypeUrl string `protobuf:"bytes,1,opt,name=type_url,json=typeUrl,proto3" json:"type_url,omitempty"`
+	Value   []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+
+}
+
+
 const (
-	//petriNetFrequencyOfBitmap is the frequency of bitmap in petri net.
-	petriNetFrequencyOfBitmap = 1
+	// MaxInt is the maximum value of int.
+	MaxInt = int(^uint(0) >> 1)
+	// MinInt is the minimum value of int.
+	MinInt = -MaxInt - 1
+
+
+// MaxInt32 is the maximum value of int32.
+MaxInt32 = int32(^uint32(0) >> 1)
+// MinInt32 is the minimum value of int32.
+const MinInt32 = -MaxInt32 - 1
+
+// MaxInt64 is the maximum value of int64.
+const MaxInt64 = int64(^uint64(0) >> 1)
+// MinInt64 is the minimum value of int64.
+const MinInt64 = -MaxInt64 - 1
+
+
+
+
+// MaxUint32 is the maximum value of uint32.
+const MaxUint32 = ^uint32(0)
+
+
+// MaxUint64 is the maximum value of uint64.
+const MaxUint64 = ^uint64(0)
+
+
+
+
+
+type petriNetFrequencyOfBitmap struct{
+	bitmap []byte
+	frequency int
+
+}
+
+type petriNetTimeout struct{
+	timeout time.Duration // timeout duration
+
+
+	//dilation
+	dilation int
+
+	//dilation_factor
+	dilation_factor int
+}
+
+type petrie struct {
+	petriNetFrequencyOfBitmap []petriNetFrequencyOfBitmap
+
 	//timeout
 	petriNetTimeout = 10 * time.Second
 	//tso

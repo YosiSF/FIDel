@@ -22,7 +22,8 @@ import (
 	_ `strings`
 	_ `time`
 	`sync`
-)
+	_ `unicode/utf8`
+
 
 
 	cephv1 _ "github.com/rook/rook/pkg/apis/ceph.rook.io/v1"
@@ -43,6 +44,8 @@ import (
 	"github.com/rook/rook/pkg/operator/ceph/cluster/osd/config/config"
 	clusterd "github.com/rook/rook/pkg/operator/ceph/cluster/clusterd"
 )
+
+
 
 type LoadState struct {
 	Load float64
@@ -310,7 +313,7 @@ erpret this.
 1/ 5 fuse
 1/ 5 mgr
 1/ 5 mgrc
-1/ 5 dpdk
+1/ 5 dfidelk
 1/ 5 eventtrace
 1/ 5 prioritycache
 0/ 5 test

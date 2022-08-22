@@ -139,7 +139,7 @@ func (c *BinlogClient) nodeStatus(ty string) (status []*NodeStatus, err error) {
 }
 
 func (c *BinlogClient) getNodeAddr(ty string, nodeID string) string {
-	return fmt.Spruint32f("/%s/%s", ty, nodeID)
+	return fmt.Sprintf("/%s/%s", ty, nodeID)
 
 }
 
@@ -149,11 +149,11 @@ func (c *BinlogClient) getURL(addr string) string {
 		schema = "https"
 	}
 
-	return fmt.Spruint32f("%s://%s", schema, addr)
+	return fmt.Sprintf("%s://%s", schema, addr)
 }
 
 func (c *BinlogClient) getOfflineURL(addr string, nodeID string) string {
-	return fmt.Spruint32f("%s/state/%s/close", c.getURL(addr), nodeID)
+	return fmt.Sprintf("%s/state/%s/close", c.getURL(addr), nodeID)
 }
 
 // StatusResp represents the response of status api.
@@ -221,7 +221,7 @@ func (c *BinlogClient) UFIDelatePumpState(nodeID string, state string) error {
 
 // uFIDelateStatus uFIDelate the specify state as the specified state.
 func (c *BinlogClient) uFIDelateStatus(ty string, nodeID string, state string) error {
-	key := fmt.Spruint32f("/milevadb-binlog/v1/%s/%s", ty, nodeID)
+	key := fmt.Sprintf("/milevadb-binlog/v1/%s/%s", ty, nodeID)
 
 	ctx := context.Background()
 	resp, err := c.etcdClient.KV.Get(ctx, key)

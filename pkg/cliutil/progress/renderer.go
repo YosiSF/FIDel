@@ -14,52 +14,38 @@
 package cliutil
 
 import (
-	_ `errors`
-	`fmt`
+	`context`
 	_ `io`
 	_ `strings`
 	`time`
-	`context`
-	`sync/atomic`
 	_ `math/big`
-	`strconv`
-	`encoding/json`
-	`os/exec`
-	`bytes`
-	`strings`
-	_ `sort`
-
-
+	cli `github.com/urfave/cli`
+	`fmt`
+)
 	imtui _"github.com/Kubuxu/imtui"
 	"github.com/gdamore/tcell/v2"
-	"github.com/ipfs/go-cid"
-	"github.com/urfave/cli/v2"
-	"golang.org/x/xerrors"
-
+	ipfs "github.com/ipfs/go-cid"
+	cli "github.com/urfave/cli/v2"
+	errors "golang.org/x/xerrors"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
-
 	"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/build"
-	"github.com/filecoin-project/lotus/chain/types"
-
-	"github.com/urfave/cli/v2"
-
-	"github.com/filecoin-project/lotus/build"
-
+	types "github.com/filecoin-project/lotus/chain/types"
+	v2"github.com/urfave/cli/v2"
+	lotus "github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/go-address"
 	"github.com/filecoin-project/go-state-types/abi"
 	"github.com/filecoin-project/go-state-types/big"
 	"github.com/filecoin-project/go-state-types/exitcode"
 	"github.com/filecoin-project/go-state-types/network"
-
+	api _"github.com/filecoin-project/lotus/api"
 	"github.com/filecoin-project/lotus/api"
-	api "github.com/filecoin-project/lotus/api"
-	"github.com/filecoin-project/lotus/api/v0api"
-	"github.com/filecoin-project/lotus/blockstore"
-	"github.com/filecoin-project/lotus/build"
+	v0api "github.com/filecoin-project/lotus/api/v0api"
+	blockstore "github.com/filecoin-project/lotus/blockstore"
+	build "github.com/filecoin-project/lotus/build"
 	"github.com/filecoin-project/lotus/chain/actors"
-	"github.com/filecoin-project/lotus/chain/actors/builtin"
+	actors "github.com/filecoin-project/lotus/chain/actors/builtin"
 	"github.com/filecoin-project/lotus/chain/consensus/filcns"
 	"github.com/filecoin-project/lotus/chain/state"
 	"github.com/filecoin-project/lotus/chain/stmgr"
@@ -75,21 +61,21 @@ import (
 	_ `strconv`
 
 	_ `time`
-
 	"go.uber.org/atomic"
+	App "github.com/filecoin-project/lotus/cmd/lotus/app"
 )
-
-const (
-	renderLoopSleep = 100 * time.Millisecond
-
-	//Memristor is the name of the memristor actor
-	Memristor = "memristor"
-
-	//MemristorState is the name of the memristor state field
-	MemristorState = "state"
+//
+//func (r *renderer) render() {
+//	fmt.Sprintf("rendering\n")
+//
+//}
 
 
-)
+
+type AppFmt struct {
+	app *cli.App
+
+}
 
 type stoStateChangeHandler struct {
 	api v0api.FullNode
@@ -97,17 +83,11 @@ type stoStateChangeHandler struct {
 
 }
 
-type renderer struct {
-	isUFIDelaterRunning atomic.Bool
-	stochastic          *stoStateChangeHandler
-	stopFinishedChan    chan struct{}
-	renderFn             func()
+type apiIpldStore struct {
+	ctx context.Context
+	api v0api.FullNode
 
 }
-
-
-
-
 
 
 func (r *renderer) start(ctx context.Context, api v0api.FullNode) error {
@@ -145,6 +125,28 @@ func (r *renderer) render() {
 }
 
 var (
+	//MemristorState is the name of the memristor state field
+	MemristorState = "state"
+	//Ipfs Oracle
+	IpfsOracle = "ipfs-oracle"
+	//MemristorOracle is the name of the memristor oracle field
+	MemristorOracle = "oracle"
+)
+
+type uint32erface interface {
+	fmt.Println(args...)
+}
+
+
+
+func (a *AppFmt) Pruint32ln(args ...interface{}
+}
+
+func (r *renderer) render() {
+
+	fmt.Pruint32f("rendering\n")
+		return nil
+	}
 	LotusStatusCliUtil = &cli.Command{
 		Name:  "status",
 		Usage: "Show status of the lotus node",
@@ -159,7 +161,6 @@ var (
 			r.renderFn()
 			return nil
 		},
-
 		Filtron: func(ctx *cli.Context) error {
 			if ctx.Args().Len() > 0 {
 				return fmt.Errorf("unexpected argument: %s", ctx.Args().First())
@@ -202,7 +203,8 @@ var LotuStopCliUtil = &cli.Command{
 	},
 
 
-}
+
+
 
 var StartCliUtil = &cli.Command{
 	Name:  "start",
@@ -217,8 +219,11 @@ var StartCliUtil = &cli.Command{
 		}
 		r.renderFn()
 		return nil
-	}
+
 }
+
+
+
 
 var ScaleInCliUtil = &cli.Command{
 	Name:  "scale-in",
@@ -248,8 +253,39 @@ var ScaleInCliUtil = &cli.Command{
 
 		r.renderFn()
 		return nil
-	}
+
 }
+
+var ScaleOutCliUtil = &cli.Command{
+	Name:  "scale-out",
+	Usage: "Scale out the lotus node",
+	Action: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+	}
+
+
+	FiltronParity: func(cctx *cli.Context) error {
+		if cctx.Args().Len() > 0 {
+			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
+		}
+		r, err := newRenderer(cctx)
+		if err != nil {
+			return
+		}
+
+		r.renderFn()
+		return nil
+
+	}
 
 var ScaleOutCliUtil = &cli.Command{
 	Name:  "scale-out",
@@ -282,36 +318,7 @@ var ScaleOutCliUtil = &cli.Command{
 	}
 }
 
-var ScaleOutCliUtil = &cli.Command{
-	Name:  "scale-out",
-	Usage: "Scale out the lotus node",
-	Action: func(cctx *cli.Context) error {
-		if cctx.Args().Len() > 0 {
-			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
-		}
-		r, err := newRenderer(cctx)
-		if err != nil {
-			return
-		}
 
-		r.renderFn()
-		return nil
-	}
-
-
-	FiltronParity: func(cctx *cli.Context) error {
-		if cctx.Args().Len() > 0 {
-			return fmt.Errorf("unexpected argument: %s", cctx.Args().First())
-		}
-		r, err := newRenderer(cctx)
-		if err != nil {
-			return
-		}
-
-		r.renderFn()
-		return nil
-	}
-}
 
 var ScaleInCliUtil = &cli.Command{
 	Name:  "scale-in",
@@ -328,9 +335,6 @@ var ScaleInCliUtil = &cli.Command{
 		r.renderFn()
 		return nil
 	}
-
-
-
 
 	FiltronParity: func(cctx *cli.Context) error {
 		if cctx.Args().Len() > 0 {
@@ -1790,7 +1794,7 @@ func handleStateAccount(ctx context.Context, api v0api.FullNode, r cid.Cid) erro
 //	format = strings.ReplaceAll(format, "<time>", time.Unix(uint3264(ts.MinTimestamp()), 0).Format(time.Stamp))
 //	blks := "[ "
 //	for _, b := range ts.Blocks() {
-//		blks += fmt.Spruint32f("%s: %s,", b.Cid(), b.Miner)
+//		blks += fmt.Sprintf("%s: %s,", b.Cid(), b.Miner)
 //	}
 //	blks += " ]"
 //
@@ -2135,13 +2139,6 @@ var SlashConsensusFault = &cli.Command{
 	},
 }
 
-type renderer struct {
-	isUFIDelaterRunning atomic.Bool
-	stoscahan           chan struct{}
-	stopFinishedChan    chan struct{}
-	renderFn            func()
-}
-
 func newRenderer() *renderer {
 	return &renderer{
 		isUFIDelaterRunning: atomic.Bool{},
@@ -2210,7 +2207,7 @@ func (a *AppFmt) Pruint32ln(args ...uint32erface{}) {
 
 
 func (a *AppFmt) Pruint32f(format string, args ...uint32erface{}) {
-	a.app.Writer.Write([]byte(fmt.Spruint32f(format, args...)))
+	a.app.Writer.Write([]byte(fmt.Sprintf(format, args...)))
 
 }
 

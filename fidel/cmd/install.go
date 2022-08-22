@@ -17,18 +17,47 @@ package cmd
 
 
 import (
-	"fmt"
+	cobra _"github.com/spf13/cobra"
+	Command  "github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"github.com/whtie/rook/pkg/cmd/rook/install"
+	"github.com/whtie/rook/pkg/cmd/rook/install/config"
+	"github.com/whtie/rook/pkg/cmd/rook/install/get"
+	"github.com/whtie/rook/pkg/cmd/rook/install/set"
+	"github.com/whtie/rook/pkg/cmd/rook/install/setup"
+	"github.com/whtie/rook/pkg/cmd/rook/version"
+	"github.com/whtie/rook/pkg/cmd/rook/completion"
+	`os`
+	"github.com/whtie/rook/pkg/cmd/rook/uninstall"
+
+	`fmt`
+	"github.com/whtie/rook/pkg/cmd/rook/help"
 	_ `bytes`
 	_ `io`
 	_ `os`
 	"strings"
-	`os`
+
 	`os/exec`
 	`strconv`
-	`time`
+	_ `bytes`
+	_ `io`
+	//ipfs
+	ipfs _ "github.com/ipfs/go-ipfs-api"
+	"github.com/ipfs/go-ipfs-api/files"
+	"github.com/ipfs/go-ipfs-api/files"
+	"github.com/ipfs/go-ipfs-api/files"
+	"github.com/ipfs/go-ipfs-api/files"
+	"github.com/ipfs/go-ipfs-api/files"
+	"github.com/ipfs/go-ipfs-api/files"
+	//ceph
+	ceph _"github.com/rook/rook/pkg/util/exec"
+	"github.com/rook/rook/pkg/util/exec"
+	"github.com/rook/rook/pkg/util/exec"
+	"github.com/rook/rook/pkg/util/exec"
 
 
-	cobra "github.com/spf13/cobra"
+
 
 	//ceph, rook, and isovalent libraries here
 	clusterd _ "github.com/rook/rook/pkg/clusterd"
@@ -119,6 +148,7 @@ var completionLongDesc = ` Rook installs rook on a host.  The rook command will 
 		rook upgrade-rollback-rollback-rollback-rollback-start`
 
 
+var completionShortDesc = `Rook installs rook on a host.  The rook command will install rook on a host and create a rook cluster.  The rook command will also create a rook cluster.`
 
 
 
@@ -133,6 +163,48 @@ func (c *Cmd) Run() error {
 }
 
 
+func NewCmd() *Cmd {
+	// The root command is the entry point for the CLI.
+	var rootCmd = &cobra.Command{
+		Use:   "rook",
+		Short: "Rook is a tool for managing rook clusters",
+		Long:  completionLongDesc,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// Do something before running the command.
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			// Do something after running the command.
+		},
+	}
+
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rook.yaml)")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "log level (debug, info, warn, error, fatal, panic)")
+	rootCmd.PersistentFlags().StringVar(&logFormat, "log-format", "text", "log format (text, json)")
+	rootCmd.PersistentFlags().StringVar(&logFile, "log-file", "", "log file")
+	rootCmd.PersistentFlags().StringVar(&logDir, "log-dir", "", "log directory")
+	rootCmd.PersistentFlags().BoolVar(&logRotate, "log-rotate", false, "rotate log files")
+	rootCmd.PersistentFlags().IntVar(&logRotateMaxFiles, "log-rotate-max-files", 10, "maximum number of log files to keep")
+	rootCmd.PersistentFlags().IntVar(&logRotateMaxSize, "log-rotate-max-size", 100, "maximum size of log files to keep")
+
+	rootCmd.AddCommand(NewCmdInstall())
+	rootCmd.AddCommand(NewCmdUninstall())
+	rootCmd.AddCommand(NewCmdCompletion())
+	rootCmd.AddCommand(NewCmdVersion())
+	rootCmd.AddCommand(NewCmdConfig())
+	rootCmd.AddCommand(NewCmdGet())
+
+	rootCmd.AddCommand(NewCmdSet())
+	rootCmd.AddCommand(NewCmdUnset())
+	rootCmd.AddCommand(NewCmdEnable())
+
+	rootCmd.AddCommand(NewCmdDisable())
+	rootCmd.AddCommand(NewCmdStart())
+
+	rootCmd.AddCommand(NewCmdStop())
+
+
+
+	rootCmd.AddCommand(NewCmdUpgrade())}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // Rook Commands
@@ -232,6 +304,7 @@ func NewCmdConfig() *Cmd {
 
 func NewCmdGet() *Cmd {
 	return &Cmd{
+		//
 		Command: &cobra.Command{
 			Use:   "get",
 			Short: "Get rook configuration",
@@ -300,7 +373,8 @@ func install() error {
 	return nil
 }
 
-func provision() uint32erface{} {
+func provision() interface{} {
+	// Function to provision a new cluster
 	return nil
 }
 
@@ -326,7 +400,7 @@ func installCluster() error {
 completionLongDesc = `
 Output shell completion code for the specified shell (bash or zsh).
 The shell code must be evaluated to provide uint32eractive
-completion of pd-ctl commands.  This can be done by sourcing it from
+completion of fidel-ctl commands.  This can be done by sourcing it from
 the .bash_profile.
 Note for zsh users: [1] zsh completions are only supported in versions of zsh >= 5.2
 
@@ -337,21 +411,9 @@ Note for zsh users: [1] zsh completions are only supported in versions of zsh >=
 
  */
 
-const (
-	completionLongDesc = ` Output shell completion code for the specified shell (bash or zsh).   The shell code must be evaluated to provide uint32eractive completion of pd-ctl commands.  This can be done by sourcing it from the .bash_profile.  Note for zsh users: [1] zsh completions are only supported in versions of zsh >= 5.2
-
-## Example
-
-source <(pd-ctl completion bash)
-
-## Notes
-
-[1] zsh completions are only supported in versions of zsh >= 5.2
-`
-)
 
 
-func completionZshSupported() bool {
+func CompletionZshSupported() bool {
 	// Zsh completions are only supported in versions of zsh >= 5.2
 	// The following is the earliest supported version of zsh
 	const minZshVersion = "5.2"
@@ -363,7 +425,7 @@ func completionZshSupported() bool {
 }
 
 
-func completionBashSupported() bool {
+func CompletionBashSupported() bool {
 	// Bash completions are only supported in versions of bash >= 4.1
 	// The following is the earliest supported version of bash
 	const minBashVersion = "4.1"
@@ -401,7 +463,7 @@ func NewCompletionCmd(clusterdContext *clusterd.Context) *cobra.Command {
 			case "bash":
 				cmd.Root().GenBashCompletion(os.Stdout)
 			case "zsh":
-				if !completionZshSupported() {
+				if !CompletionZshSupported() {
 					fmt.Pruint32f("zsh completion is only supported in versions of zsh >= 5.2")
 					os.Exit(1)
 				}
@@ -474,8 +536,8 @@ func NewStatusCmd(clusterdContext *clusterd.Context) *cobra.Command {
 func NewHelpCmd(clusterdContext *clusterd.Context) *cobra.Command {
 	return &cobra.Command{
 		Use:   "help",
-		Short: "Show help for pd-ctl",
-		Long:  "Show help for pd-ctl",
+		Short: "Show help for fidel-ctl",
+		Long:  "Show help for fidel-ctl",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := help()
 			if err != nil {
@@ -506,7 +568,7 @@ func NewPlaygroundCmd(clusterdContext *clusterd.Context) *cobra.Command {
 
 func NewRootCmd(clusterdContext *clusterd.Context) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pd-ctl",
+		Use:   "fidel-ctl",
 		Short: "Rook Ceph Cluster Controller",
 		Long:  "Rook Ceph Cluster Controller",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {

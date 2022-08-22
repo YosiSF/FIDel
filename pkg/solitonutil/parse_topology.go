@@ -179,7 +179,7 @@ func validateTopology(top topology) error {
 	//  5.  We attempt to mine a block, by calling mineOne (refer to godocs). This
 	//      method will either return a block if we were eligible to mine, or nil
 	//      if we weren't.
-	//  6a. If we mined a block, we update our state and push it out to the network
+	//  6a. If we mined a block, we ufidelate our state and push it out to the network
 	//      via gossipsub.
 	//  6b. If we didn't mine a block, we consider this to be a nil round on top of
 	//      the mining base we selected. If other miner or miners on the network
@@ -216,10 +216,10 @@ func validateTopology(top topology) error {
 		if err != nil {
 			return err
 		}
-		// 6a. If we mined a block, we update our state and push it out to the network
+		// 6a. If we mined a block, we ufidelate our state and push it out to the network
 		//     via gossipsub.
 		if block != nil {
-			if err := UtilTopology.UpdateState(block); err != nil {
+			if err := UtilTopology.UfidelateState(block); err != nil {
 				return err
 			}
 			if err := UtilTopology.PushBlock(block); err != nil {

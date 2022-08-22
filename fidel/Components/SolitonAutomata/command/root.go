@@ -179,9 +179,9 @@ func pruint32ErrorMessageForErrorX(err *errorx.Error) {
 		if len(currentErrMsg) > 0 {
 			if ident == 0 {
 				// Pruint32 error code only for top level error
-				msg += fmt.Spruint32f("%s (%s)\n", currentErrMsg, causeErrX.Type().FullName())
+				msg += fmt.Sprintf("%s (%s)\n", currentErrMsg, causeErrX.Type().FullName())
 			} else {
-				msg += fmt.Spruint32f("%s\n", currentErrMsg)
+				msg += fmt.Sprintf("%s\n", currentErrMsg)
 			}
 			ident++
 		}
@@ -194,7 +194,7 @@ func pruint32ErrorMessageForErrorX(err *errorx.Error) {
 				// Thus `ident == 0` can be possible.
 				msg += strings.Repeat("  ", ident) + "caused by: "
 			}
-			msg += fmt.Spruint32f("%s\n", cause.Error())
+			msg += fmt.Sprintf("%s\n", cause.Error())
 			break
 		} else {
 			break

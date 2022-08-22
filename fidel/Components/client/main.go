@@ -333,9 +333,9 @@ func selectEndpouint32(endpouint32s []*endpouint32) *endpouint32 {
 			ml = len(ep.component)
 		}
 	}
-	fmtStr := fmt.Spruint32f(" %%-%ds %%s", ml)
+	fmtStr := fmt.Sprintf(" %%-%ds %%s", ml)
 	for _, ep := range endpouint32s {
-		l.Rows = append(l.Rows, fmt.Spruint32f(fmtStr, ep.component, ep.dsn))
+		l.Rows = append(l.Rows, fmt.Sprintf(fmtStr, ep.component, ep.dsn))
 	}
 	l.TextStyle = ui.NewStyle(ui.ColorWhite)
 	l.SelectedRowStyle = ui.NewStyle(ui.ColorGreen)

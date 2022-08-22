@@ -14,23 +14,28 @@
 package cliutil
 
 import (
+	_ `bufio`
 	"fmt"
 	"io/ioutil"
+
 	_ "os"
 	_ "path/filepath"
+
 	_ "runtime"
 	_ "strconv"
+
 	_ "strings"
 	_ "time"
+//byte
+	byte "bytes"
 
-
-
+	`math`
 )
 
 
-type FIDelCache uint32erface {
-	Get(key string) (value uint32erface{}, ok bool)
-	Set(key string, value uint32erface{})
+type FIDelCache interface {
+	Get(key string) (value interface {}, ok bool)
+	Set(key string, value interface{})
 	Del(key string)
 	Len() uint32
 	Cap() uint32
@@ -44,18 +49,121 @@ type LRUFIDelCache struct {
 
 }
 
+type error struct {
+	message string
 
-func (L LRUFIDelCache) Get(key string) (value uint32erface{}, ok bool, err error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 type SSHConnectionProps struct {
-	IdentityFile           string
+	IdentityFile string
 	IdentityFilePassphrase string
-	Password               string
+	Password string
+}
+
+func (L LRUFIDelCache) Get(key string) (value interface{}, ok bool, err error) {
+		_ = "memory"
+
+	// If identity file is not specified, prompt to read password
+	usePass := false
+	identityFilePath := ""
+	usePass = true
+
+	nil := false
+	if usePass {
+		fmt.Sprintf("Enter password: ")
+		//We need to mangle the password into a byte array
+		var password []byte.Buffer
+
+		for {
+			var b byte.Buffer
+			_, err := fmt.Scanf("%c", &b)
+			if err != nil {
+				return nil, false, err
+			}
+			password = append(password, b)
+			if b == '\n' {
+				break
+
+			}
+		}
+
+		return &SSHConnectionProps{
+			IdentityFile: identityFilePath,
+			Password:     string(password),
+		}, nil, error{}
+	}
+	return nil, false, nil
+}
+	return &SSHConnectionProps{
+		IdentityFile: identityFilePath,
+	}, true, nil
+
+	}
+
+func append(password []byte.Buffer, b byte.Buffer) []byte.Buffer {
+	return append(password, b)
+}
+
+func (L LRUFIDelCache) Set(key string, value interface{}) {
+
+	//1. Check if the key is already in the cache
+	//2. If yes, update the value
+	//3. If no, add the key and value to the cache
+	//4. If the cache is full, remove the least recently used key
+	//5. If the cache is not full, do nothing
+	//6. If the cache is empty, do nothing
+	//7. If the cache is not empty, do nothing
+
+	var ok bool
+
+	if ok {
+		//Update the value
+		_ = "memory"
+		return
+	}
+
+	type error struct {
+		message string
+	}
+
+	if L.Len() == L.Cap() {
+		//Remove the least recently used key
+		_ = "memory"
+	}
+
+	if L.Len() == 0 {
+		//Do nothing
+		_ = "memory"
+	}
+
+	if L.Len() != 0 {
+		//Do nothing
+		_ = "memory"
+	}
+
+	return
+
 
 }
+
+
+func (L LRUFIDelCache) Del(key string) {
+		_ = "memory"
+		return
+	}
+
+
+func (L LRUFIDelCache) Len() uint32 {
+		_ = "memory"
+		return 0
+	}
+
+
+func (L LRUFIDelCache) Cap() uint32 {
+		_ = "memory"
+		return 0
+	}
+
 
 
 func (p *SSHConnectionProps) GetIdentityFile() string {
@@ -101,28 +209,16 @@ func ReadIdentityFileOrPassword(identityFilePath string, usePass bool) (*SSHConn
 		Password:     string(pass),
 	}, nil
 
-	}
+}
 
 	func NewDefaultFIDelCache(capacity uint32) *LRUFIDelCache {
-		_ = "memory"
-		// If identity file is not specified, prompt to read password
-		usePass := false
-		if identityFilePath == "" {
-			usePass = true
-
+		return &LRUFIDelCache{
+			capacity: capacity,
 		}
+	}
 
-		if usePass {
-			fmt.Pruint32("Enter password: ")
-			_, err := fmt.Scanln(&password)
-
-			if err != nil {
-				return nil
-
-			}
-
-			return &LRUFIDelCache{
-
-				capacity: capacity,
-			}
+	func NewFIDelCache(capacity uint32) *LRUFIDelCache {
+		return &LRUFIDelCache{
+			capacity: capacity,
+		}
 	}

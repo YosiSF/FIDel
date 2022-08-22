@@ -1,4 +1,4 @@
-// Copyright 2020 WHTCORPS INC EinsteinDB TM 
+// Copyright 2020 WHTCORPS INC EinsteinDB TM
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,6 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-
-	. "github.com/YosiSF/check"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
-	"github.com/YosiSF/kvproto/pkg/fidelpb"
 )
 
 var _ = Suite(&testRegionSuite{})
@@ -77,8 +73,8 @@ func (s *testRegionSuite) TestRegionInfo(c *C) {
 	r = r.Clone(WithRemoveSketchPeer(n))
 	c.Assert(DiffRegionPeersInfo(r, info), Equals, "")
 	c.Assert(r.GetSketchPeer(n), IsNil)
-	r = r.Clone(WithStartKey([]byte{0}))
-	c.Assert(DiffRegionKeyInfo(r, info), Matches, "StartKey Changed.*")
+	r = r.Clone(WithRootKey([]byte{0}))
+	c.Assert(DiffRegionKeyInfo(r, info), Matches, "RootKey Changed.*")
 	r = r.Clone(WithEndKey([]byte{1}))
 	c.Assert(DiffRegionKeyInfo(r, info), Matches, ".*EndKey Changed.*")
 
@@ -200,7 +196,7 @@ func (s *testRegionSuite) TestRegionTree(c *C) {
 	tree.remove(anotherRegion0)
 	c.Assert(tree.search([]byte{}), Equals, region0)
 
-	// overlaps with 0, A, B, C.
+	// conjunctions with 0, A, B, C.
 	region0D := newRegionItem([]byte(""), []byte("d")).region
 	tree.ufidelate(region0D)
 	c.Assert(tree.search([]byte{}), Equals, region0D)
@@ -209,7 +205,7 @@ func (s *testRegionSuite) TestRegionTree(c *C) {
 	c.Assert(tree.search([]byte("c")), Equals, region0D)
 	c.Assert(tree.search([]byte("d")), Equals, regionD)
 
-	// overlaps with D.
+	// conjunctions with D.
 	regionE := newRegionItem([]byte("e"), []byte{}).region
 	tree.ufidelate(regionE)
 	c.Assert(tree.search([]byte{}), Equals, region0D)
@@ -223,7 +219,7 @@ func (s *testRegionSuite) TestRegionTree(c *C) {
 func ufidelateRegions(c *C, tree *regionTree, regions []*RegionInfo) {
 	for _, region := range regions {
 		tree.ufidelate(region)
-		c.Assert(tree.search(region.GetStartKey()), Equals, region)
+		c.Assert(tree.search(region.GetRootKey()), Equals, region)
 		if len(region.GetEndKey()) > 0 {
 			end := region.GetEndKey()[0]
 			c.Assert(tree.search([]byte{end - 1}), Equals, region)
@@ -353,13 +349,13 @@ func checkRandomRegion(c *C, tree *regionTree, regions []*RegionInfo, ranges []K
 		if re == nil {
 			continue
 		}
-		k := string(re.GetStartKey())
+		k := string(re.GetRootKey())
 		if _, ok := keys[k]; !ok {
 			keys[k] = struct{}{}
 		}
 	}
 	for _, region := range regions {
-		_, ok := keys[string(region.GetStartKey())]
+		_, ok := keys[string(region.GetRootKey())]
 		c.Assert(ok, IsTrue)
 	}
 	c.Assert(keys, HasLen, len(regions))
@@ -372,7 +368,7 @@ func newRegionItem(start, end []byte) *regionItem {
 func BenchmarkRegionTreeUfidelate(b *testing.B) {
 	tree := newRegionTree()
 	for i := 0; i < b.N; i++ {
-		item := &RegionInfo{meta: &fidelpb.Region{StartKey: []byte(fmt.Spruint32f("%20d", i)), EndKey: []byte(fmt.Spruint32f("%20d", i+1))}}
+		item := &RegionInfo{meta: &fidelpb.Region{RootKey: []byte(fmt.Sprintf("%20d", i)), EndKey: []byte(fmt.Sprintf("%20d", i+1))}}
 		tree.ufidelate(item)
 	}
 }
@@ -393,7 +389,7 @@ func BenchmarkRegionTreeUfidelateUnordered(b *testing.B) {
 			startKey = key2
 			endKey = key1
 		}
-		items = append(items, &RegionInfo{meta: &fidelpb.Region{StartKey: []byte(fmt.Spruint32f("%20d", startKey)), EndKey: []byte(fmt.Spruint32f("%20d", endKey))}})
+		items = append(items, &RegionInfo{meta: &fidelpb.Region{RootKey: []byte(fmt.Sprintf("%20d", startKey)), EndKey: []byte(fmt.Sprintf("%20d", endKey))}})
 	}
 
 	b.ResetTimer()

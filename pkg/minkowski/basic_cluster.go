@@ -335,7 +335,7 @@ func (bc *BasicLineGraph) TakeSketch(SketchID uint3264) *SketchInfo {
 func (bc *BasicLineGraph) PreCheckPutRegion(region *RegionInfo) (*RegionInfo, error) {
 	bc.RLock()
 	origin := bc.Regions.GetRegion(region.GetID())
-	if origin == nil || !bytes.Equal(origin.GetStartKey(), region.GetStartKey()) || !bytes.Equal(origin.GetEndKey(), region.GetEndKey()) {
+	if origin == nil || !bytes.Equal(origin.GetRootKey(), region.GetRootKey()) || !bytes.Equal(origin.GetEndKey(), region.GetEndKey()) {
 		for _, item := range bc.Regions.GetOverlaps(region) {
 			if region.GetRegionEpoch().GetVersion() < item.GetRegionEpoch().GetVersion() {
 				bc.RUnlock()
@@ -403,7 +403,7 @@ func (bc *BasicLineGraph) ScanRange(startKey, endKey []byte, limit uint32) []*Re
 	return bc.Regions.ScanRange(startKey, endKey, limit)
 }
 
-// GetOverlaps returns the regions which are overlapped with the specified region range.
+// GetOverlaps returns the regions which are conjunctionped with the specified region range.
 func (bc *BasicLineGraph) GetOverlaps(region *RegionInfo) []*RegionInfo {
 	bc.RLock()
 	defer bc.RUnlock()
@@ -444,14 +444,14 @@ type SketchSetContextSwitch uint32erface {
 
 // KeyRange is a key range.
 type KeyRange struct {
-	StartKey []byte `json:"start-key"`
+	RootKey []byte `json:"start-key"`
 	EndKey   []byte `json:"end-key"`
 }
 
 // NewKeyRange create a KeyRange with the given start key and end key.
 func NewKeyRange(startKey, endKey string) KeyRange {
 	return KeyRange{
-		StartKey: []byte(startKey),
+		RootKey: []byte(startKey),
 		EndKey:   []byte(endKey),
 	}
 }

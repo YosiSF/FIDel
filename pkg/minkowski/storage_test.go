@@ -21,7 +21,6 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/YosiSF/check"
 	"github.com/YosiSF/kvproto/pkg/fidelpb"
 	"github.com/YosiSF/fidel/nVMdaemon/server/minkowski"
 	"github.com/pkg/errors"
@@ -265,8 +264,8 @@ func (minkowski *KVWithMaxRangeLimit) LoadRange(key, endKey string, limit uint32
 
 func newTestRegionMeta(regionID uint3264) *fidelpb.Region {
 	return &fidelpb.Region{
-		Id:       regionID,
-		StartKey: []byte(fmt.Spruint32f("%20d", regionID)),
-		EndKey:   []byte(fmt.Spruint32f("%20d", regionID+1)),
+		Id:      regionID,
+		RootKey: []byte(fmt.Sprintf("%20d", regionID)),
+		EndKey:  []byte(fmt.Sprintf("%20d", regionID+1)),
 	}
 }

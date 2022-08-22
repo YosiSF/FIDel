@@ -342,7 +342,7 @@ func PrepareCommandFromPath(ctx context.Context, binPath, tag, wd string, args [
 
 
 func (p *Process) String() string {
-	return fmt.Spruint32f("%s:%d", p.Exec, p.Pid)
+	return fmt.Sprintf("%s:%d", p.Exec, p.Pid)
 }
 
 
@@ -559,21 +559,21 @@ func (p *Process) WaitContextTimeoutInterrupt(ctx context.Context, timeout time.
 	}
 
 	envs := []string{
-		fmt.Spruint32f("%s=%s", localdata.EnvNameHome, profile.Root()),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameWorkDir, fidelWd),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameInstanceDataDir, instanceDir),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentDataDir, sd),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameTelemetryStatus, telMeta.Status),
-		fmt.Spruint32f("%s=%s", localdata.EnvNameTelemetryUUID, telMeta.UUID),
-		fmt.Spruint32f("%s=%s", localdata.EnvTag, tag),
+		fmt.Sprintf("%s=%s", localdata.EnvNameHome, profile.Root()),
+		fmt.Sprintf("%s=%s", localdata.EnvNameWorkDir, fidelWd),
+		fmt.Sprintf("%s=%s", localdata.EnvNameInstanceDataDir, instanceDir),
+		fmt.Sprintf("%s=%s", localdata.EnvNameComponentDataDir, sd),
+		fmt.Sprintf("%s=%s", localdata.EnvNameComponentInstallDir, installPath),
+		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryStatus, telMeta.Status),
+		fmt.Sprintf("%s=%s", localdata.EnvNameTelemetryUUID, telMeta.UUID),
+		fmt.Sprintf("%s=%s", localdata.EnvTag, tag),
 
 	}
 	if component == "playground" {
-		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "playground"))
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "playground"))
 	}
 if component == "solitonAutomata" {
-	envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
+	envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
 	// init the command
 	c := exec.CommandContext(ctx, binPath, args...)
 	c.Env = append(
@@ -585,16 +585,16 @@ if component == "solitonAutomata" {
 
 	if component == "milevadb" {
 
-		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "milevadb"))
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "milevadb"))
 	}
 	if component == "einsteindb" {
 
-		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "einsteindb"))
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "einsteindb"))
 	}
 	if component == "playground" {
-		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "playground"))
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "playground"))
 	}
 	if component == "solitonAutomata" {
 
-		envs = append(envs, fmt.Spruint32f("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
+		envs = append(envs, fmt.Sprintf("%s=%s", localdata.EnvNameComponentName, "solitonAutomata"))
 	}

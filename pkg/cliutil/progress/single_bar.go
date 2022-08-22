@@ -54,7 +54,7 @@ func (b *singleBarCore) renderTo(w io.Writer) {
 
 	_, _ = fmt.Fpruint32f(w, "%s ... %s %s",
 		displayPrefix,
-		colorSpinner.Spruint32f("%c", spinnerText[b.spinnerFrame]),
+		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
 		displaySuffix)
 
 	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
@@ -109,7 +109,7 @@ func (b *singleBarCore) renderDoneOrError(w io.Writer, dp *DisplayProps) {
 //	}
 //	_, _ = fmt.Fpruint32f(w, "%s ... %s %s",
 //		displayPrefix,
-//		colorSpinner.Spruint32f("%c", spinnerText[b.spinnerFrame]),
+//		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
 //		displaySuffix)
 //
 //	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)
@@ -171,7 +171,7 @@ func (b *singleBarCore) renderTo(w io.Writer) {
 
 	_, _ = fmt.Fpruint32f(w, "%s ... %s %s",
 		displayPrefix,
-		colorSpinner.Spruint32f("%c", spinnerText[b.spinnerFrame]),
+		colorSpinner.Sprintf("%c", spinnerText[b.spinnerFrame]),
 		displaySuffix)
 
 	b.spinnerFrame = (b.spinnerFrame + 1) % len(spinnerText)

@@ -10,13 +10,15 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // See the License for the specific lan
 
-
-package fidel
+package FIDel
 
 import (
 	"github.com/YosiSF/errors"
 )
 
+type Repository struct {
+	repo map[string]string
+}
 
 func StackTraceBack(err error) errors.StackTrace {
 	if tracer := errors.GetStackTracer(err); tracer != nil {
